@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ApiProvider, GlareAnalysisProvider, useApi } from '@/contexts'
+import { ApiProvider, GlareAnalysisProvider, PipelineProvider, useApi } from '@/contexts'
 import BoLumiCloudHeader from './BoLumiCloudHeader'
 import Navbar from '@/components/Navigation/Navbar'
 import Footer from '@/components/Navigation/Footer'
@@ -20,6 +20,7 @@ import ToneMapping from '@/components/BoLumiCloud/ToneMapping'
 import MaterialLibrary from '@/components/BoLumiCloud/MaterialLibrary'
 import DaylightAnalysis from '@/components/BoLumiCloud/DaylightAnalysis'
 import RenderScene from '@/components/BoLumiCloud/RenderScene'
+import SketchUpPipelineTab from '@/components/BoLumiCloud/tabs/SketchUpPipelineTab'
 import { useGlareAnalysisContext } from '@/contexts/GlareAnalysisContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
@@ -28,6 +29,7 @@ type Category = 'analysis' | 'convert' | 'generate' | 'simulate' | 'compliance'
 
 const txt = {
   glare: { ko: '현휘 확인', en: 'Glare Check' } as LocalizedText,
+  pipeline: { ko: 'SketchUp 파이프라인', en: 'SketchUp Pipeline' } as LocalizedText,
   daylight: { ko: '일조 확인', en: 'Daylight Check' } as LocalizedText,
   format: { ko: '형식 변환', en: 'Format Convert' } as LocalizedText,
   tone: { ko: '톤 매핑', en: 'Tone Mapping' } as LocalizedText,
@@ -90,6 +92,7 @@ function BoLumiCloudInner() {
                 const subTabsMap: Record<Category, { id: string; label: string; status?: 'coming' }[]> = {
                   analysis: [
                     { id: 'glare', label: t(txt.glare) },
+                    { id: 'pipeline', label: t(txt.pipeline) },
                     { id: 'daylight', label: t(txt.daylight) }
                   ],
                   convert: [
@@ -126,6 +129,7 @@ function BoLumiCloudInner() {
               tabs={
                 category === 'analysis' ? [
                   { id: 'glare', label: t(txt.glare) },
+                  { id: 'pipeline', label: t(txt.pipeline) },
                   { id: 'daylight', label: t(txt.daylight) }
                 ] :
                 category === 'convert' ? [
@@ -160,6 +164,8 @@ function BoLumiCloudInner() {
           <div className="max-w-7xl mx-auto">
             {category === 'analysis' && subTab === 'glare' ? (
             <GlareAnalysisTab />
+            ) : category === 'analysis' && subTab === 'pipeline' ? (
+            <SketchUpPipelineTab />
             ) : category === 'convert' && subTab === 'format' ? (
             <FileConversion apiUrl={apiUrl} />
             ) : category === 'convert' && subTab === 'adjust' ? (
@@ -237,7 +243,7 @@ function BoLumiCloudInner() {
                 <p className="text-xs text-gray-800">
                   BoLumiCloud - Lighting Analysis Dashboard |
                   EAN Technology Research Division |
-                  pyradiance 1.1.5 + Radiance 6.1 |
+                  pyradiance 1.2.0 + Radiance 6.1 |
                   {t(txt.version)}
                 </p>
               </div>
@@ -254,7 +260,9 @@ export default function BoLumiCloudContent() {
   return (
     <ApiProvider>
       <GlareAnalysisProvider>
-        <BoLumiCloudInner />
+        <PipelineProvider>
+          <BoLumiCloudInner />
+        </PipelineProvider>
       </GlareAnalysisProvider>
     </ApiProvider>
   )
