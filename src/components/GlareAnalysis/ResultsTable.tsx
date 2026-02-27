@@ -161,10 +161,10 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 className="border-b border-gray-100 hover:bg-gray-50"
               >
                 <td className="p-3 font-mono text-xs">{row.file}</td>
-                <td className="p-3 text-right text-gray-700">{row.average.toFixed(2)}</td>
-                <td className="p-3 text-right text-gray-700">{row.max.toFixed(2)}</td>
-                <td className="p-3 text-right text-gray-700">{row.dgp.toFixed(3)}</td>
-                <td className="p-3 text-right text-gray-700">{row.dgi.toFixed(2)}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.average).toFixed(2)}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.max).toFixed(2)}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.dgp).toFixed(3)}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.dgi).toFixed(2)}</td>
                 <td className="p-3 text-center">
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold ${
