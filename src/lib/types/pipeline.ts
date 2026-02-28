@@ -14,7 +14,7 @@ export const DATE_PRESETS: AnalysisDate[] = [
   { month: 12, day: 21, label: '동지' },
 ]
 
-export const MAX_RENDERS = 600
+export const MAX_RENDERS = 800
 
 export interface PipelineConfig {
   latitude: number       // 양수 (동경)
