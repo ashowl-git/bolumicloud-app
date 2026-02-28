@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { MaterialOverride, RadianceMaterialType } from '@/lib/types/pipeline'
-import { MATERIAL_TYPE_LABELS } from '@/lib/types/pipeline'
+import type { MaterialOverride } from '@/lib/types/pipeline'
+import type { RadianceMaterialType } from '@/lib/types/pipeline'
 
 interface MaterialEditorProps {
   apiUrl: string
@@ -12,6 +12,26 @@ interface MaterialEditorProps {
   disabled?: boolean
 }
 
+// --- Glass presets ---
+interface GlassPreset {
+  label: string
+  desc: string
+  r: number; g: number; b: number
+  transmissivity: number
+  specularity: number
+}
+
+const GLASS_PRESETS: GlassPreset[] = [
+  { label: '클리어 6mm',     desc: 'T=0.88',  r: 0.96, g: 0.96, b: 0.96, transmissivity: 0.88, specularity: 0.08 },
+  { label: 'Low-E 더블',     desc: 'T=0.65',  r: 0.80, g: 0.80, b: 0.80, transmissivity: 0.65, specularity: 0.12 },
+  { label: 'Low-E 트리플',   desc: 'T=0.50',  r: 0.71, g: 0.71, b: 0.71, transmissivity: 0.50, specularity: 0.15 },
+  { label: '브론즈 유리',     desc: 'T=0.55',  r: 0.75, g: 0.60, b: 0.45, transmissivity: 0.55, specularity: 0.06 },
+  { label: '그레이 유리',     desc: 'T=0.50',  r: 0.65, g: 0.65, b: 0.65, transmissivity: 0.50, specularity: 0.06 },
+  { label: '그린 유리',       desc: 'T=0.75',  r: 0.55, g: 0.85, b: 0.60, transmissivity: 0.75, specularity: 0.06 },
+  { label: '블루 유리',       desc: 'T=0.60',  r: 0.50, g: 0.60, b: 0.85, transmissivity: 0.60, specularity: 0.06 },
+]
+
+// --- Helpers ---
 function colorToHex(r: number, g: number, b: number): string {
   const toHex = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, '0')
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
@@ -27,7 +47,22 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   }
 }
 
-const MAT_TYPES: RadianceMaterialType[] = ['plastic', 'trans', 'metal', 'glass']
+function autoType(mat: MaterialOverride): RadianceMaterialType {
+  if (mat.transmissivity > 0) {
+    return mat.trans_specular >= 0.9 ? 'glass' : 'trans'
+  }
+  return mat.mat_type === 'metal' ? 'metal' : 'plastic'
+}
+
+function typeLabel(mat: MaterialOverride): string {
+  const t = autoType(mat)
+  switch (t) {
+    case 'plastic': return '불투명'
+    case 'metal': return '금속'
+    case 'trans': return '반투명 (확산)'
+    case 'glass': return '투명 유리'
+  }
+}
 
 export default function MaterialEditor({
   apiUrl,
@@ -40,7 +75,6 @@ export default function MaterialEditor({
   const [expanded, setExpanded] = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
-  // Fetch materials from backend
   useEffect(() => {
     if (!sessionId) return
     setLoading(true)
@@ -64,6 +98,8 @@ export default function MaterialEditor({
     const current = overrides[name]
     if (!current) return
     const updated = { ...current, ...partial }
+    // Auto-determine mat_type
+    updated.mat_type = autoType(updated)
     onChange({ ...overrides, [name]: updated })
   }, [overrides, onChange])
 
@@ -72,19 +108,23 @@ export default function MaterialEditor({
     handleUpdate(name, { r, g, b })
   }, [handleUpdate])
 
-  const handleTypeChange = useCallback((name: string, mat_type: RadianceMaterialType) => {
-    const defaults: Partial<MaterialOverride> = { mat_type }
-    // Reset type-specific defaults
-    if (mat_type === 'glass') {
-      defaults.specularity = 0
-      defaults.roughness = 0
-      defaults.transmissivity = 0
-      defaults.trans_specular = 0
-    } else if (mat_type === 'trans') {
-      defaults.transmissivity = overrides[name]?.transmissivity || 0.3
-      defaults.trans_specular = 0.05
-    }
-    handleUpdate(name, defaults)
+  const applyGlassPreset = useCallback((name: string, preset: GlassPreset) => {
+    handleUpdate(name, {
+      r: preset.r,
+      g: preset.g,
+      b: preset.b,
+      transmissivity: preset.transmissivity,
+      specularity: preset.specularity,
+      roughness: 0,
+      trans_specular: 1.0, // clear glass = specular transmission
+    })
+  }, [handleUpdate])
+
+  const toggleMetal = useCallback((name: string) => {
+    const current = overrides[name]
+    if (!current) return
+    const isMetal = current.mat_type === 'metal'
+    handleUpdate(name, { mat_type: isMetal ? 'plastic' : 'metal' })
   }, [overrides, handleUpdate])
 
   const matList = Object.values(overrides)
@@ -104,7 +144,6 @@ export default function MaterialEditor({
 
   return (
     <div className="border border-gray-200 p-6">
-      {/* Header with toggle */}
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -120,70 +159,48 @@ export default function MaterialEditor({
 
       {!expanded && (
         <p className="text-xs text-gray-400 mt-2">
-          MTL에서 {matList.length}개 재질 감지됨. 펼쳐서 투과율, 반사율, 색상 등을 수정할 수 있습니다.
+          {matList.length}개 재질 감지됨. 색상, 투과율, 반사율 등을 수정할 수 있습니다.
         </p>
       )}
 
       {expanded && (
         <div className="mt-4 space-y-2">
-          {/* Material list */}
           {matList.map((mat, idx) => {
             const isEditing = editingIdx === idx
             const hex = colorToHex(mat.r, mat.g, mat.b)
+            const isTranslucent = mat.transmissivity > 0
+            const isMetal = mat.mat_type === 'metal'
 
             return (
               <div key={mat.name} className="border border-gray-100">
-                {/* Material row header */}
+                {/* Row header */}
                 <button
                   type="button"
                   onClick={() => setEditingIdx(isEditing ? null : idx)}
                   disabled={disabled}
                   className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
                 >
-                  {/* Color chip */}
                   <div
                     className="w-6 h-6 border border-gray-300 flex-shrink-0"
-                    style={{ backgroundColor: hex }}
+                    style={{
+                      backgroundColor: hex,
+                      opacity: isTranslucent ? 0.5 + (1 - mat.transmissivity) * 0.5 : 1,
+                    }}
                   />
-                  {/* Name */}
                   <span className="text-sm font-mono text-gray-700 flex-1 truncate">{mat.name}</span>
-                  {/* Type badge */}
                   <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5">
-                    {MATERIAL_TYPE_LABELS[mat.mat_type]}
+                    {typeLabel(mat)}
                   </span>
-                  {/* Expand arrow */}
                   <span className="text-gray-400 text-xs">{isEditing ? '▲' : '▼'}</span>
                 </button>
 
-                {/* Expanded editor */}
+                {/* Editor panel */}
                 {isEditing && (
-                  <div className="border-t border-gray-100 p-4 space-y-4 bg-gray-50/50">
-                    {/* Type selector */}
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1.5 block">재질 타입</label>
-                      <div className="flex gap-2">
-                        {MAT_TYPES.map(t => (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => handleTypeChange(mat.name, t)}
-                            disabled={disabled}
-                            className={`px-3 py-1.5 text-xs border transition-all ${
-                              mat.mat_type === t
-                                ? 'border-red-600 text-red-600 bg-red-50'
-                                : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                            } disabled:opacity-50`}
-                          >
-                            {MATERIAL_TYPE_LABELS[t]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Color picker */}
+                  <div className="border-t border-gray-100 p-4 space-y-5 bg-gray-50/50">
+                    {/* 1. Color */}
                     <div>
                       <label className="text-xs text-gray-500 mb-1.5 block">
-                        색상 (RGB: {mat.r.toFixed(3)}, {mat.g.toFixed(3)}, {mat.b.toFixed(3)})
+                        색상 (R:{mat.r.toFixed(2)} G:{mat.g.toFixed(2)} B:{mat.b.toFixed(2)})
                       </label>
                       <div className="flex items-center gap-3">
                         <input
@@ -204,69 +221,144 @@ export default function MaterialEditor({
                       </div>
                     </div>
 
-                    {/* Specularity + Roughness (not for glass) */}
-                    {mat.mat_type !== 'glass' && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1.5 block">
-                            반사율 (Specularity): {mat.specularity.toFixed(3)}
-                          </label>
-                          <input
-                            type="range"
-                            min={0} max={1} step={0.01}
-                            value={mat.specularity}
-                            onChange={(e) => handleUpdate(mat.name, { specularity: Number(e.target.value) })}
-                            disabled={disabled}
-                            className="w-full accent-red-600"
-                          />
+                    {/* 2. Metal toggle */}
+                    <div className="flex items-center gap-3">
+                      <label className="text-xs text-gray-500">금속 재질</label>
+                      <button
+                        type="button"
+                        onClick={() => toggleMetal(mat.name)}
+                        disabled={disabled || isTranslucent}
+                        className={`px-3 py-1 text-xs border transition-all ${
+                          isMetal
+                            ? 'border-red-600 text-red-600 bg-red-50'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                        } disabled:opacity-50`}
+                      >
+                        {isMetal ? 'ON' : 'OFF'}
+                      </button>
+                      {isTranslucent && (
+                        <span className="text-[10px] text-gray-400">{'투과율 > 0이면 금속 불가'}</span>
+                      )}
+                    </div>
+
+                    {/* 3. Specularity + Roughness */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1.5 block">
+                          반사율: {mat.specularity.toFixed(2)}
+                        </label>
+                        <input
+                          type="range"
+                          min={0} max={1} step={0.01}
+                          value={mat.specularity}
+                          onChange={(e) => handleUpdate(mat.name, { specularity: Number(e.target.value) })}
+                          disabled={disabled}
+                          className="w-full accent-red-600"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                          <span>무광</span><span>고광택</span>
                         </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1.5 block">
-                            거칠기 (Roughness): {mat.roughness.toFixed(3)}
-                          </label>
-                          <input
-                            type="range"
-                            min={0} max={1} step={0.01}
-                            value={mat.roughness}
-                            onChange={(e) => handleUpdate(mat.name, { roughness: Number(e.target.value) })}
-                            disabled={disabled}
-                            className="w-full accent-red-600"
-                          />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1.5 block">
+                          거칠기: {mat.roughness.toFixed(2)}
+                        </label>
+                        <input
+                          type="range"
+                          min={0} max={1} step={0.01}
+                          value={mat.roughness}
+                          onChange={(e) => handleUpdate(mat.name, { roughness: Number(e.target.value) })}
+                          disabled={disabled}
+                          className="w-full accent-red-600"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                          <span>매끈</span><span>거친</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4. Transmissivity */}
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1.5 block">
+                        투과율: {mat.transmissivity.toFixed(2)}
+                        {mat.transmissivity === 0 && ' (불투명)'}
+                        {mat.transmissivity > 0 && mat.transmissivity < 0.5 && ' (반투명)'}
+                        {mat.transmissivity >= 0.5 && ' (투명)'}
+                      </label>
+                      <input
+                        type="range"
+                        min={0} max={1} step={0.01}
+                        value={mat.transmissivity}
+                        onChange={(e) => handleUpdate(mat.name, { transmissivity: Number(e.target.value) })}
+                        disabled={disabled}
+                        className="w-full accent-red-600"
+                      />
+                      <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                        <span>불투명 (벽, 바닥)</span><span>완전 투명 (유리)</span>
+                      </div>
+                    </div>
+
+                    {/* 5. Trans specular (투과 선명도) — only when translucent */}
+                    {isTranslucent && (
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1.5 block">
+                          투과 선명도: {mat.trans_specular.toFixed(2)}
+                          {mat.trans_specular >= 0.9 && ' (투명 유리)'}
+                          {mat.trans_specular >= 0.5 && mat.trans_specular < 0.9 && ' (반투명)'}
+                          {mat.trans_specular < 0.5 && ' (불투명 유리/스크린)'}
+                        </label>
+                        <input
+                          type="range"
+                          min={0} max={1} step={0.01}
+                          value={mat.trans_specular}
+                          onChange={(e) => handleUpdate(mat.name, { trans_specular: Number(e.target.value) })}
+                          disabled={disabled}
+                          className="w-full accent-red-600"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                          <span>확산 (frosted glass)</span><span>직진 투과 (clear glass)</span>
                         </div>
                       </div>
                     )}
 
-                    {/* Transmissivity (trans only) */}
-                    {mat.mat_type === 'trans' && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1.5 block">
-                            투과율 (Transmissivity): {mat.transmissivity.toFixed(3)}
-                          </label>
-                          <input
-                            type="range"
-                            min={0} max={1} step={0.01}
-                            value={mat.transmissivity}
-                            onChange={(e) => handleUpdate(mat.name, { transmissivity: Number(e.target.value) })}
-                            disabled={disabled}
-                            className="w-full accent-red-600"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1.5 block">
-                            투과 반사율 (Trans Spec): {mat.trans_specular.toFixed(3)}
-                          </label>
-                          <input
-                            type="range"
-                            min={0} max={1} step={0.01}
-                            value={mat.trans_specular}
-                            onChange={(e) => handleUpdate(mat.name, { trans_specular: Number(e.target.value) })}
-                            disabled={disabled}
-                            className="w-full accent-red-600"
-                          />
+                    {/* 6. Glass presets — only when translucent */}
+                    {isTranslucent && (
+                      <div>
+                        <label className="text-xs text-gray-500 mb-2 block">유리 프리셋</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                          {GLASS_PRESETS.map((preset) => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => applyGlassPreset(mat.name, preset)}
+                              disabled={disabled}
+                              className="border border-gray-200 hover:border-red-600/30 px-2 py-1.5
+                                text-left transition-all disabled:opacity-50"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <div
+                                  className="w-3 h-3 border border-gray-300 flex-shrink-0"
+                                  style={{
+                                    backgroundColor: colorToHex(preset.r, preset.g, preset.b),
+                                    opacity: 0.7,
+                                  }}
+                                />
+                                <span className="text-[11px] text-gray-700">{preset.label}</span>
+                              </div>
+                              <p className="text-[10px] text-gray-400 mt-0.5">{preset.desc}</p>
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
+
+                    {/* Auto type indicator */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-[10px] text-gray-400">
+                        Radiance 타입: <span className="font-mono text-gray-600">{autoType(mat)}</span>
+                        {' '} (속성에 따라 자동 결정)
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
