@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { CITY_PRESETS } from '@/lib/types/pipeline'
 import type { AnalysisDate } from '@/lib/types/pipeline'
@@ -17,6 +17,9 @@ const txt = {
   timezone: { ko: '자오선 (동경)', en: 'Meridian (East)' } as LocalizedText,
   dates: { ko: '분석 날짜', en: 'Analysis Dates' } as LocalizedText,
   hours: { ko: '분석 시간', en: 'Analysis Hours' } as LocalizedText,
+  addressSearch: { ko: '주소 검색', en: 'Address Search' } as LocalizedText,
+  addressPlaceholder: { ko: '주소 입력 (예: 서울시 강남구 역삼동)', en: 'Enter address (e.g., Gangnam-gu Seoul)' } as LocalizedText,
+  searching: { ko: '검색 중...', en: 'Searching...' } as LocalizedText,
   sky: { ko: '하늘 유형', en: 'Sky Type' } as LocalizedText,
   sunny: { ko: '맑음+태양', en: 'Sunny+Sun' } as LocalizedText,
   cloudy: { ko: '흐림', en: 'Cloudy' } as LocalizedText,
@@ -46,8 +49,23 @@ const SKY_OPTIONS: { value: 'sunny_with_sun' | 'cloudy' | 'intermediate'; label:
   { value: 'intermediate', label: txt.intermediate },
 ]
 
+interface NominatimResult {
+  display_name: string
+  lat: string
+  lon: string
+}
+
+function getTimezone(lon: number): number {
+  // 경도 기반 표준시 자오선 계산 (15도 단위)
+  return Math.round(lon / 15) * 15
+}
+
 export default function LocationTimeConfig({ config, onChange, vfCount, disabled }: LocationTimeConfigProps) {
   const { t } = useLocalizedText()
+  const [addressQuery, setAddressQuery] = useState('')
+  const [addressResults, setAddressResults] = useState<NominatimResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleCityPreset = useCallback(
     (idx: number) => {
@@ -58,16 +76,92 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
           longitude: city.longitude,
           timezone: city.timezone,
         })
+        setAddressQuery('')
+        setAddressResults([])
       }
     },
     [onChange]
   )
+
+  const searchAddress = useCallback((query: string) => {
+    setAddressQuery(query)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (query.length < 2) {
+      setAddressResults([])
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=ko`,
+          { headers: { 'User-Agent': 'BoLumiCloud/1.0' } }
+        )
+        const data: NominatimResult[] = await res.json()
+        setAddressResults(data)
+      } catch {
+        setAddressResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    }, 400)
+  }, [])
+
+  const selectAddress = useCallback((result: NominatimResult) => {
+    const lat = parseFloat(result.lat)
+    const lon = parseFloat(result.lon)
+    onChange({
+      latitude: Math.round(lat * 10000) / 10000,
+      longitude: Math.round(lon * 10000) / 10000,
+      timezone: getTimezone(lon),
+    })
+    setAddressQuery(result.display_name.split(',').slice(0, 3).join(', '))
+    setAddressResults([])
+  }, [onChange])
 
   return (
     <div className="space-y-6">
       {/* Location */}
       <div className="border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.location)}</h3>
+
+        {/* Address Search */}
+        <div className="mb-4 relative">
+          <label className="text-xs text-gray-500 mb-1.5 block">{t(txt.addressSearch)}</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={addressQuery}
+              onChange={(e) => searchAddress(e.target.value)}
+              placeholder={t(txt.addressPlaceholder)}
+              disabled={disabled}
+              className="flex-1 border border-gray-200 px-3 py-2 text-sm
+                focus:outline-none focus:border-gray-400 disabled:opacity-50"
+            />
+            {isSearching && (
+              <span className="self-center text-xs text-gray-400">{t(txt.searching)}</span>
+            )}
+          </div>
+          {/* Search results dropdown */}
+          {addressResults.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+              {addressResults.map((result, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => selectAddress(result)}
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700
+                    hover:bg-red-50 hover:text-red-600 transition-colors border-b border-gray-50 last:border-0"
+                >
+                  <p className="truncate">{result.display_name}</p>
+                  <p className="text-xs text-gray-400">
+                    ({parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)})
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="mb-4">
           <label className="text-xs text-gray-500 mb-2 block">{t(txt.cityPreset)}</label>
