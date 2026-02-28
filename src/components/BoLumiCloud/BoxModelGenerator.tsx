@@ -3,10 +3,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { logger } from '@/lib/logger'
-
-interface BoxModelGeneratorProps {
-  apiUrl: string
-}
+import { useApiClient } from '@/lib/api'
+import { useToast } from '@/contexts/ToastContext'
 
 const materials = [
   { id: 'white_wall', name: '흰색 벽 (반사율 80%)', color: '#f5f5f5' },
@@ -16,7 +14,9 @@ const materials = [
   { id: 'concrete', name: '콘크리트 (반사율 30%)', color: '#b0b0b0' },
 ]
 
-export default function BoxModelGenerator({ apiUrl }: BoxModelGeneratorProps) {
+export default function BoxModelGenerator() {
+  const api = useApiClient()
+  const { showToast } = useToast()
   const [width, setWidth] = useState(5.0)  // 가로 (m)
   const [depth, setDepth] = useState(4.0)  // 세로 (m)
   const [height, setHeight] = useState(2.8)  // 높이 (m)
@@ -27,21 +27,13 @@ export default function BoxModelGenerator({ apiUrl }: BoxModelGeneratorProps) {
   const handleGenerate = async () => {
     setGenerating(true)
     try {
-      const url = `${apiUrl}/generate/box?width=${width}&depth=${depth}&height=${height}&name=${name}&material=${material}`
-
-      const response = await fetch(url, { method: 'POST' })
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `${name}_${width}x${depth}x${height}.rad`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(downloadUrl)
+      const path = `/generate/box?width=${width}&depth=${depth}&height=${height}&name=${name}&material=${material}`
+      const filename = `${name}_${width}x${depth}x${height}.rad`
+      await api.downloadBlob(path, filename, 'POST')
 
     } catch (error) {
       logger.error('Box generation error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '3D 모델 생성에 실패하였습니다' })
     } finally {
       setGenerating(false)
     }

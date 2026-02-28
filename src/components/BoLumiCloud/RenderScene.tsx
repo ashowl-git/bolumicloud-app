@@ -4,8 +4,14 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { logger } from '@/lib/logger'
+import { useApiClient } from '@/lib/api'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 
-export default function RenderScene({ apiUrl }: { apiUrl: string }) {
+export default function RenderScene() {
+  const api = useApiClient()
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const [files, setFiles] = useState<string[]>([])
   const [sceneFile, setSceneFile] = useState('')
   const [viewFile, setViewFile] = useState('')
@@ -19,18 +25,19 @@ export default function RenderScene({ apiUrl }: { apiUrl: string }) {
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const res = await fetch(`${apiUrl}/files`)
-        const data = await res.json()
+        const data = await api.get('/files')
         const radFiles = data.files.filter((f: string) =>
           /\.(rad|oct|vf)$/i.test(f)
         )
         setFiles(radFiles)
       } catch (e) {
         logger.error('Failed to load files', e instanceof Error ? e : undefined)
+        showToast({ type: 'error', message: '파일 목록을 불러오지 못하였습니다' })
       }
     }
 
     loadFiles()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
 
   const handleRender = async () => {
@@ -51,18 +58,13 @@ export default function RenderScene({ apiUrl }: { apiUrl: string }) {
         params.append('view_file', viewFile)
       }
 
-      const res = await fetch(
-        `${apiUrl}/render/scene?${params.toString()}`,
-        { method: 'POST' }
-      )
-
-      if (res.ok) {
-        const blob = await res.blob()
-        setResult(URL.createObjectURL(blob))
-        setRenderTime((Date.now() - startTime) / 1000)
-      }
+      const path = `/render/scene?${params.toString()}`
+      const blob = await api.postBlob(path)
+      setResult(URL.createObjectURL(blob))
+      setRenderTime((Date.now() - startTime) / 1000)
     } catch (e) {
       logger.error('Render error', e instanceof Error ? e : undefined)
+      showToast({ type: 'error', message: '렌더링 중 오류가 발생하였습니다' })
     } finally {
       setLoading(false)
     }

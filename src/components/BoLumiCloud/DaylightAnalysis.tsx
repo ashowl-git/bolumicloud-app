@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { logger } from '@/lib/logger'
-
-interface DaylightAnalysisProps {
-  apiUrl: string
-}
+import { useApiClient } from '@/lib/api'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 
 interface DaylightResult {
   stats: {
@@ -23,7 +22,10 @@ interface DaylightResult {
   note?: string
 }
 
-export default function DaylightAnalysis({ apiUrl }: DaylightAnalysisProps) {
+export default function DaylightAnalysis() {
+  const api = useApiClient()
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const [files, setFiles] = useState<string[]>([])
   const [sceneFile, setSceneFile] = useState('')
   const [gridSize, setGridSize] = useState<number>(0.5)
@@ -37,18 +39,19 @@ export default function DaylightAnalysis({ apiUrl }: DaylightAnalysisProps) {
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const res = await fetch(`${apiUrl}/files`)
-        const data = await res.json()
+        const data = await api.get('/files')
         const radFiles = data.files.filter((f: string) =>
           /\.(rad|oct)$/i.test(f)
         )
         setFiles(radFiles)
       } catch (e) {
         logger.error('Failed to load files', e instanceof Error ? e : undefined)
+        showToast({ type: 'error', message: '파일 목록을 불러오지 못하였습니다' })
       }
     }
 
     loadFiles()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
 
   const handleAnalyze = async () => {
@@ -64,17 +67,12 @@ export default function DaylightAnalysis({ apiUrl }: DaylightAnalysisProps) {
         room_height: roomHeight.toString()
       })
 
-      const res = await fetch(
-        `${apiUrl}/analyze/daylight?${params.toString()}`,
-        { method: 'POST' }
-      )
-
-      if (res.ok) {
-        const data = await res.json()
-        setResult(data)
-      }
+      const path = `/analyze/daylight?${params.toString()}`
+      const data = await api.post(path)
+      setResult(data)
     } catch (e) {
       logger.error('Daylight analysis error', e instanceof Error ? e : undefined)
+      showToast({ type: 'error', message: '일조 분석 중 오류가 발생하였습니다' })
     } finally {
       setLoading(false)
     }

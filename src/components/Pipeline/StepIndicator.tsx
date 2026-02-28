@@ -13,9 +13,10 @@ const STEPS = [
 interface StepIndicatorProps {
   currentStep: number
   completedSteps: number[]
+  onStepClick?: (step: number) => void
 }
 
-export default function StepIndicator({ currentStep, completedSteps }: StepIndicatorProps) {
+export default function StepIndicator({ currentStep, completedSteps, onStepClick }: StepIndicatorProps) {
   return (
     <div className="flex items-center justify-center mb-10">
       {STEPS.map((step, idx) => {
@@ -24,25 +25,40 @@ export default function StepIndicator({ currentStep, completedSteps }: StepIndic
         const isActive = stepNum === currentStep
         const Icon = step.icon
 
+        const circleClasses = `w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+          isCompleted
+            ? 'bg-green-600 text-white cursor-pointer'
+            : isActive
+            ? 'border-2 border-red-600 text-red-600 ring-2 ring-red-600/20'
+            : 'border border-gray-300 text-gray-400'
+        }`
+
+        const circleContent = isCompleted ? (
+          <CheckCircle2 size={18} strokeWidth={2} />
+        ) : (
+          <Icon size={16} strokeWidth={1.5} />
+        )
+
         return (
           <div key={stepNum} className="flex items-center">
             {/* Circle */}
             <div className="flex flex-col items-center">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  isCompleted
-                    ? 'bg-green-600 text-white'
-                    : isActive
-                    ? 'border-2 border-red-600 text-red-600 ring-2 ring-red-600/20'
-                    : 'border border-gray-300 text-gray-400'
-                }`}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 size={18} strokeWidth={2} />
-                ) : (
-                  <Icon size={16} strokeWidth={1.5} />
-                )}
-              </div>
+              {isCompleted ? (
+                <button
+                  className={circleClasses}
+                  onClick={() => onStepClick?.(stepNum)}
+                  aria-label={`${step.label} 단계로 이동`}
+                >
+                  {circleContent}
+                </button>
+              ) : (
+                <div
+                  className={circleClasses}
+                  {...(isActive ? { 'aria-current': 'step' as const } : {})}
+                >
+                  {circleContent}
+                </div>
+              )}
               <span
                 className={`text-xs mt-1.5 ${
                   isActive ? 'text-red-600 font-medium' : isCompleted ? 'text-green-600' : 'text-gray-400'

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Loader2, AlertCircle, Circle } from 'lucide-react'
 import type { PipelineProgress as PipelineProgressType } from '@/lib/types/pipeline'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import { usePipelineContext } from '@/contexts/PipelineContext'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 const txt = {
@@ -31,8 +32,18 @@ function formatDuration(sec: number): string {
   return `${min}m ${remaining}s`
 }
 
+function formatEta(sec: number): string {
+  const minutes = Math.floor(sec / 60)
+  const seconds = sec % 60
+  if (minutes > 0) {
+    return `${minutes}분 ${seconds}초`
+  }
+  return `${seconds}초`
+}
+
 export default function PipelineProgress({ progress }: PipelineProgressProps) {
   const { t } = useLocalizedText()
+  const { estimatedRemainingSec } = usePipelineContext()
 
   return (
     <motion.div
@@ -113,6 +124,12 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
           <span className="text-sm text-gray-600">{t(txt.overall)}</span>
           <span className="text-sm text-gray-600 tabular-nums">
             {progress.overall_progress}% ({formatDuration(progress.elapsed_sec)})
+            {estimatedRemainingSec !== null && estimatedRemainingSec > 0 && (
+              <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
+            )}
+            {estimatedRemainingSec === null && progress.overall_progress < 5 && progress.status === 'processing' && (
+              <> | 계산 중...</>
+            )}
           </span>
         </div>
         <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">

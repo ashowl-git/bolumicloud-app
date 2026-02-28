@@ -352,16 +352,8 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
 
         {/* 액션 */}
         <div className="text-center space-y-4">
-          <a
-            href="/nuggets/bolumicloud?category=analysis&tab=glare"
-            className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-              text-gray-900 hover:text-red-600 transition-all duration-300 inline-block"
-          >
-            {'<-'} 현재 사용 가능한 기능 (현휘 확인)으로 돌아가기
-          </a>
-
-          <p className="text-xs text-gray-800">
-            또는 상단 카테고리 탭에서 다른 기능을 둘러보세요
+          <p className="text-sm text-gray-800">
+            상단 카테고리 탭에서 다른 기능을 둘러보세요
           </p>
         </div>
       </motion.div>

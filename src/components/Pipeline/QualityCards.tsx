@@ -57,7 +57,7 @@ export default function QualityCards({
   return (
     <div className="space-y-4">
       {/* Preset Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {presets.map((level) => {
           const isSelected = selected === level
           const detail = QUALITY_DETAILS[level]

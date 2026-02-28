@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import type { AnalysisResponse } from '@/lib/types/glare'
 import type { PipelineConfig, PipelineProgress, PipelineUploadResponse } from '@/lib/types/pipeline'
 import { logger } from '@/lib/logger'
+import { savePipelineSession, loadPipelineSession, clearPipelineSession } from '@/lib/pipelineSession'
 
 interface UsePipelineOptions {
   apiUrl: string
@@ -16,6 +17,8 @@ interface UsePipelineReturn {
   progress: PipelineProgress | null
   results: AnalysisResponse | null
   error: string | null
+  isCancelled: boolean
+  estimatedRemainingSec: number | null
 
   uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
@@ -31,9 +34,12 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
   const [progress, setProgress] = useState<PipelineProgress | null>(null)
   const [results, setResults] = useState<AnalysisResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isCancelled, setIsCancelled] = useState(false)
+  const [estimatedRemainingSec, setEstimatedRemainingSec] = useState<number | null>(null)
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const errorCountRef = useRef(0)
+  const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
@@ -43,6 +49,18 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       }
     }
   }, [])
+
+  // beforeunload warning when pipeline is active
+  useEffect(() => {
+    if (phase === 'running' || phase === 'polling') {
+      const handler = (e: BeforeUnloadEvent) => {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+      window.addEventListener('beforeunload', handler)
+      return () => window.removeEventListener('beforeunload', handler)
+    }
+  }, [phase])
 
   const reset = useCallback(() => {
     if (pollIntervalRef.current) {
@@ -55,7 +73,11 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     setProgress(null)
     setResults(null)
     setError(null)
+    setIsCancelled(false)
+    setEstimatedRemainingSec(null)
     errorCountRef.current = 0
+    startTimeRef.current = null
+    clearPipelineSession()
   }, [])
 
   const resetForRerun = useCallback(() => {
@@ -67,7 +89,10 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     setProgress(null)
     setResults(null)
     setError(null)
+    setIsCancelled(false)
+    setEstimatedRemainingSec(null)
     errorCountRef.current = 0
+    startTimeRef.current = null
   }, [])
 
   const uploadFiles = useCallback(async (vfFiles: File[], objFile: File, mtlFile: File | null) => {
@@ -109,6 +134,9 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
 
   const startPolling = useCallback((sid: string) => {
     errorCountRef.current = 0
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now()
+    }
 
     pollIntervalRef.current = setInterval(async () => {
       try {
@@ -117,6 +145,15 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
 
         errorCountRef.current = 0
         setProgress(data)
+
+        // ETA calculation
+        if (data.overall_progress > 5 && startTimeRef.current !== null) {
+          const elapsed = (Date.now() - startTimeRef.current) / 1000
+          const remaining = (elapsed / data.overall_progress) * (100 - data.overall_progress)
+          setEstimatedRemainingSec(Math.round(remaining))
+        } else {
+          setEstimatedRemainingSec(null)
+        }
 
         if (data.status === 'completed') {
           if (pollIntervalRef.current) {
@@ -129,14 +166,12 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
             const resultsData = await resultsRes.json()
             setResults(resultsData)
             setPhase('completed')
-
-            setTimeout(() => {
-              const el = document.getElementById('pipeline-results-section')
-              el?.scrollIntoView({ behavior: 'smooth' })
-            }, 500)
+            setEstimatedRemainingSec(null)
+            clearPipelineSession()
           } else {
             setError('결과를 가져올 수 없습니다')
             setPhase('error')
+            clearPipelineSession()
           }
         } else if (data.status === 'error') {
           if (pollIntervalRef.current) {
@@ -145,6 +180,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
           }
           setError(data.error || '파이프라인 오류 발생')
           setPhase('error')
+          clearPipelineSession()
         }
       } catch (e) {
         errorCountRef.current += 1
@@ -157,10 +193,23 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
           }
           setError('백엔드 서버 연결 실패 (5회 연속 에러)')
           setPhase('error')
+          clearPipelineSession()
         }
       }
     }, 2000)
   }, [apiUrl])
+
+  // Session restore on mount
+  useEffect(() => {
+    const session = loadPipelineSession()
+    if (session && (session.phase === 'polling' || session.phase === 'running')) {
+      setSessionId(session.sessionId)
+      setVfCount(session.vfCount)
+      setPhase('polling')
+      startPolling(session.sessionId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const cancelPipeline = useCallback(async () => {
     if (!sessionId) return
@@ -170,8 +219,11 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         clearInterval(pollIntervalRef.current)
         pollIntervalRef.current = null
       }
-      setError('파이프라인이 취소되었습니다')
-      setPhase('error')
+      setIsCancelled(true)
+      setPhase('idle')
+      setEstimatedRemainingSec(null)
+      startTimeRef.current = null
+      clearPipelineSession()
       logger.info('Pipeline cancelled', { sessionId })
     } catch (err) {
       logger.error('Pipeline cancel error', err instanceof Error ? err : undefined)
@@ -187,6 +239,8 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     setPhase('running')
     setError(null)
     setResults(null)
+    setIsCancelled(false)
+    savePipelineSession(sessionId, 'running', vfCount)
 
     try {
       // Radiance West-positive 규약: 경도/자오선 음수 변환
@@ -224,6 +278,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       }
 
       setPhase('polling')
+      savePipelineSession(sessionId, 'polling', vfCount)
       startPolling(sessionId)
     } catch (err) {
       const msg = err instanceof Error ? err.message : '파이프라인 시작 중 오류 발생'
@@ -231,7 +286,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       setPhase('error')
       logger.error('Pipeline run error', err instanceof Error ? err : undefined)
     }
-  }, [sessionId, apiUrl, startPolling])
+  }, [sessionId, vfCount, apiUrl, startPolling])
 
   return {
     phase,
@@ -240,6 +295,8 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     progress,
     results,
     error,
+    isCancelled,
+    estimatedRemainingSec,
     uploadFiles,
     runPipeline,
     cancelPipeline,

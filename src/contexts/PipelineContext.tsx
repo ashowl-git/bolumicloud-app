@@ -13,6 +13,8 @@ interface PipelineContextType {
   progress: PipelineProgress | null
   results: AnalysisResponse | null
   error: string | null
+  isCancelled: boolean
+  estimatedRemainingSec: number | null
 
   uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
@@ -39,6 +41,8 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
       progress: pipeline.progress,
       results: pipeline.results,
       error: pipeline.error,
+      isCancelled: pipeline.isCancelled,
+      estimatedRemainingSec: pipeline.estimatedRemainingSec,
       uploadFiles: pipeline.uploadFiles,
       runPipeline: pipeline.runPipeline,
       cancelPipeline: pipeline.cancelPipeline,
@@ -52,6 +56,8 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
       pipeline.progress,
       pipeline.results,
       pipeline.error,
+      pipeline.isCancelled,
+      pipeline.estimatedRemainingSec,
       pipeline.uploadFiles,
       pipeline.runPipeline,
       pipeline.cancelPipeline,

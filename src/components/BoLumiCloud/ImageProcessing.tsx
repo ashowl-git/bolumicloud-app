@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { logger } from '@/lib/logger'
+import { useApiClient } from '@/lib/api'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 import FileUpload from '@/components/GlareAnalysis/FileUpload'
 
-interface ImageProcessingProps {
-  apiUrl: string
-}
-
-export default function ImageProcessing({ apiUrl }: ImageProcessingProps) {
+export default function ImageProcessing() {
+  const api = useApiClient()
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
   const [selectedFile, setSelectedFile] = useState<string>('')
   const [exposure, setExposure] = useState(1.0)
@@ -35,9 +37,10 @@ export default function ImageProcessing({ apiUrl }: ImageProcessingProps) {
     setProcessing(false)
 
     try {
-      await fetch(`${apiUrl}/clear`, { method: 'DELETE' })
+      await api.del('/clear')
     } catch (error) {
       logger.error('Clear error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '서버 초기화에 실패하였습니다' })
     }
   }
 
@@ -47,7 +50,7 @@ export default function ImageProcessing({ apiUrl }: ImageProcessingProps) {
     setProcessing(true)
     try {
       // 1. 서버 초기화
-      await fetch(`${apiUrl}/clear`, { method: 'DELETE' })
+      await api.del('/clear')
 
       // 2. 파일 업로드
       const formData = new FormData()
@@ -55,23 +58,20 @@ export default function ImageProcessing({ apiUrl }: ImageProcessingProps) {
         formData.append('files', file)
       })
 
-      await fetch(`${apiUrl}/upload`, {
-        method: 'POST',
-        body: formData
-      })
+      await api.postFormData('/upload', formData)
 
       // 3. 원본 미리보기
       setOriginalUrl(`${apiUrl}/glare/preview/${selectedFile}?t=${Date.now()}`)
 
-      // 4. 처리된 이미지 생성
-      const url = `${apiUrl}/process/adjust?filename=${selectedFile}&exposure=${exposure}&xres=${width}&yres=${height}`
-      const response = await fetch(url, { method: 'POST' })
-      const blob = await response.blob()
+      // 4. 처리된 이미지 생성 (blob for preview)
+      const path = `/process/adjust?filename=${selectedFile}&exposure=${exposure}&xres=${width}&yres=${height}`
+      const blob = await api.postBlob(path)
       const objectUrl = URL.createObjectURL(blob)
       setPreviewUrl(objectUrl)
 
     } catch (error) {
       logger.error('Processing error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '이미지 처리 중 오류가 발생하였습니다' })
     } finally {
       setProcessing(false)
     }

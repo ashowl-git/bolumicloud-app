@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { logger } from '@/lib/logger'
+import { useApiClient } from '@/lib/api'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { LocalizedText } from '@/lib/types/i18n'
 
@@ -62,10 +65,6 @@ const materialLibraryText = {
   } as LocalizedText,
 }
 
-interface MaterialLibraryProps {
-  apiUrl: string
-}
-
 interface Material {
   name: string
   definition: string
@@ -73,7 +72,10 @@ interface Material {
   color: string
 }
 
-export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
+export default function MaterialLibrary() {
+  const api = useApiClient()
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const { t } = useLocalizedText()
   const [materials, setMaterials] = useState<Material[]>([])
   const [filtered, setFiltered] = useState<Material[]>([])
@@ -82,18 +84,18 @@ export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
   const [category, setCategory] = useState<string>('all')
   const [search, setSearch] = useState<string>('')
   const [copied, setCopied] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
   // 재질 목록 로드 및 타입 분류
   useEffect(() => {
     const loadMaterials = async () => {
+      setLoading(true)
       try {
-        const res = await fetch(`${apiUrl}/materials/list`)
-        const data = await res.json()
+        const data = await api.get('/materials/list')
 
         const enriched = await Promise.all(
           data.materials.map(async (name: string) => {
-            const detailRes = await fetch(`${apiUrl}/materials/${name}`)
-            const detail = await detailRes.json()
+            const detail = await api.get(`/materials/${name}`)
             const def = detail.definition
 
             // 타입 파싱 (void TYPE ...)
@@ -110,10 +112,14 @@ export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
         setFiltered(enriched)
       } catch (e) {
         logger.error('Failed to load materials', e instanceof Error ? e : undefined)
+        showToast({ type: 'error', message: '재질 목록을 불러오지 못하였습니다' })
+      } finally {
+        setLoading(false)
       }
     }
 
     loadMaterials()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
 
   // 색상 칩 생성 (RGB 값 추출)
@@ -164,6 +170,7 @@ export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
     if (definition) {
       navigator.clipboard.writeText(definition)
       setCopied(true)
+      showToast({ type: 'success', message: t(materialLibraryText.clipboardCopied) })
       setTimeout(() => setCopied(false), 2000)
     }
   }
@@ -218,30 +225,48 @@ export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
 
         {/* 재질 그리드 */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
-          {filtered.map((mat) => (
-            <div
-              key={mat.name}
-              onClick={() => handleSelect(mat)}
-              className={`border p-4 cursor-pointer transition-all duration-300
-                ${selected === mat.name
-                  ? 'border-red-600 bg-red-50'
-                  : 'border-gray-200 hover:border-red-600/30'
-                }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                {/* 색상 칩 */}
-                <div
-                  className="w-8 h-8 border border-gray-300 flex-shrink-0"
-                  style={{
-                    background: mat.color,
-                    boxShadow: mat.type === 'mirror' || mat.type === 'metal' ? 'inset 0 1px 2px rgba(255,255,255,0.5)' : 'none'
-                  }}
-                />
-                <p className="text-sm font-medium text-gray-900">{mat.name}</p>
+          {loading ? (
+            // 로딩 스켈레톤
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="border border-gray-200 p-4 animate-pulse">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-gray-200 flex-shrink-0" />
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                </div>
+                <div className="h-3 bg-gray-200 rounded w-16" />
               </div>
-              <p className="text-xs text-gray-800">{mat.type}</p>
+            ))
+          ) : filtered.length === 0 ? (
+            // 빈 상태
+            <div className="col-span-3 py-12 text-center">
+              <p className="text-sm text-gray-500">검색 결과가 없습니다</p>
             </div>
-          ))}
+          ) : (
+            filtered.map((mat) => (
+              <div
+                key={mat.name}
+                onClick={() => handleSelect(mat)}
+                className={`border p-4 cursor-pointer transition-all duration-300
+                  ${selected === mat.name
+                    ? 'border-red-600 bg-red-50'
+                    : 'border-gray-200 hover:border-red-600/30'
+                  }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  {/* 색상 칩 */}
+                  <div
+                    className="w-8 h-8 border border-gray-300 flex-shrink-0"
+                    style={{
+                      background: mat.color,
+                      boxShadow: mat.type === 'mirror' || mat.type === 'metal' ? 'inset 0 1px 2px rgba(255,255,255,0.5)' : 'none'
+                    }}
+                  />
+                  <p className="text-sm font-medium text-gray-900">{mat.name}</p>
+                </div>
+                <p className="text-xs text-gray-800">{mat.type}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* 재질 정의 */}
@@ -273,17 +298,6 @@ export default function MaterialLibrary({ apiUrl }: MaterialLibraryProps) {
         </ul>
       </div>
 
-      {/* 토스트 알림 */}
-      {copied && (
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed bottom-8 right-8 bg-gray-900 text-white px-6 py-3 text-sm shadow-lg"
-        >
-          {t(materialLibraryText.clipboardCopied)}
-        </motion.div>
-      )}
     </motion.div>
   )
 }

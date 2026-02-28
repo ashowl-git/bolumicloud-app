@@ -2,24 +2,29 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 
-interface TimelineAnimationProps {
-  apiUrl: string
-}
-
-export default function TimelineAnimation({ apiUrl }: TimelineAnimationProps) {
+export default function TimelineAnimation() {
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const [animationType, setAnimationType] = useState<'falsecolor' | 'preview'>('falsecolor')
   const [fps, setFps] = useState(2)
   const [generating, setGenerating] = useState(false)
 
   const handleGenerate = () => {
-    setGenerating(true)
-    const duration = 1000 / fps
-    const url = `${apiUrl}/animate/timeline?animation_type=${animationType}&fps=${fps}&duration_per_frame=${duration}`
-    window.open(url, '_blank')
+    try {
+      setGenerating(true)
+      const duration = 1000 / fps
+      const url = `${apiUrl}/animate/timeline?animation_type=${animationType}&fps=${fps}&duration_per_frame=${duration}`
+      window.open(url, '_blank')
 
-    // 2분 후 자동 완료 (120개 파일 기준)
-    setTimeout(() => setGenerating(false), 120000)
+      // 2분 후 자동 완료 (120개 파일 기준)
+      setTimeout(() => setGenerating(false), 120000)
+    } catch {
+      showToast({ type: 'error', message: '애니메이션 생성에 실패하였습니다' })
+      setGenerating(false)
+    }
   }
 
   return (

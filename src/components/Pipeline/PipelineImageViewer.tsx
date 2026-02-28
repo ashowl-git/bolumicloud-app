@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { X, Image as ImageIcon, Thermometer, Download } from 'lucide-react'
 import type { GlareResult } from '@/lib/types/glare'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface PipelineImageViewerProps {
   result: GlareResult
@@ -19,6 +20,17 @@ export default function PipelineImageViewer({
 }: PipelineImageViewerProps) {
   const [mode, setMode] = useState<'preview' | 'falsecolor'>('preview')
   const [fcScale, setFcScale] = useState(1000)
+  const [fcDisplayScale, setFcDisplayScale] = useState(1000)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const isOpen = true
+
+  useFocusTrap(modalRef, isOpen)
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose()
+    }
+  }, [onClose])
 
   const previewUrl = `${apiUrl}/pipeline/preview/${sessionId}/${result.file}`
   const falsecolorUrl = `${apiUrl}/pipeline/falsecolor/${sessionId}/${result.file}?scale=${fcScale}`
@@ -35,7 +47,15 @@ export default function PipelineImageViewer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="이미지 뷰어"
+      onKeyDown={handleKeyDown}
+      ref={modalRef}
+    >
       <div
         className="bg-white max-w-6xl w-full mx-4 max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
@@ -96,11 +116,13 @@ export default function PipelineImageViewer({
                 min={100}
                 max={12000}
                 step={100}
-                value={fcScale}
-                onChange={(e) => setFcScale(Number(e.target.value))}
+                value={fcDisplayScale}
+                onChange={(e) => setFcDisplayScale(Number(e.target.value))}
+                onMouseUp={() => setFcScale(fcDisplayScale)}
+                onTouchEnd={() => setFcScale(fcDisplayScale)}
                 className="w-32 accent-red-600"
               />
-              <span className="text-xs text-gray-700 w-20">{fcScale} cd/m2</span>
+              <span className="text-xs text-gray-700 w-20">{fcDisplayScale} cd/m2</span>
             </div>
           )}
 
@@ -127,7 +149,7 @@ export default function PipelineImageViewer({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 p-4 border-t border-gray-100 text-center text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 border-t border-gray-100 text-center text-sm">
           <div>
             <p className="text-gray-500 text-xs">평균 휘도</p>
             <p className="font-medium">{Number(result.average).toFixed(1)} cd/m2</p>

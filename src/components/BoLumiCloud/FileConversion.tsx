@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { logger } from '@/lib/logger'
+import { useApiClient } from '@/lib/api'
+import { useToast } from '@/contexts/ToastContext'
 import FileUpload from '@/components/GlareAnalysis/FileUpload'
 
-interface FileConversionProps {
-  apiUrl: string
-}
-
-export default function FileConversion({ apiUrl }: FileConversionProps) {
+export default function FileConversion() {
+  const api = useApiClient()
+  const { showToast } = useToast()
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
   const [outputFormat, setOutputFormat] = useState<string>('png')
   const [toneMapping, setToneMapping] = useState(true)
@@ -27,11 +27,11 @@ export default function FileConversion({ apiUrl }: FileConversionProps) {
 
     // 서버 초기화
     try {
-      const response = await fetch(`${apiUrl}/clear`, { method: 'DELETE' })
-      const data = await response.json()
+      const data = await api.del('/clear')
       logger.debug('Server cleared', data)
     } catch (error) {
       logger.error('Clear error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '서버 초기화에 실패하였습니다' })
     }
   }
 
@@ -41,7 +41,7 @@ export default function FileConversion({ apiUrl }: FileConversionProps) {
     setConverting(true)
     try {
       // 0. 서버 폴더 완전 초기화!
-      await fetch(`${apiUrl}/clear`, { method: 'DELETE' })
+      await api.del('/clear')
 
       // 1. 파일 업로드
       const formData = new FormData()
@@ -49,27 +49,15 @@ export default function FileConversion({ apiUrl }: FileConversionProps) {
         formData.append('files', file)
       })
 
-      await fetch(`${apiUrl}/upload`, {
-        method: 'POST',
-        body: formData
-      })
+      await api.postFormData('/upload', formData)
 
       // 2. ZIP 일괄 변환 다운로드
-      const url = `${apiUrl}/convert/batch?output_format=${outputFormat}&tone_mapping=${toneMapping}&gamma=${gamma}`
-
-      const response = await fetch(url, { method: 'POST' })
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `converted_all_${outputFormat}.zip`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(downloadUrl)
+      const path = `/convert/batch?output_format=${outputFormat}&tone_mapping=${toneMapping}&gamma=${gamma}`
+      await api.downloadBlob(path, `converted_all_${outputFormat}.zip`, 'POST')
 
     } catch (error) {
       logger.error('Conversion error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '파일 변환 중 오류가 발생하였습니다' })
     } finally {
       setConverting(false)
     }

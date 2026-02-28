@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { logger } from '@/lib/logger'
+import { useApiClient } from '@/lib/api'
+import { useApi } from '@/contexts/ApiContext'
+import { useToast } from '@/contexts/ToastContext'
 
-interface ToneMappingProps {
-  apiUrl: string
-}
-
-export default function ToneMapping({ apiUrl }: ToneMappingProps) {
+export default function ToneMapping() {
+  const api = useApiClient()
+  const { apiUrl } = useApi()
+  const { showToast } = useToast()
   const [files, setFiles] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState('')
   const [humanSensitivity, setHumanSensitivity] = useState(true)
@@ -22,18 +24,19 @@ export default function ToneMapping({ apiUrl }: ToneMappingProps) {
   useEffect(() => {
     const loadFiles = async () => {
       try {
-        const res = await fetch(`${apiUrl}/files`)
-        const data = await res.json()
+        const data = await api.get('/files')
         const imageFiles = data.files.filter((f: string) =>
           /\.(pic|hdr|tif|tiff|exr)$/i.test(f)
         )
         setFiles(imageFiles)
       } catch (e) {
         logger.error('Failed to load files', e instanceof Error ? e : undefined)
+        showToast({ type: 'error', message: '파일 목록을 불러오지 못하였습니다' })
       }
     }
 
     loadFiles()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl])
 
   // 파일 선택 시 원본 이미지 표시 (이미 톤 매핑된 것으로 간주)
@@ -49,17 +52,12 @@ export default function ToneMapping({ apiUrl }: ToneMappingProps) {
 
     setLoading(true)
     try {
-      const res = await fetch(
-        `${apiUrl}/process/tone-mapping?filename=${selectedFile}&human_sensitivity=${humanSensitivity}&output_format=${outputFormat}`,
-        { method: 'POST' }
-      )
-
-      if (res.ok) {
-        const blob = await res.blob()
-        setResult(URL.createObjectURL(blob))
-      }
+      const path = `/process/tone-mapping?filename=${selectedFile}&human_sensitivity=${humanSensitivity}&output_format=${outputFormat}`
+      const blob = await api.postBlob(path)
+      setResult(URL.createObjectURL(blob))
     } catch (e) {
       logger.error('Tone mapping error', e instanceof Error ? e : undefined)
+      showToast({ type: 'error', message: '톤 매핑 처리에 실패하였습니다' })
     } finally {
       setLoading(false)
     }

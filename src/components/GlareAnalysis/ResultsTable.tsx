@@ -22,8 +22,8 @@ export default function ResultsTable({ results }: ResultsTableProps) {
 
   // 필터링
   const filteredResults = results.filter(r => {
-    if (filter === 'disability') return r.disability === 1
-    if (filter === 'normal') return r.disability === 0
+    if (filter === 'disability' && r.disability !== 1) return false
+    if (filter === 'normal' && r.disability !== 0) return false
     if (filterDate !== 'all' && r.date_label !== filterDate) return false
     return true
   })
@@ -186,7 +186,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.02, duration: 0.2 }}
+                transition={{ delay: Math.min(i * 0.02, 0.5), duration: 0.2 }}
                 className="border-b border-gray-100 hover:bg-gray-50"
               >
                 <td className="p-3 font-mono text-xs">{row.file}</td>

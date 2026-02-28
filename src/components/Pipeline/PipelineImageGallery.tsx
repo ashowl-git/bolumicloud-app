@@ -16,6 +16,7 @@ export default function PipelineImageGallery({
   sessionId,
   onImageClick,
 }: PipelineImageGalleryProps) {
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
   const [filterViewpoint, setFilterViewpoint] = useState<string>('all')
   const [filterDate, setFilterDate] = useState<string>('all')
   const [filterHour, setFilterHour] = useState<string>('all')
@@ -130,24 +131,22 @@ export default function PipelineImageGallery({
           >
             {/* Thumbnail */}
             <div className="aspect-video bg-gray-100 relative overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`${apiUrl}/pipeline/preview/${sessionId}/${result.file}`}
-                alt={result.file}
-                loading="lazy"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement
-                  img.style.display = 'none'
-                  const parent = img.parentElement
-                  if (parent && !parent.querySelector('.img-fallback')) {
-                    const fallback = document.createElement('div')
-                    fallback.className = 'img-fallback absolute inset-0 flex items-center justify-center text-gray-400 text-xs'
-                    fallback.textContent = 'Preview N/A'
-                    parent.appendChild(fallback)
-                  }
-                }}
-              />
+              {brokenImages.has(result.file) ? (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                  Preview N/A
+                </div>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={`${apiUrl}/pipeline/preview/${sessionId}/${result.file}`}
+                  alt={result.file}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    setBrokenImages(prev => new Set(prev).add(result.file))
+                  }}
+                />
+              )}
               {/* DGP badge */}
               <span
                 className={`absolute top-1 right-1 px-1.5 py-0.5 text-[10px] font-semibold ${ratingColor(result.dgp_rating)}`}

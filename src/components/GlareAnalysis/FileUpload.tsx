@@ -10,9 +10,9 @@ interface FileUploadProps {
 export default function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
   return (
     <GenericFileUpload
-      acceptedExtensions={['.pic']}
+      acceptedExtensions={['.pic', '.hdr', '.tif', '.tiff', '.exr']}
       multiple={true}
-      fileTypeLabel="Radiance HDR 이미지 파일"
+      fileTypeLabel="Radiance HDR / TIFF / EXR 이미지 파일"
       onFilesSelected={onFilesSelected}
       disabled={disabled}
       showFileList={true}

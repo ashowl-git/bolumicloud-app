@@ -41,6 +41,30 @@ const txt = {
   renderExceeds: { ko: '렌더 수가 최대값을 초과합니다', en: 'Render count exceeds maximum' } as LocalizedText,
 }
 
+const DEFAULT_PIPELINE_CONFIG: {
+  config: LocationTimeConfigState
+  quality: QualityLevel
+  resolution: number
+  renderParams: RenderParams
+} = {
+  config: {
+    latitude: 37.5665,
+    longitude: 126.978,
+    timezone: 135,
+    dates: [DATE_PRESETS[1]], // 하지 default
+    selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    skyType: 'sunny_with_sun',
+  },
+  quality: 'low',
+  resolution: QUALITY_DETAILS.low.resolution,
+  renderParams: {
+    ab: QUALITY_DETAILS.low.ab,
+    ad: QUALITY_DETAILS.low.ad,
+    as: QUALITY_DETAILS.low.as,
+    ar: QUALITY_DETAILS.low.ar,
+  },
+}
+
 const fadeVariants = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
@@ -57,6 +81,7 @@ export default function SketchUpPipelineTab() {
     progress,
     results,
     error,
+    isCancelled,
     uploadFiles,
     runPipeline,
     cancelPipeline,
@@ -73,22 +98,10 @@ export default function SketchUpPipelineTab() {
   const [mtlFile, setMtlFile] = useState<File | null>(null)
 
   // Config state (multi-date)
-  const [config, setConfig] = useState<LocationTimeConfigState>({
-    latitude: 37.5665,
-    longitude: 126.978,
-    timezone: 135,
-    dates: [DATE_PRESETS[1]], // 하지 default
-    selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-    skyType: 'sunny_with_sun',
-  })
-  const [quality, setQuality] = useState<QualityLevel>('low')
-  const [resolution, setResolution] = useState(QUALITY_DETAILS.low.resolution)
-  const [renderParams, setRenderParams] = useState<RenderParams>({
-    ab: QUALITY_DETAILS.low.ab,
-    ad: QUALITY_DETAILS.low.ad,
-    as: QUALITY_DETAILS.low.as,
-    ar: QUALITY_DETAILS.low.ar,
-  })
+  const [config, setConfig] = useState<LocationTimeConfigState>({ ...DEFAULT_PIPELINE_CONFIG.config })
+  const [quality, setQuality] = useState<QualityLevel>(DEFAULT_PIPELINE_CONFIG.quality)
+  const [resolution, setResolution] = useState(DEFAULT_PIPELINE_CONFIG.resolution)
+  const [renderParams, setRenderParams] = useState<RenderParams>({ ...DEFAULT_PIPELINE_CONFIG.renderParams })
   const [materialOverrides, setMaterialOverrides] = useState<Record<string, MaterialOverride>>({})
 
   // Image viewer state
@@ -133,6 +146,20 @@ export default function SketchUpPipelineTab() {
       }, 300)
     }
   }, [phase, results])
+
+  // Browser tab title
+  useEffect(() => {
+    if (phase === 'polling' && progress) {
+      document.title = `[${progress.overall_progress}%] BoLumiCloud`
+    } else if (phase === 'completed') {
+      document.title = '[완료] BoLumiCloud'
+    } else {
+      document.title = 'BoLumiCloud'
+    }
+    return () => {
+      document.title = 'BoLumiCloud'
+    }
+  }, [phase, progress])
 
   // Handlers
   const handleFilesClassified = useCallback(
@@ -195,17 +222,10 @@ export default function SketchUpPipelineTab() {
     setVfFiles([])
     setObjFile(null)
     setMtlFile(null)
-    setConfig({
-      latitude: 37.5665,
-      longitude: 126.978,
-      timezone: 135,
-      dates: [DATE_PRESETS[1]],
-      selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-      skyType: 'sunny_with_sun',
-    })
-    setQuality('low')
-    setResolution(QUALITY_DETAILS.low.resolution)
-    setRenderParams({ ab: QUALITY_DETAILS.low.ab, ad: QUALITY_DETAILS.low.ad, as: QUALITY_DETAILS.low.as, ar: QUALITY_DETAILS.low.ar })
+    setConfig({ ...DEFAULT_PIPELINE_CONFIG.config })
+    setQuality(DEFAULT_PIPELINE_CONFIG.quality)
+    setResolution(DEFAULT_PIPELINE_CONFIG.resolution)
+    setRenderParams({ ...DEFAULT_PIPELINE_CONFIG.renderParams })
     setMaterialOverrides({})
     setViewerResult(null)
   }, [reset])
@@ -262,6 +282,23 @@ export default function SketchUpPipelineTab() {
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} completedSteps={getCompletedSteps()} />
 
+      {/* Cancel Banner */}
+      {isCancelled && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="border border-amber-200 bg-amber-50 p-4"
+        >
+          <p className="text-sm text-amber-700">파이프라인이 취소되었습니다</p>
+          <button
+            onClick={handleReset}
+            className="mt-2 text-xs text-amber-600 hover:text-amber-800 underline"
+          >
+            처음부터 다시 시작
+          </button>
+        </motion.div>
+      )}
+
       {/* Error Banner */}
       {error && (
         <motion.div
@@ -270,14 +307,24 @@ export default function SketchUpPipelineTab() {
           className="border border-red-200 bg-red-50 p-4"
         >
           <p className="text-sm text-red-600">{error}</p>
-          {phase === 'error' && (
-            <button
-              onClick={handleReset}
-              className="mt-2 text-xs text-red-500 hover:text-red-700 underline"
-            >
-              {t(txt.reset)}
-            </button>
-          )}
+          <div className="flex gap-3 mt-2">
+            {phase === 'error' && (
+              <>
+                <button
+                  onClick={handleReset}
+                  className="text-xs text-red-500 hover:text-red-700 underline"
+                >
+                  {t(txt.reset)}
+                </button>
+                <button
+                  onClick={() => { resetForRerun(); setCurrentStep(3); }}
+                  className="text-xs text-red-500 hover:text-red-700 underline"
+                >
+                  같은 설정으로 재시도
+                </button>
+              </>
+            )}
+          </div>
         </motion.div>
       )}
 

@@ -1,12 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
+function loadChecks(key: string): Record<string, boolean> {
+  try {
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) : {}
+  } catch { return {} }
+}
+
 export default function CertificationChecklist() {
-  const [greenBuildingChecks, setGreenBuildingChecks] = useState<Record<string, boolean>>({})
-  const [leedChecks, setLeedChecks] = useState<Record<string, boolean>>({})
-  const [wellChecks, setWellChecks] = useState<Record<string, boolean>>({})
+  const [greenBuildingChecks, setGreenBuildingChecks] = useState<Record<string, boolean>>(
+    () => loadChecks('bolumicloud:cert:green')
+  )
+  const [leedChecks, setLeedChecks] = useState<Record<string, boolean>>(
+    () => loadChecks('bolumicloud:cert:leed')
+  )
+  const [wellChecks, setWellChecks] = useState<Record<string, boolean>>(
+    () => loadChecks('bolumicloud:cert:well')
+  )
+
+  useEffect(() => {
+    try { localStorage.setItem('bolumicloud:cert:green', JSON.stringify(greenBuildingChecks)) } catch {}
+  }, [greenBuildingChecks])
+
+  useEffect(() => {
+    try { localStorage.setItem('bolumicloud:cert:leed', JSON.stringify(leedChecks)) } catch {}
+  }, [leedChecks])
+
+  useEffect(() => {
+    try { localStorage.setItem('bolumicloud:cert:well', JSON.stringify(wellChecks)) } catch {}
+  }, [wellChecks])
 
   const greenBuildingItems = [
     { id: 'gb1', title: '실내 마감재료의 오염물질 방출 기준 만족', category: '실내환경' },

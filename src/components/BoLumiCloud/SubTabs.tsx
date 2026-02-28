@@ -11,7 +11,7 @@ interface SubTabsProps {
 export default function SubTabs({ tabs, active, onChange }: SubTabsProps) {
   return (
     <div className="py-3 border-b border-gray-200">
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap" role="tablist" aria-label="Sub tabs">
         {tabs.map((tab) => {
           const isActive = active === tab.id
           const isComing = tab.status === 'coming'
@@ -19,6 +19,9 @@ export default function SubTabs({ tabs, active, onChange }: SubTabsProps) {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              aria-disabled={isComing || undefined}
               onClick={() => !isComing && onChange(tab.id)}
               disabled={isComing}
               className={`px-3 py-1.5 text-sm border rounded-full transition-all duration-300 ${

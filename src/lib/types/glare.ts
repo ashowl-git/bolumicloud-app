@@ -36,21 +36,3 @@ export interface AnalysisResponse {
   summary: GlareSummary
   ratings: GlareRatings
 }
-
-export interface UploadResponse {
-  message: string
-  count: number
-  files: string[]
-}
-
-export interface ProgressEvent {
-  progress: number
-  current_file: string
-  processed: number
-  total: number
-}
-
-export interface ErrorResponse {
-  error: string
-  detail?: string
-}

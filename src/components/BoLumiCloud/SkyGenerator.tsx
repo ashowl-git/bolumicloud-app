@@ -3,10 +3,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { logger } from '@/lib/logger'
-
-interface SkyGeneratorProps {
-  apiUrl: string
-}
+import { useApiClient } from '@/lib/api'
+import { useToast } from '@/contexts/ToastContext'
 
 interface CityPreset {
   name: string
@@ -23,7 +21,9 @@ const cityPresets: CityPreset[] = [
   { name: '베이징', latitude: 39.9042, longitude: 116.4074, meridian: 120 },
 ]
 
-export default function SkyGenerator({ apiUrl }: SkyGeneratorProps) {
+export default function SkyGenerator() {
+  const api = useApiClient()
+  const { showToast } = useToast()
   const [month, setMonth] = useState(6)  // 6월 (하지)
   const [day, setDay] = useState(21)
   const [hour, setHour] = useState(12.0)
@@ -41,21 +41,13 @@ export default function SkyGenerator({ apiUrl }: SkyGeneratorProps) {
   const handleGenerate = async () => {
     setGenerating(true)
     try {
-      const url = `${apiUrl}/generate/sky?month=${month}&day=${day}&hour=${hour}&latitude=${latitude}&longitude=${longitude}&meridian=${meridian}`
-
-      const response = await fetch(url, { method: 'POST' })
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `sky_${month.toString().padStart(2, '0')}_${day.toString().padStart(2, '0')}_${hour.toFixed(1)}h.rad`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(downloadUrl)
+      const path = `/generate/sky?month=${month}&day=${day}&hour=${hour}&latitude=${latitude}&longitude=${longitude}&meridian=${meridian}`
+      const filename = `sky_${month.toString().padStart(2, '0')}_${day.toString().padStart(2, '0')}_${hour.toFixed(1)}h.rad`
+      await api.downloadBlob(path, filename, 'POST')
 
     } catch (error) {
       logger.error('Sky generation error', error instanceof Error ? error : undefined)
+      showToast({ type: 'error', message: '하늘 모델 생성에 실패하였습니다' })
     } finally {
       setGenerating(false)
     }

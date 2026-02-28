@@ -2,45 +2,20 @@
 
 import { useState } from 'react'
 import { ApiProvider, PipelineProvider, useApi } from '@/contexts'
-import { usePipelineContext } from '@/contexts/PipelineContext'
+import { ToastProvider } from '@/contexts/ToastContext'
+import ToastContainer from '@/components/common/Toast'
 import BoLumiCloudHeader from './BoLumiCloudHeader'
 import Navbar from '@/components/Navigation/Navbar'
 import Footer from '@/components/Navigation/Footer'
 import CategoryTabs from '@/components/BoLumiCloud/CategoryTabs'
 import SubTabs from '@/components/BoLumiCloud/SubTabs'
 import ComingSoonContent from '@/components/BoLumiCloud/ComingSoonContent'
-import FileConversion from '@/components/BoLumiCloud/FileConversion'
-import TimelineAnimation from '@/components/BoLumiCloud/TimelineAnimation'
-import ImageProcessing from '@/components/BoLumiCloud/ImageProcessing'
-import CertificationChecklist from '@/components/BoLumiCloud/CertificationChecklist'
-import SkyGenerator from '@/components/BoLumiCloud/SkyGenerator'
-import DisabilityGlare from '@/components/BoLumiCloud/DisabilityGlare'
-import BoxModelGenerator from '@/components/BoLumiCloud/BoxModelGenerator'
-import ToneMapping from '@/components/BoLumiCloud/ToneMapping'
-import MaterialLibrary from '@/components/BoLumiCloud/MaterialLibrary'
-import DaylightAnalysis from '@/components/BoLumiCloud/DaylightAnalysis'
-import RenderScene from '@/components/BoLumiCloud/RenderScene'
-import SketchUpPipelineTab from '@/components/BoLumiCloud/tabs/SketchUpPipelineTab'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import { SUB_TABS, type Category } from '@/lib/tabConfig'
+import { CONTENT_MAP } from '@/lib/contentMap'
 import type { LocalizedText } from '@/lib/types/i18n'
 
-type Category = 'analysis' | 'convert' | 'generate' | 'simulate' | 'compliance'
-
 const txt = {
-  pipeline: { ko: 'SketchUp 파이프라인', en: 'SketchUp Pipeline' } as LocalizedText,
-  daylight: { ko: '일조 확인', en: 'Daylight Check' } as LocalizedText,
-  format: { ko: '형식 변환', en: 'Format Convert' } as LocalizedText,
-  tone: { ko: '톤 매핑', en: 'Tone Mapping' } as LocalizedText,
-  adjust: { ko: '이미지 처리', en: 'Image Processing' } as LocalizedText,
-  sky: { ko: '하늘 만들기', en: 'Sky Generator' } as LocalizedText,
-  model: { ko: '3D 모델', en: '3D Model' } as LocalizedText,
-  material: { ko: '재질 라이브러리', en: 'Material Library' } as LocalizedText,
-  render: { ko: '3D 렌더링', en: '3D Rendering' } as LocalizedText,
-  annual: { ko: '연간 일조', en: 'Annual Daylight' } as LocalizedText,
-  animation: { ko: '애니메이션', en: 'Animation' } as LocalizedText,
-  disability: { ko: '불능현휘', en: 'Disability Glare' } as LocalizedText,
-  sunlight: { ko: '일조권', en: 'Sunlight Rights' } as LocalizedText,
-  certification: { ko: '인증', en: 'Certification' } as LocalizedText,
   platformInfo: { ko: '플랫폼 정보', en: 'Platform Info' } as LocalizedText,
   coreEngine: { ko: '핵심 엔진', en: 'Core Engine' } as LocalizedText,
   pyFunctions: { ko: '110개 Python 함수', en: '110 Python functions' } as LocalizedText,
@@ -67,8 +42,7 @@ function BoLumiCloudInner() {
   const [subTab, setSubTab] = useState('pipeline')
   const { t } = useLocalizedText()
 
-  const { backendStatus, backendInfo, apiUrl } = useApi()
-  const { results: pipelineResults } = usePipelineContext()
+  const { backendStatus, backendInfo } = useApi()
 
   return (
     <>
@@ -87,33 +61,7 @@ function BoLumiCloudInner() {
               active={category}
               onChange={(cat) => {
                 setCategory(cat)
-                const subTabsMap: Record<Category, { id: string; label: string; status?: 'coming' }[]> = {
-                  analysis: [
-                    { id: 'pipeline', label: t(txt.pipeline) },
-                    { id: 'daylight', label: t(txt.daylight) }
-                  ],
-                  convert: [
-                    { id: 'format', label: t(txt.format) },
-                    { id: 'tone', label: t(txt.tone) },
-                    { id: 'adjust', label: t(txt.adjust) }
-                  ],
-                  generate: [
-                    { id: 'sky', label: t(txt.sky) },
-                    { id: 'model', label: t(txt.model) },
-                    { id: 'material', label: t(txt.material) }
-                  ],
-                  simulate: [
-                    { id: 'render', label: t(txt.render) },
-                    { id: 'annual', label: t(txt.annual), status: 'coming' },
-                    { id: 'animation', label: t(txt.animation) }
-                  ],
-                  compliance: [
-                    { id: 'disability', label: t(txt.disability) },
-                    { id: 'sunlight', label: t(txt.sunlight), status: 'coming' },
-                    { id: 'certification', label: t(txt.certification) }
-                  ]
-                }
-                setSubTab(subTabsMap[cat][0].id)
+                setSubTab(SUB_TABS[cat][0].id)
               }}
             />
           </div>
@@ -123,32 +71,7 @@ function BoLumiCloudInner() {
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <SubTabs
-              tabs={
-                category === 'analysis' ? [
-                  { id: 'pipeline', label: t(txt.pipeline) },
-                  { id: 'daylight', label: t(txt.daylight) }
-                ] :
-                category === 'convert' ? [
-                  { id: 'format', label: t(txt.format) },
-                  { id: 'tone', label: t(txt.tone) },
-                  { id: 'adjust', label: t(txt.adjust) }
-                ] :
-                category === 'generate' ? [
-                  { id: 'sky', label: t(txt.sky) },
-                  { id: 'model', label: t(txt.model) },
-                  { id: 'material', label: t(txt.material) }
-                ] :
-                category === 'simulate' ? [
-                  { id: 'render', label: t(txt.render) },
-                  { id: 'annual', label: t(txt.annual), status: 'coming' },
-                  { id: 'animation', label: t(txt.animation) }
-                ] :
-                [
-                  { id: 'disability', label: t(txt.disability) },
-                  { id: 'sunlight', label: t(txt.sunlight), status: 'coming' },
-                  { id: 'certification', label: t(txt.certification) }
-                ]
-              }
+              tabs={SUB_TABS[category].map(tab => ({ id: tab.id, label: t(tab.label), status: tab.status }))}
               active={subTab}
               onChange={setSubTab}
             />
@@ -158,33 +81,11 @@ function BoLumiCloudInner() {
         {/* Main Content */}
         <section className="py-12 px-4 md:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            {category === 'analysis' && subTab === 'pipeline' ? (
-            <SketchUpPipelineTab />
-            ) : category === 'convert' && subTab === 'format' ? (
-            <FileConversion apiUrl={apiUrl} />
-            ) : category === 'convert' && subTab === 'adjust' ? (
-            <ImageProcessing apiUrl={apiUrl} />
-            ) : category === 'simulate' && subTab === 'animation' ? (
-            <TimelineAnimation apiUrl={apiUrl} />
-            ) : category === 'compliance' && subTab === 'certification' ? (
-            <CertificationChecklist />
-            ) : category === 'compliance' && subTab === 'disability' ? (
-            <DisabilityGlare results={pipelineResults?.results || []} />
-            ) : category === 'generate' && subTab === 'sky' ? (
-            <SkyGenerator apiUrl={apiUrl} />
-            ) : category === 'generate' && subTab === 'model' ? (
-            <BoxModelGenerator apiUrl={apiUrl} />
-            ) : category === 'convert' && subTab === 'tone' ? (
-            <ToneMapping apiUrl={apiUrl} />
-            ) : category === 'generate' && subTab === 'material' ? (
-            <MaterialLibrary apiUrl={apiUrl} />
-            ) : category === 'analysis' && subTab === 'daylight' ? (
-            <DaylightAnalysis apiUrl={apiUrl} />
-            ) : category === 'simulate' && subTab === 'render' ? (
-            <RenderScene apiUrl={apiUrl} />
-            ) : (
-            <ComingSoonContent category={category} subTab={subTab} />
-            )}
+            {(() => {
+              const key = `${category}-${subTab}`
+              const ContentComponent = CONTENT_MAP[key]
+              return ContentComponent ? <ContentComponent /> : <ComingSoonContent category={category} subTab={subTab} />
+            })()}
           </div>
         </section>
 
@@ -254,7 +155,10 @@ export default function BoLumiCloudContent() {
   return (
     <ApiProvider>
       <PipelineProvider>
-        <BoLumiCloudInner />
+        <ToastProvider>
+          <BoLumiCloudInner />
+          <ToastContainer />
+        </ToastProvider>
       </PipelineProvider>
     </ApiProvider>
   )

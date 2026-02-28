@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { ScanEye, ArrowRightLeft, Sparkles, Orbit, ShieldCheck } from 'lucide-react'
-
-type Category = 'analysis' | 'convert' | 'generate' | 'simulate' | 'compliance'
+import { CATEGORY_LABELS, type Category } from '@/lib/tabConfig'
+import { useLocalizedText } from '@/hooks/useLocalizedText'
 
 interface CategoryTabsProps {
   active: Category
@@ -11,17 +11,19 @@ interface CategoryTabsProps {
 }
 
 const categories = [
-  { id: 'analysis', icon: ScanEye, label: '분석' },
-  { id: 'convert', icon: ArrowRightLeft, label: '변환' },
-  { id: 'generate', icon: Sparkles, label: '생성' },
-  { id: 'simulate', icon: Orbit, label: '시뮬레이션' },
-  { id: 'compliance', icon: ShieldCheck, label: '법규' }
+  { id: 'analysis', icon: ScanEye },
+  { id: 'convert', icon: ArrowRightLeft },
+  { id: 'generate', icon: Sparkles },
+  { id: 'simulate', icon: Orbit },
+  { id: 'compliance', icon: ShieldCheck }
 ] as const
 
 export default function CategoryTabs({ active, onChange }: CategoryTabsProps) {
+  const { t } = useLocalizedText()
+
   return (
     <div className="border-b border-gray-200">
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="tablist" aria-label="Main categories">
         {categories.map((cat) => {
           const Icon = cat.icon
           const isActive = active === cat.id
@@ -29,6 +31,10 @@ export default function CategoryTabs({ active, onChange }: CategoryTabsProps) {
           return (
             <button
               key={cat.id}
+              role="tab"
+              id={`tab-${cat.id}`}
+              aria-selected={isActive}
+              aria-controls={`panel-${cat.id}`}
               onClick={() => onChange(cat.id as Category)}
               className={`px-4 py-3 transition-all duration-300 relative ${
                 isActive
@@ -38,7 +44,7 @@ export default function CategoryTabs({ active, onChange }: CategoryTabsProps) {
             >
               <div className="flex items-center gap-2">
                 <Icon size={20} strokeWidth={1.5} />
-                <span className="text-sm font-medium">{cat.label}</span>
+                <span className="text-sm font-medium">{t(CATEGORY_LABELS[cat.id])}</span>
               </div>
 
               {isActive && (

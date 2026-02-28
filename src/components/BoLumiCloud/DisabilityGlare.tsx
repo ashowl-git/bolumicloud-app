@@ -10,7 +10,7 @@ interface DisabilityGlareProps {
 export default function DisabilityGlare({ results }: DisabilityGlareProps) {
   if (results.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto py-12">
+      <div className="max-w-6xl mx-auto py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
