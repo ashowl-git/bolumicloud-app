@@ -10,6 +10,7 @@ import type { PipelineConfig, MaterialOverride, QualityPreset, QualityLevel, Ren
 import type { GlareResult } from '@/lib/types/glare'
 import type { LocalizedText } from '@/lib/types/i18n'
 
+import { Images, AlertTriangle, Gauge, Sun } from 'lucide-react'
 import StepIndicator from '@/components/Pipeline/StepIndicator'
 import MaterialEditor from '@/components/Pipeline/MaterialEditor'
 import UnifiedFileDropZone from '@/components/Pipeline/UnifiedFileDropZone'
@@ -92,6 +93,9 @@ export default function SketchUpPipelineTab() {
 
   // Image viewer state
   const [viewerResult, setViewerResult] = useState<GlareResult | null>(null)
+
+  // Results tab state
+  const [resultsTab, setResultsTab] = useState<'summary' | 'chart' | 'gallery' | 'data' | 'download'>('summary')
 
   // Render count
   const renderCount = vfFiles.length * config.dates.length * config.selectedHours.length
@@ -473,49 +477,8 @@ export default function SketchUpPipelineTab() {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.25 }}
-            className="space-y-10"
+            className="space-y-6"
           >
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="border border-gray-200 p-6">
-                <p className="text-sm text-gray-800 mb-2">총 렌더</p>
-                <p className="text-4xl font-light text-gray-900">
-                  {results.summary.total}
-                </p>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-sm text-gray-800 mb-2">불능현휘</p>
-                <p className="text-4xl font-light text-red-600">
-                  {results.summary.disability_count}
-                </p>
-                <p className="text-xs text-gray-800 mt-2">
-                  {results.summary.total > 0
-                    ? ((results.summary.disability_count / results.summary.total) * 100).toFixed(1)
-                    : 0}
-                  %
-                </p>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-sm text-gray-800 mb-2">평균 DGP</p>
-                <p className="text-4xl font-light text-gray-900">
-                  {Number(results.summary.average_dgp).toFixed(3)}
-                </p>
-                <p className="text-xs text-gray-800 mt-2">
-                  최대: {Number(results.summary.max_dgp).toFixed(3)}
-                </p>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-sm text-gray-800 mb-2">평균 휘도</p>
-                <p className="text-4xl font-light text-gray-900">
-                  {Number(results.summary.average_luminance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </p>
-                <p className="text-xs text-gray-800 mt-2">cd/m2</p>
-              </div>
-            </div>
-
             {/* Pipeline Info */}
             {(() => {
               const info = (results as unknown as Record<string, unknown>).pipeline_info as
@@ -535,38 +498,103 @@ export default function SketchUpPipelineTab() {
               )
             })()}
 
-            {/* Image Gallery */}
-            {results.results.length > 0 && sessionId && (
-              <PipelineImageGallery
-                results={results.results}
-                apiUrl={apiUrl}
-                sessionId={sessionId}
-                onImageClick={(r) => setViewerResult(r)}
-              />
-            )}
+            {/* Results Tab Navigation */}
+            <div className="border-b border-gray-200">
+              <div className="flex gap-1">
+                {([
+                  { id: 'summary', label: '요약' },
+                  { id: 'chart', label: '차트' },
+                  { id: 'gallery', label: '갤러리' },
+                  { id: 'data', label: '데이터' },
+                  { id: 'download', label: '다운로드' },
+                ] as const).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setResultsTab(tab.id)}
+                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-300 ${
+                      resultsTab === tab.id
+                        ? 'border-red-600 text-red-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* Downloads */}
-            {sessionId && (
-              <PipelineDownloads apiUrl={apiUrl} sessionId={sessionId} />
-            )}
-
-            {/* Charts */}
-            {results.results.length > 0 && (
+            {/* Results Tab Content */}
+            {resultsTab === 'summary' && (
               <div className="space-y-6">
-                {/* Heatmap (viewpoint x time) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Images size={16} strokeWidth={1.5} className="text-gray-400" />
+                      <p className="text-sm text-gray-800">총 렌더</p>
+                    </div>
+                    <p className="text-4xl font-light text-gray-900">
+                      {results.summary.total}
+                    </p>
+                  </div>
+
+                  <div className={`border p-6 ${
+                    results.summary.disability_count > 0
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-gray-200'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle size={16} strokeWidth={1.5} className={
+                        results.summary.disability_count > 0 ? 'text-red-500' : 'text-gray-400'
+                      } />
+                      <p className="text-sm text-gray-800">불능현휘</p>
+                    </div>
+                    <p className="text-4xl font-light text-red-600">
+                      {results.summary.disability_count}
+                    </p>
+                    <p className="text-xs text-gray-800 mt-2">
+                      {results.summary.total > 0
+                        ? ((results.summary.disability_count / results.summary.total) * 100).toFixed(1)
+                        : 0}
+                      %
+                    </p>
+                  </div>
+
+                  <div className="border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gauge size={16} strokeWidth={1.5} className="text-gray-400" />
+                      <p className="text-sm text-gray-800">평균 DGP</p>
+                    </div>
+                    <p className="text-4xl font-light text-gray-900">
+                      {Number(results.summary.average_dgp).toFixed(3)}
+                    </p>
+                    <p className="text-xs text-gray-800 mt-2">
+                      최대: {Number(results.summary.max_dgp).toFixed(3)}
+                    </p>
+                  </div>
+
+                  <div className="border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sun size={16} strokeWidth={1.5} className="text-gray-400" />
+                      <p className="text-sm text-gray-800">평균 휘도</p>
+                    </div>
+                    <p className="text-4xl font-light text-gray-900">
+                      {Number(results.summary.average_luminance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-gray-800 mt-2">cd/m2</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {resultsTab === 'chart' && results.results.length > 0 && (
+              <div className="space-y-6">
                 {hasMultipleViewpoints && (
                   <ResultsChart results={results.results} chartType="heatmap" />
                 )}
-
-                {/* Date comparison */}
                 {hasMultipleDates && (
                   <ResultsChart results={results.results} chartType="date_comparison" />
                 )}
-
-                {/* DGP Distribution */}
                 <ResultsChart results={results.results} chartType="dgp_distribution" />
-
-                {/* Existing charts */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <ResultsChart results={results.results} chartType="time" />
                   {hasMultipleViewpoints && (
@@ -576,9 +604,21 @@ export default function SketchUpPipelineTab() {
               </div>
             )}
 
-            {/* Table */}
-            {results.results.length > 0 && (
+            {resultsTab === 'gallery' && results.results.length > 0 && sessionId && (
+              <PipelineImageGallery
+                results={results.results}
+                apiUrl={apiUrl}
+                sessionId={sessionId}
+                onImageClick={(r) => setViewerResult(r)}
+              />
+            )}
+
+            {resultsTab === 'data' && results.results.length > 0 && (
               <ResultsTable results={results.results} />
+            )}
+
+            {resultsTab === 'download' && sessionId && (
+              <PipelineDownloads apiUrl={apiUrl} sessionId={sessionId} />
             )}
 
             {/* Bottom Navigation */}

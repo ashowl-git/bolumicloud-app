@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useCallback } from 'react'
+import { CloudUpload } from 'lucide-react'
 
 interface ClassifiedFiles {
   vfFiles: File[]
@@ -102,12 +103,12 @@ export default function UnifiedFileDropZone({
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => !disabled && !isProcessing && inputRef.current?.click()}
-        className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-200 ${
+        className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
           disabled || isProcessing
             ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
             : isDragging
             ? 'border-red-600 bg-red-50'
-            : 'border-gray-300 hover:border-gray-400'
+            : 'border-gray-300 hover:border-red-600/30'
         }`}
       >
         <input
@@ -126,7 +127,8 @@ export default function UnifiedFileDropZone({
             <p className="text-sm text-gray-600">업로드 중...</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400" />
             <p className="text-sm text-gray-700">
               SketchUp 파일을 드래그하거나 클릭하세요
             </p>

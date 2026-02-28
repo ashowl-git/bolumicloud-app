@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <style>
+    .stroke-main { stroke: #000000; }
+    @media (prefers-color-scheme: dark) {
+      .stroke-main { stroke: #ffffff; }
+    }
+    .stroke-accent { stroke: #DC2626; }
+  </style>
+
+  <!-- 수평 광선 (빛이 렌즈를 통과) -->
+  <line x1="64" y1="256" x2="448" y2="256"
+        class="stroke-main" fill="none" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- 렌즈 - 외곽 링 -->
+  <circle cx="256" cy="256" r="100"
+          class="stroke-main" fill="none" stroke-width="26"/>
+
+  <!-- 렌즈 - 내부 코어 (BoLumiCloud의 "o") -->
+  <circle cx="256" cy="256" r="40"
+          class="stroke-accent" fill="none" stroke-width="24"/>
+
+  <!-- 굴절 표현 - 렌즈 바깥쪽 빛 분산 -->
+  <line x1="356" y1="256" x2="440" y2="196"
+        class="stroke-accent" fill="none" stroke-width="18" stroke-linecap="round"/>
+  <line x1="356" y1="256" x2="440" y2="316"
+        class="stroke-accent" fill="none" stroke-width="18" stroke-linecap="round"/>
+</svg>

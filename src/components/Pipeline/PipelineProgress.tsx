@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { CheckCircle2, Loader2, AlertCircle, Circle } from 'lucide-react'
 import type { PipelineProgress as PipelineProgressType } from '@/lib/types/pipeline'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
@@ -49,13 +50,13 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
               {/* Status Icon */}
               <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                 {stage.status === 'completed' ? (
-                  <span className="text-green-600 font-bold text-sm">[OK]</span>
+                  <CheckCircle2 size={18} className="text-green-600" />
                 ) : stage.status === 'processing' ? (
-                  <span className="text-blue-600 font-bold text-sm animate-pulse">[&gt;&gt;]</span>
+                  <Loader2 size={18} className="text-blue-600 animate-spin" />
                 ) : stage.status === 'error' ? (
-                  <span className="text-red-600 font-bold text-sm">[!!]</span>
+                  <AlertCircle size={18} className="text-red-600" />
                 ) : (
-                  <span className="text-gray-400 text-sm">[{'  '}]</span>
+                  <Circle size={18} className="text-gray-300" />
                 )}
               </div>
 

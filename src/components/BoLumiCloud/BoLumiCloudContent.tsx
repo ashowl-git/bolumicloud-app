@@ -59,7 +59,7 @@ const txt = {
   input: { ko: '입력:', en: 'Input:' } as LocalizedText,
   output: { ko: '출력:', en: 'Output:' } as LocalizedText,
   data: { ko: '데이터:', en: 'Data:' } as LocalizedText,
-  version: { ko: '버전: 0.2.0 (2025-11-08)', en: 'Version: 0.2.0 (2025-11-08)' } as LocalizedText,
+  version: { ko: '버전: 0.3.0 (2026-02-28)', en: 'Version: 0.3.0 (2026-02-28)' } as LocalizedText,
 }
 
 function BoLumiCloudInner() {
@@ -81,7 +81,7 @@ function BoLumiCloudInner() {
         />
 
         {/* Category Tabs (Sticky) */}
-        <div className="sticky top-16 z-20 bg-amber-50/95 shadow-sm">
+        <div className="sticky top-16 z-20 bg-white/95 backdrop-blur-sm shadow-sm">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <CategoryTabs
               active={category}
@@ -120,7 +120,7 @@ function BoLumiCloudInner() {
         </div>
 
         {/* Sub Tabs */}
-        <div className="bg-amber-50/50 border-b border-gray-200">
+        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <SubTabs
               tabs={
@@ -156,7 +156,7 @@ function BoLumiCloudInner() {
         </div>
 
         {/* Main Content */}
-        <section className="py-12 px-4 md:px-8 bg-gradient-to-br from-amber-50/50 via-yellow-50/30 to-amber-50/50">
+        <section className="py-12 px-4 md:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             {category === 'analysis' && subTab === 'pipeline' ? (
             <SketchUpPipelineTab />
@@ -189,7 +189,7 @@ function BoLumiCloudInner() {
         </section>
 
         {/* Platform Info */}
-        <section className="py-12 px-8 bg-amber-50/50 border-t border-gray-200">
+        <section className="py-12 px-8 bg-white border-t border-gray-100">
           <div className="max-w-7xl mx-auto">
             <div className="border border-gray-200 p-8">
               <h3 className="text-lg font-normal text-gray-900 mb-6">
@@ -200,7 +200,7 @@ function BoLumiCloudInner() {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">{t(txt.coreEngine)}</h4>
                   <ul className="space-y-2 text-gray-800">
-                    <li><span className="font-medium text-gray-900">pyradiance</span> 1.1.5</li>
+                    <li><span className="font-medium text-gray-900">pyradiance</span> 1.2.0</li>
                     <li><span className="font-medium text-gray-900">Radiance</span> 6.1 (BSD License)</li>
                     <li>{t(txt.pyFunctions)}</li>
                     <li>{t(txt.radBinaries)}</li>
@@ -235,7 +235,7 @@ function BoLumiCloudInner() {
 
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <p className="text-xs text-gray-800">
-                  BoLumiCloud - Lighting Analysis Dashboard |
+                  BoLumiCloud |
                   EAN Technology Research Division |
                   pyradiance 1.2.0 + Radiance 6.1 |
                   {t(txt.version)}

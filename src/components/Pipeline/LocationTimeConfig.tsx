@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { MapPin, Calendar, Clock, Sun, Cloud, CloudSun } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { CITY_PRESETS } from '@/lib/types/pipeline'
 import type { AnalysisDate } from '@/lib/types/pipeline'
@@ -43,10 +44,10 @@ interface LocationTimeConfigProps {
   disabled?: boolean
 }
 
-const SKY_OPTIONS: { value: 'sunny_with_sun' | 'cloudy' | 'intermediate'; label: LocalizedText }[] = [
-  { value: 'sunny_with_sun', label: txt.sunny },
-  { value: 'cloudy', label: txt.cloudy },
-  { value: 'intermediate', label: txt.intermediate },
+const SKY_OPTIONS: { value: 'sunny_with_sun' | 'cloudy' | 'intermediate'; label: LocalizedText; icon: typeof Sun }[] = [
+  { value: 'sunny_with_sun', label: txt.sunny, icon: Sun },
+  { value: 'cloudy', label: txt.cloudy, icon: Cloud },
+  { value: 'intermediate', label: txt.intermediate, icon: CloudSun },
 ]
 
 interface NominatimResult {
@@ -123,7 +124,10 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
     <div className="space-y-6">
       {/* Location */}
       <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.location)}</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <MapPin size={16} strokeWidth={1.5} className="text-gray-500" />
+          {t(txt.location)}
+        </h3>
 
         {/* Address Search */}
         <div className="mb-4 relative">
@@ -151,7 +155,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                   type="button"
                   onClick={() => selectAddress(result)}
                   className="w-full text-left px-3 py-2 text-sm text-gray-700
-                    hover:bg-red-50 hover:text-red-600 transition-colors border-b border-gray-50 last:border-0"
+                    hover:bg-red-50 hover:text-red-600 transition-colors duration-300 border-b border-gray-50 last:border-0"
                 >
                   <p className="truncate">{result.display_name}</p>
                   <p className="text-xs text-gray-400">
@@ -224,7 +228,10 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
 
       {/* Dates */}
       <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.dates)}</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Calendar size={16} strokeWidth={1.5} className="text-gray-500" />
+          {t(txt.dates)}
+        </h3>
         <DateSelector
           selectedDates={config.dates}
           onChange={(dates) => onChange({ dates })}
@@ -234,7 +241,10 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
 
       {/* Hours */}
       <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.hours)}</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Clock size={16} strokeWidth={1.5} className="text-gray-500" />
+          {t(txt.hours)}
+        </h3>
         <HourChipSelector
           selectedHours={config.selectedHours}
           onChange={(hours) => onChange({ selectedHours: hours })}
@@ -256,22 +266,26 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
       <div className="border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.sky)}</h3>
         <div className="flex gap-4">
-          {SKY_OPTIONS.map((opt) => (
-            <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="skyType"
-                value={opt.value}
-                checked={config.skyType === opt.value}
-                onChange={() => onChange({ skyType: opt.value })}
-                disabled={disabled}
-                className="accent-red-600"
-              />
-              <span className={`text-sm ${config.skyType === opt.value ? 'text-red-600' : 'text-gray-700'}`}>
-                {t(opt.label)}
-              </span>
-            </label>
-          ))}
+          {SKY_OPTIONS.map((opt) => {
+            const SkyIcon = opt.icon
+            return (
+              <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="skyType"
+                  value={opt.value}
+                  checked={config.skyType === opt.value}
+                  onChange={() => onChange({ skyType: opt.value })}
+                  disabled={disabled}
+                  className="accent-red-600"
+                />
+                <SkyIcon size={16} strokeWidth={1.5} className={config.skyType === opt.value ? 'text-red-600' : 'text-gray-500'} />
+                <span className={`text-sm ${config.skyType === opt.value ? 'text-red-600' : 'text-gray-700'}`}>
+                  {t(opt.label)}
+                </span>
+              </label>
+            )
+          })}
         </div>
       </div>
     </div>

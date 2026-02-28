@@ -1,5 +1,7 @@
 'use client'
 
+import { CheckCircle2, AlertCircle, Info, FileText, Box, Palette, X } from 'lucide-react'
+
 interface FileTypeChecklistProps {
   vfFiles: File[]
   objFile: File | null
@@ -14,13 +16,14 @@ function formatSize(bytes: number): string {
 }
 
 interface FileRowProps {
+  icon: React.ReactNode
   ext: string
   file: File | null
   required: boolean
   description: string
 }
 
-function FileRow({ ext, file, required, description }: FileRowProps) {
+function FileRow({ icon, ext, file, required, description }: FileRowProps) {
   const status = file
     ? 'uploaded'
     : required
@@ -31,17 +34,18 @@ function FileRow({ ext, file, required, description }: FileRowProps) {
     <div className="flex items-start gap-3 py-2">
       <div className="w-8 flex-shrink-0 pt-0.5">
         {status === 'uploaded' && (
-          <span className="text-green-600 text-sm font-bold">[OK]</span>
+          <CheckCircle2 size={16} className="text-green-600" />
         )}
         {status === 'missing-required' && (
-          <span className="text-red-500 text-sm font-bold">[--]</span>
+          <AlertCircle size={16} className="text-red-500" />
         )}
         {status === 'missing-optional' && (
-          <span className="text-amber-500 text-sm font-bold">[!]</span>
+          <Info size={16} className="text-amber-500" />
         )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
+          {icon}
           <span className="text-sm font-medium text-gray-700">.{ext}</span>
           {file && (
             <span className="text-xs text-gray-400 truncate">
@@ -68,13 +72,14 @@ export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveV
       <div className="flex items-start gap-3 py-2">
         <div className="w-8 flex-shrink-0 pt-0.5">
           {vfFiles.length > 0 ? (
-            <span className="text-green-600 text-sm font-bold">[OK]</span>
+            <CheckCircle2 size={16} className="text-green-600" />
           ) : (
-            <span className="text-red-500 text-sm font-bold">[--]</span>
+            <AlertCircle size={16} className="text-red-500" />
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
+            <FileText size={14} className="text-gray-500" />
             <span className="text-sm font-medium text-gray-700">.vf</span>
             {vfFiles.length > 0 ? (
               <span className="text-xs text-gray-400">{vfFiles.length}개 파일</span>
@@ -95,9 +100,9 @@ export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveV
                     <button
                       type="button"
                       onClick={() => onRemoveVf(idx)}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      className="text-gray-400 hover:text-red-500 transition-colors duration-300"
                     >
-                      x
+                      <X size={12} />
                     </button>
                   )}
                 </div>
@@ -108,12 +113,14 @@ export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveV
       </div>
 
       <FileRow
+        icon={<Box size={14} className="text-gray-500" />}
         ext="obj"
         file={objFile}
         required
         description="3D 건물 모델 (SketchUp 내보내기)"
       />
       <FileRow
+        icon={<Palette size={14} className="text-gray-500" />}
         ext="mtl"
         file={mtlFile}
         required={false}

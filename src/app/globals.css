@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* BoLumiCloud Design System - Amber Warm Tone */
+/* BoLumiCloud Design System - Clean White */
 @layer components {
   .line-card {
     @apply bg-transparent border border-gray-200 rounded-lg p-4
            hover:border-red-600 hover:shadow-[0_0_0_1px_rgba(220,38,38,0.2)]
-           transition-all duration-150;
+           transition-all duration-300;
   }
 }
 
@@ -37,7 +37,7 @@ html {
 }
 
 body {
-  @apply bg-gradient-to-br from-amber-50 via-yellow-50/50 to-amber-50;
+  @apply bg-white;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

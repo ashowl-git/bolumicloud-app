@@ -1,5 +1,7 @@
 'use client'
 
+import { ExternalLink } from 'lucide-react'
+
 const HOMEPAGE_URL = 'https://askwhy.works'
 
 export default function Footer() {
@@ -17,8 +19,8 @@ export default function Footer() {
               BoLumiCloud
             </h4>
             <ul className="space-y-2">
-              <li><a href="/" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Home</a></li>
-              <li><a href="https://api.askwhy.works/docs" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">API Docs</a></li>
+              <li><a href="/" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Home</a></li>
+              <li><a href="https://api.askwhy.works/docs" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">API Docs</a></li>
             </ul>
           </div>
 
@@ -28,9 +30,9 @@ export default function Footer() {
               Tools
             </h4>
             <ul className="space-y-2">
-              <li><a href="https://calzeb.askwhy.works" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">CalZEB</a></li>
-              <li><a href={`${HOMEPAGE_URL}/nuggets/lm-eco2od`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Energy Calculator</a></li>
-              <li><a href={`${HOMEPAGE_URL}/nuggets/law-checker`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Law Tracker</a></li>
+              <li><a href="https://calzeb.askwhy.works" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">CalZEB</a></li>
+              <li><a href={`${HOMEPAGE_URL}/nuggets/lm-eco2od`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Energy Calculator</a></li>
+              <li><a href={`${HOMEPAGE_URL}/nuggets/law-checker`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Law Tracker</a></li>
             </ul>
           </div>
 
@@ -40,9 +42,9 @@ export default function Footer() {
               Research
             </h4>
             <ul className="space-y-2">
-              <li><a href={`${HOMEPAGE_URL}/layers`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Layers</a></li>
-              <li><a href={`${HOMEPAGE_URL}/publications`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Publications</a></li>
-              <li><a href={`${HOMEPAGE_URL}/nuggets`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Nuggets</a></li>
+              <li><a href={`${HOMEPAGE_URL}/layers`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Layers</a></li>
+              <li><a href={`${HOMEPAGE_URL}/publications`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Publications</a></li>
+              <li><a href={`${HOMEPAGE_URL}/nuggets`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Nuggets</a></li>
             </ul>
           </div>
 
@@ -52,8 +54,8 @@ export default function Footer() {
               About
             </h4>
             <ul className="space-y-2">
-              <li><a href={HOMEPAGE_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Research Division</a></li>
-              <li><a href={`${HOMEPAGE_URL}/interface`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors">Interface</a></li>
+              <li><a href={HOMEPAGE_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Research Division</a></li>
+              <li><a href={`${HOMEPAGE_URL}/interface`} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-red-600 transition-colors duration-300">Interface</a></li>
             </ul>
           </div>
         </div>
@@ -61,10 +63,18 @@ export default function Footer() {
         {/* Contact & Info */}
         <div className="grid md:grid-cols-2 gap-12 mb-12 border-t border-gray-200 pt-12">
           <div>
-            <h3 className="text-sm text-slate-400 uppercase tracking-widest mb-4 font-normal">
-              Research Divisi<span className="text-red-600">o</span>n
-            </h3>
-            <p className="text-xs text-slate-500 font-normal">
+            <a
+              href={HOMEPAGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 group"
+            >
+              <h3 className="text-sm text-slate-400 uppercase tracking-widest font-normal group-hover:text-red-600 transition-colors duration-300">
+                Research Divisi<span className="text-red-600">o</span>n
+              </h3>
+              <ExternalLink size={12} className="text-slate-400 group-hover:text-red-600 transition-colors duration-300" />
+            </a>
+            <p className="text-xs text-slate-500 font-normal mt-4">
               EAN Technology
             </p>
           </div>
@@ -76,7 +86,7 @@ export default function Footer() {
             <div className="space-y-2">
               <a
                 href="mailto:sha@eantec.co.kr"
-                className="block text-xs text-slate-500 hover:text-slate-900 transition-colors font-normal"
+                className="block text-xs text-slate-500 hover:text-slate-900 transition-colors duration-300 font-normal"
               >
                 sha@eantec.co.kr
               </a>

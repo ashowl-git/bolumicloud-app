@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { X, Image as ImageIcon, Thermometer, Download } from 'lucide-react'
 import type { GlareResult } from '@/lib/types/glare'
 
 interface PipelineImageViewerProps {
@@ -36,7 +37,7 @@ export default function PipelineImageViewer({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-white max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto"
+        className="bg-white max-w-6xl w-full mx-4 max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -54,9 +55,9 @@ export default function PipelineImageViewer({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-lg px-2"
+            className="text-gray-400 hover:text-gray-600 p-1 transition-colors duration-300"
           >
-            X
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -65,22 +66,24 @@ export default function PipelineImageViewer({
           <div className="flex gap-2">
             <button
               onClick={() => setMode('preview')}
-              className={`px-3 py-1.5 text-sm border transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border transition-all duration-300 ${
                 mode === 'preview'
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                  : 'border-gray-200 text-gray-700 hover:border-red-600/30'
               }`}
             >
-              HDR 미리보기
+              <ImageIcon size={14} strokeWidth={1.5} />
+              HDR
             </button>
             <button
               onClick={() => setMode('falsecolor')}
-              className={`px-3 py-1.5 text-sm border transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border transition-all duration-300 ${
                 mode === 'falsecolor'
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 text-gray-700 hover:border-gray-400'
+                  : 'border-gray-200 text-gray-700 hover:border-red-600/30'
               }`}
             >
+              <Thermometer size={14} strokeWidth={1.5} />
               Falsecolor
             </button>
           </div>
@@ -91,23 +94,24 @@ export default function PipelineImageViewer({
               <input
                 type="range"
                 min={100}
-                max={10000}
+                max={12000}
                 step={100}
                 value={fcScale}
                 onChange={(e) => setFcScale(Number(e.target.value))}
                 className="w-32 accent-red-600"
               />
-              <span className="text-xs text-gray-700 w-16">{fcScale} cd/m2</span>
+              <span className="text-xs text-gray-700 w-20">{fcScale} cd/m2</span>
             </div>
           )}
 
           <a
             href={downloadUrl}
             download
-            className="ml-auto border border-gray-200 hover:border-red-600/30 px-3 py-1.5
-              text-sm text-gray-700 hover:text-red-600 transition-all"
+            className="ml-auto flex items-center gap-1.5 border border-gray-200 hover:border-red-600/30 px-3 py-1.5
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
           >
-            PIC 다운로드
+            <Download size={14} strokeWidth={1.5} />
+            PIC
           </a>
         </div>
 

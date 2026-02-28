@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -18,6 +19,14 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'EAN Technology', url: 'https://eantec.co.kr' }],
   creator: 'EAN Technology Research Division',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', type: 'image/png' }],
+    shortcut: ['/favicon.svg'],
+  },
   openGraph: {
     title: 'BoLumiCloud - Lighting Analysis Dashboard',
     description: 'Radiance 기반 건축 조명 분석 통합 대시보드. 현휘, 일조, 3D 렌더링, 파일 변환.',
@@ -51,6 +60,7 @@ export default function RootLayout({
         <main id="main-content">
           {children}
         </main>
+        <Analytics />
       </body>
     </html>
   )

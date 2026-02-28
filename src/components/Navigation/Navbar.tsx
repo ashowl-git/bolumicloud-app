@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { LocaleContext } from '@/hooks/useLocalizedText'
 import type { Locale } from '@/lib/types/i18n'
+import BoLumiCloudMark from '@/components/BoLumiCloud/BoLumiCloudMark'
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -60,8 +61,9 @@ export default function Navbar() {
 
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-3" aria-label="BoLumiCloud 홈으로 이동">
-              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <Link href="/" className="flex items-center gap-2.5" aria-label="BoLumiCloud 홈으로 이동">
+              <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }} className="flex items-center gap-2.5">
+                <BoLumiCloudMark size={28} className="text-slate-900" />
                 <div className="text-xl font-normal tracking-wide text-slate-900">
                   B<span className="text-red-600">o</span>LumiCloud<span className="text-red-600">.</span>
                 </div>

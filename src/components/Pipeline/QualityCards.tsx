@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Zap, Scale, Gem, ChevronDown, ChevronUp } from 'lucide-react'
 import { QUALITY_DETAILS } from '@/lib/types/pipeline'
 import type { QualityPreset, QualityLevel, RenderParams } from '@/lib/types/pipeline'
 
@@ -13,10 +14,10 @@ interface QualityCardsProps {
   disabled?: boolean
 }
 
-const LABELS: Record<QualityPreset, { title: string; time: string }> = {
-  low:    { title: 'Low',    time: '~30s / render' },
-  medium: { title: 'Medium', time: '~2min / render' },
-  high:   { title: 'High',   time: '~8min / render' },
+const LABELS: Record<QualityPreset, { title: string; time: string; icon: typeof Zap }> = {
+  low:    { title: 'Low',    time: '~30s / render', icon: Zap },
+  medium: { title: 'Medium', time: '~2min / render', icon: Scale },
+  high:   { title: 'High',   time: '~8min / render', icon: Gem },
 }
 
 const PARAM_DESCRIPTIONS: Record<string, { ko: string; en: string }> = {
@@ -61,6 +62,7 @@ export default function QualityCards({
           const isSelected = selected === level
           const detail = QUALITY_DETAILS[level]
           const label = LABELS[level]
+          const Icon = label.icon
 
           return (
             <button
@@ -68,16 +70,19 @@ export default function QualityCards({
               type="button"
               onClick={() => onPresetChange(level)}
               disabled={disabled}
-              className={`p-4 text-left cursor-pointer transition-all duration-200 ${
+              className={`p-4 text-left cursor-pointer transition-all duration-300 border-2 ${
                 isSelected
-                  ? 'border-2 border-red-600 bg-red-50'
-                  : 'border-2 border-gray-200 hover:border-gray-400'
+                  ? 'border-red-600 bg-red-50'
+                  : 'border-gray-200 hover:border-red-600/30'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
-                {label.title}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon size={16} strokeWidth={1.5} className={isSelected ? 'text-red-600' : 'text-gray-500'} />
+                <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
+                  {label.title}
+                </p>
+              </div>
+              <p className="text-xs text-gray-500">
                 {detail.resolution} x {detail.resolution}
               </p>
               <p className="text-xs text-gray-500">ab{detail.ab}</p>
@@ -102,11 +107,9 @@ export default function QualityCards({
         onClick={() => setExpanded(!expanded)}
         disabled={disabled}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700
-          transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}>
-          &#9654;
-        </span>
+        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         상세 설정
       </button>
 
