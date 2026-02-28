@@ -1,11 +1,26 @@
 // SketchUp-to-Radiance 파이프라인 타입 정의
 
+// V2: Multi-date support
+export interface AnalysisDate {
+  month: number
+  day: number
+  label: string  // "춘분", "하지", "추분", "동지", "custom"
+}
+
+export const DATE_PRESETS: AnalysisDate[] = [
+  { month: 3,  day: 20, label: '춘분' },
+  { month: 6,  day: 21, label: '하지' },
+  { month: 9,  day: 22, label: '추분' },
+  { month: 12, day: 21, label: '동지' },
+]
+
+export const MAX_RENDERS = 50
+
 export interface PipelineConfig {
   latitude: number       // 양수 (동경)
   longitude: number      // 양수 (동경) — 백엔드 호출 시 음수 변환
   timezone: number       // 양수 (예: 135) — 백엔드 호출 시 음수 변환
-  month: number
-  day: number
+  dates: AnalysisDate[]  // V2: 복수 날짜
   hours: number[]        // [6, 7, 8, ..., 18]
   xres: number           // 기본 500
   yres: number           // 기본 500
@@ -41,7 +56,12 @@ export interface PipelineProgress {
 export interface PipelineUploadResponse {
   session_id: string
   message: string
-  files: Record<string, string>
+  vf_count: number
+  files: {
+    vf: string[]
+    obj: string
+    mtl?: string
+  }
 }
 
 export interface PipelineRunResponse {

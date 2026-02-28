@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { ApiProvider, GlareAnalysisProvider, PipelineProvider, useApi } from '@/contexts'
+import { ApiProvider, PipelineProvider, useApi } from '@/contexts'
+import { usePipelineContext } from '@/contexts/PipelineContext'
 import BoLumiCloudHeader from './BoLumiCloudHeader'
 import Navbar from '@/components/Navigation/Navbar'
 import Footer from '@/components/Navigation/Footer'
 import CategoryTabs from '@/components/BoLumiCloud/CategoryTabs'
 import SubTabs from '@/components/BoLumiCloud/SubTabs'
 import ComingSoonContent from '@/components/BoLumiCloud/ComingSoonContent'
-import GlareAnalysisTab from '@/components/BoLumiCloud/tabs/GlareAnalysisTab'
 import FileConversion from '@/components/BoLumiCloud/FileConversion'
 import TimelineAnimation from '@/components/BoLumiCloud/TimelineAnimation'
 import ImageProcessing from '@/components/BoLumiCloud/ImageProcessing'
@@ -21,14 +21,12 @@ import MaterialLibrary from '@/components/BoLumiCloud/MaterialLibrary'
 import DaylightAnalysis from '@/components/BoLumiCloud/DaylightAnalysis'
 import RenderScene from '@/components/BoLumiCloud/RenderScene'
 import SketchUpPipelineTab from '@/components/BoLumiCloud/tabs/SketchUpPipelineTab'
-import { useGlareAnalysisContext } from '@/contexts/GlareAnalysisContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 type Category = 'analysis' | 'convert' | 'generate' | 'simulate' | 'compliance'
 
 const txt = {
-  glare: { ko: '현휘 확인', en: 'Glare Check' } as LocalizedText,
   pipeline: { ko: 'SketchUp 파이프라인', en: 'SketchUp Pipeline' } as LocalizedText,
   daylight: { ko: '일조 확인', en: 'Daylight Check' } as LocalizedText,
   format: { ko: '형식 변환', en: 'Format Convert' } as LocalizedText,
@@ -66,11 +64,11 @@ const txt = {
 
 function BoLumiCloudInner() {
   const [category, setCategory] = useState<Category>('analysis')
-  const [subTab, setSubTab] = useState('glare')
+  const [subTab, setSubTab] = useState('pipeline')
   const { t } = useLocalizedText()
 
   const { backendStatus, backendInfo, apiUrl } = useApi()
-  const { results } = useGlareAnalysisContext()
+  const { results: pipelineResults } = usePipelineContext()
 
   return (
     <>
@@ -91,7 +89,6 @@ function BoLumiCloudInner() {
                 setCategory(cat)
                 const subTabsMap: Record<Category, { id: string; label: string; status?: 'coming' }[]> = {
                   analysis: [
-                    { id: 'glare', label: t(txt.glare) },
                     { id: 'pipeline', label: t(txt.pipeline) },
                     { id: 'daylight', label: t(txt.daylight) }
                   ],
@@ -128,7 +125,6 @@ function BoLumiCloudInner() {
             <SubTabs
               tabs={
                 category === 'analysis' ? [
-                  { id: 'glare', label: t(txt.glare) },
                   { id: 'pipeline', label: t(txt.pipeline) },
                   { id: 'daylight', label: t(txt.daylight) }
                 ] :
@@ -162,9 +158,7 @@ function BoLumiCloudInner() {
         {/* Main Content */}
         <section className="py-12 px-4 md:px-8 bg-gradient-to-br from-amber-50/50 via-yellow-50/30 to-amber-50/50">
           <div className="max-w-7xl mx-auto">
-            {category === 'analysis' && subTab === 'glare' ? (
-            <GlareAnalysisTab />
-            ) : category === 'analysis' && subTab === 'pipeline' ? (
+            {category === 'analysis' && subTab === 'pipeline' ? (
             <SketchUpPipelineTab />
             ) : category === 'convert' && subTab === 'format' ? (
             <FileConversion apiUrl={apiUrl} />
@@ -175,7 +169,7 @@ function BoLumiCloudInner() {
             ) : category === 'compliance' && subTab === 'certification' ? (
             <CertificationChecklist />
             ) : category === 'compliance' && subTab === 'disability' ? (
-            <DisabilityGlare results={results?.results || []} />
+            <DisabilityGlare results={pipelineResults?.results || []} />
             ) : category === 'generate' && subTab === 'sky' ? (
             <SkyGenerator apiUrl={apiUrl} />
             ) : category === 'generate' && subTab === 'model' ? (
@@ -259,11 +253,9 @@ function BoLumiCloudInner() {
 export default function BoLumiCloudContent() {
   return (
     <ApiProvider>
-      <GlareAnalysisProvider>
-        <PipelineProvider>
-          <BoLumiCloudInner />
-        </PipelineProvider>
-      </GlareAnalysisProvider>
+      <PipelineProvider>
+        <BoLumiCloudInner />
+      </PipelineProvider>
     </ApiProvider>
   )
 }

@@ -12,11 +12,12 @@ export type PipelinePhase = 'idle' | 'uploading' | 'running' | 'polling' | 'comp
 interface UsePipelineReturn {
   phase: PipelinePhase
   sessionId: string | null
+  vfCount: number
   progress: PipelineProgress | null
   results: AnalysisResponse | null
   error: string | null
 
-  uploadFiles: (vfFile: File, objFile: File, mtlFile: File | null) => Promise<void>
+  uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
   reset: () => void
 }
@@ -24,6 +25,7 @@ interface UsePipelineReturn {
 export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
   const [phase, setPhase] = useState<PipelinePhase>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [vfCount, setVfCount] = useState(0)
   const [progress, setProgress] = useState<PipelineProgress | null>(null)
   const [results, setResults] = useState<AnalysisResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,19 +49,22 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     }
     setPhase('idle')
     setSessionId(null)
+    setVfCount(0)
     setProgress(null)
     setResults(null)
     setError(null)
     errorCountRef.current = 0
   }, [])
 
-  const uploadFiles = useCallback(async (vfFile: File, objFile: File, mtlFile: File | null) => {
+  const uploadFiles = useCallback(async (vfFiles: File[], objFile: File, mtlFile: File | null) => {
     setPhase('uploading')
     setError(null)
 
     try {
       const formData = new FormData()
-      formData.append('vf_file', vfFile)
+      for (const vf of vfFiles) {
+        formData.append('vf_files', vf)
+      }
       formData.append('obj_file', objFile)
       if (mtlFile) {
         formData.append('mtl_file', mtlFile)
@@ -77,8 +82,9 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
 
       const data: PipelineUploadResponse = await res.json()
       setSessionId(data.session_id)
+      setVfCount(data.vf_count)
       setPhase('idle')
-      logger.info('Pipeline upload success', { sessionId: data.session_id })
+      logger.info('Pipeline upload success', { sessionId: data.session_id, vfCount: data.vf_count })
     } catch (err) {
       const msg = err instanceof Error ? err.message : '업로드 중 오류 발생'
       setError(msg)
@@ -104,7 +110,6 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
             pollIntervalRef.current = null
           }
 
-          // 결과 가져오기
           const resultsRes = await fetch(`${apiUrl}/pipeline/results/${sid}`)
           if (resultsRes.ok) {
             const resultsData = await resultsRes.json()
@@ -159,8 +164,11 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         latitude: config.latitude,
         longitude: -config.longitude,
         timezone: -config.timezone,
-        month: config.month,
-        day: config.day,
+        dates: config.dates.map(d => ({
+          month: d.month,
+          day: d.day,
+          label: d.label,
+        })),
         hours: config.hours,
         xres: config.xres,
         yres: config.yres,
@@ -192,6 +200,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
   return {
     phase,
     sessionId,
+    vfCount,
     progress,
     results,
     error,

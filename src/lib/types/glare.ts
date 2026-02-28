@@ -14,6 +14,7 @@ export interface GlareResult {
   viewp?: string
   month?: string
   time?: string
+  date_label?: string
 }
 
 export interface GlareSummary {

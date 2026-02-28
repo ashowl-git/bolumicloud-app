@@ -3,9 +3,11 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePipelineContext } from '@/contexts/PipelineContext'
+import { useApi } from '@/contexts/ApiContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
-import { QUALITY_DETAILS } from '@/lib/types/pipeline'
-import type { PipelineConfig } from '@/lib/types/pipeline'
+import { QUALITY_DETAILS, MAX_RENDERS, DATE_PRESETS } from '@/lib/types/pipeline'
+import type { PipelineConfig, AnalysisDate } from '@/lib/types/pipeline'
+import type { GlareResult } from '@/lib/types/glare'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 import StepIndicator from '@/components/Pipeline/StepIndicator'
@@ -16,6 +18,9 @@ import type { LocationTimeConfigState } from '@/components/Pipeline/LocationTime
 import QualityCards from '@/components/Pipeline/QualityCards'
 import ReviewSummary from '@/components/Pipeline/ReviewSummary'
 import PipelineProgress from '@/components/Pipeline/PipelineProgress'
+import PipelineImageGallery from '@/components/Pipeline/PipelineImageGallery'
+import PipelineImageViewer from '@/components/Pipeline/PipelineImageViewer'
+import PipelineDownloads from '@/components/Pipeline/PipelineDownloads'
 import ResultsChart from '@/components/GlareAnalysis/ResultsChart'
 import ResultsTable from '@/components/GlareAnalysis/ResultsTable'
 
@@ -30,6 +35,8 @@ const txt = {
   reset: { ko: '새로 시작', en: 'Reset' } as LocalizedText,
   quality: { ko: '렌더 품질', en: 'Render Quality' } as LocalizedText,
   hoursRequired: { ko: '시간을 1개 이상 선택해주세요', en: 'Select at least 1 hour' } as LocalizedText,
+  datesRequired: { ko: '날짜를 1개 이상 선택해주세요', en: 'Select at least 1 date' } as LocalizedText,
+  renderExceeds: { ko: '렌더 수가 최대값을 초과합니다', en: 'Render count exceeds maximum' } as LocalizedText,
 }
 
 const fadeVariants = {
@@ -40,9 +47,11 @@ const fadeVariants = {
 
 export default function SketchUpPipelineTab() {
   const { t } = useLocalizedText()
+  const { apiUrl } = useApi()
   const {
     phase,
     sessionId,
+    vfCount,
     progress,
     results,
     error,
@@ -54,22 +63,28 @@ export default function SketchUpPipelineTab() {
   // Step state
   const [currentStep, setCurrentStep] = useState(1)
 
-  // File state
-  const [vfFile, setVfFile] = useState<File | null>(null)
+  // File state (multi-VF)
+  const [vfFiles, setVfFiles] = useState<File[]>([])
   const [objFile, setObjFile] = useState<File | null>(null)
   const [mtlFile, setMtlFile] = useState<File | null>(null)
 
-  // Config state
+  // Config state (multi-date)
   const [config, setConfig] = useState<LocationTimeConfigState>({
     latitude: 37.5665,
     longitude: 126.978,
     timezone: 135,
-    month: 6,
-    day: 21,
+    dates: [DATE_PRESETS[1]], // 하지 default
     selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
     skyType: 'sunny_with_sun',
   })
   const [quality, setQuality] = useState<'low' | 'medium' | 'high'>('low')
+
+  // Image viewer state
+  const [viewerResult, setViewerResult] = useState<GlareResult | null>(null)
+
+  // Render count
+  const renderCount = vfFiles.length * config.dates.length * config.selectedHours.length
+  const renderExceeds = renderCount > MAX_RENDERS
 
   // Completed steps tracking
   const getCompletedSteps = (): number[] => {
@@ -106,23 +121,28 @@ export default function SketchUpPipelineTab() {
 
   // Handlers
   const handleFilesClassified = useCallback(
-    (files: { vf: File | null; obj: File | null; mtl: File | null }) => {
-      setVfFile(files.vf)
+    (files: { vfFiles: File[]; obj: File | null; mtl: File | null }) => {
+      setVfFiles(files.vfFiles)
       setObjFile(files.obj)
       setMtlFile(files.mtl)
     },
     []
   )
 
+  const handleRemoveVf = useCallback((idx: number) => {
+    setVfFiles(prev => prev.filter((_, i) => i !== idx))
+  }, [])
+
   const handleUpload = useCallback(async () => {
-    if (!vfFile || !objFile) return
-    await uploadFiles(vfFile, objFile, mtlFile)
-  }, [vfFile, objFile, mtlFile, uploadFiles])
+    if (vfFiles.length === 0 || !objFile) return
+    await uploadFiles(vfFiles, objFile, mtlFile)
+  }, [vfFiles, objFile, mtlFile, uploadFiles])
 
   const handleContinueToReview = useCallback(() => {
-    if (config.selectedHours.length === 0) return
+    if (config.selectedHours.length === 0 || config.dates.length === 0) return
+    if (renderExceeds) return
     setCurrentStep(3)
-  }, [config.selectedHours])
+  }, [config.selectedHours, config.dates, renderExceeds])
 
   const handleStartPipeline = useCallback(async () => {
     const detail = QUALITY_DETAILS[quality]
@@ -130,8 +150,7 @@ export default function SketchUpPipelineTab() {
       latitude: config.latitude,
       longitude: config.longitude,
       timezone: config.timezone,
-      month: config.month,
-      day: config.day,
+      dates: config.dates,
       hours: [...config.selectedHours].sort((a, b) => a - b),
       xres: detail.resolution,
       yres: detail.resolution,
@@ -144,19 +163,19 @@ export default function SketchUpPipelineTab() {
   const handleReset = useCallback(() => {
     reset()
     setCurrentStep(1)
-    setVfFile(null)
+    setVfFiles([])
     setObjFile(null)
     setMtlFile(null)
     setConfig({
       latitude: 37.5665,
       longitude: 126.978,
       timezone: 135,
-      month: 6,
-      day: 21,
+      dates: [DATE_PRESETS[1]],
       selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
       skyType: 'sunny_with_sun',
     })
     setQuality('low')
+    setViewerResult(null)
   }, [reset])
 
   const handleConfigChange = useCallback((partial: Partial<LocationTimeConfigState>) => {
@@ -165,7 +184,15 @@ export default function SketchUpPipelineTab() {
 
   const isUploading = phase === 'uploading'
   const isRunning = phase === 'running' || phase === 'polling'
-  const canUpload = !!vfFile && !!objFile && !isUploading
+  const canUpload = vfFiles.length > 0 && !!objFile && !isUploading
+
+  // Check if results have multiple viewpoints/dates (for showing new charts)
+  const hasMultipleViewpoints = results
+    ? new Set(results.results.map(r => r.viewp).filter(Boolean)).size > 1
+    : false
+  const hasMultipleDates = results
+    ? new Set(results.results.map(r => r.date_label).filter(Boolean)).size > 1
+    : false
 
   return (
     <div className="space-y-8">
@@ -219,12 +246,17 @@ export default function SketchUpPipelineTab() {
           >
             <UnifiedFileDropZone
               onFilesClassified={handleFilesClassified}
-              currentFiles={{ vf: vfFile, obj: objFile, mtl: mtlFile }}
+              currentFiles={{ vfFiles, obj: objFile, mtl: mtlFile }}
               disabled={isUploading || !!sessionId}
               isProcessing={isUploading}
             />
 
-            <FileTypeChecklist vfFile={vfFile} objFile={objFile} mtlFile={mtlFile} />
+            <FileTypeChecklist
+              vfFiles={vfFiles}
+              objFile={objFile}
+              mtlFile={mtlFile}
+              onRemoveVf={!sessionId ? handleRemoveVf : undefined}
+            />
 
             {canUpload && !sessionId && (
               <div className="pt-2">
@@ -256,6 +288,7 @@ export default function SketchUpPipelineTab() {
             <LocationTimeConfig
               config={config}
               onChange={handleConfigChange}
+              vfCount={vfCount || vfFiles.length}
               disabled={isRunning}
             />
 
@@ -275,7 +308,7 @@ export default function SketchUpPipelineTab() {
               </button>
               <button
                 onClick={handleContinueToReview}
-                disabled={config.selectedHours.length === 0}
+                disabled={config.selectedHours.length === 0 || config.dates.length === 0 || renderExceeds}
                 className="border border-gray-200 hover:border-red-600/30 px-8 py-3
                   text-gray-900 hover:text-red-600 transition-all duration-300
                   disabled:opacity-50 disabled:cursor-not-allowed"
@@ -284,6 +317,12 @@ export default function SketchUpPipelineTab() {
               </button>
               {config.selectedHours.length === 0 && (
                 <span className="text-xs text-red-400">{t(txt.hoursRequired)}</span>
+              )}
+              {config.dates.length === 0 && (
+                <span className="text-xs text-red-400">{t(txt.datesRequired)}</span>
+              )}
+              {renderExceeds && (
+                <span className="text-xs text-red-400">{t(txt.renderExceeds)}</span>
               )}
             </div>
           </motion.div>
@@ -300,7 +339,12 @@ export default function SketchUpPipelineTab() {
             transition={{ duration: 0.25 }}
             className="space-y-6"
           >
-            <ReviewSummary config={config} hasMtl={!!mtlFile} quality={quality} />
+            <ReviewSummary
+              config={config}
+              vfNames={vfFiles.map(f => f.name.replace('.vf', ''))}
+              hasMtl={!!mtlFile}
+              quality={quality}
+            />
 
             <div className="flex items-center gap-4">
               <button
@@ -399,27 +443,60 @@ export default function SketchUpPipelineTab() {
             {/* Pipeline Info */}
             {(() => {
               const info = (results as unknown as Record<string, unknown>).pipeline_info as
-                | { total_duration_sec: number; quality: string; resolution: string; renders: number }
+                | { total_duration_sec: number; quality: string; resolution: string; renders: number; vf_count?: number; date_count?: number }
                 | undefined
               if (!info) return null
               return (
                 <div className="border border-gray-200 p-4">
                   <p className="text-sm text-gray-700">
                     총 소요 시간 {(info.total_duration_sec / 60).toFixed(1)}min |{' '}
-                    {info.quality} | {info.resolution} | 렌더 수 {info.renders}
+                    {info.quality} | {info.resolution} |{' '}
+                    {info.vf_count && info.vf_count > 1 ? `${info.vf_count} VFs | ` : ''}
+                    {info.date_count && info.date_count > 1 ? `${info.date_count} dates | ` : ''}
+                    렌더 수 {info.renders}
                   </p>
                 </div>
               )
             })()}
 
+            {/* Image Gallery */}
+            {results.results.length > 0 && sessionId && (
+              <PipelineImageGallery
+                results={results.results}
+                apiUrl={apiUrl}
+                sessionId={sessionId}
+                onImageClick={(r) => setViewerResult(r)}
+              />
+            )}
+
+            {/* Downloads */}
+            {sessionId && (
+              <PipelineDownloads apiUrl={apiUrl} sessionId={sessionId} />
+            )}
+
             {/* Charts */}
             {results.results.length > 0 && (
               <div className="space-y-6">
+                {/* Heatmap (viewpoint x time) */}
+                {hasMultipleViewpoints && (
+                  <ResultsChart results={results.results} chartType="heatmap" />
+                )}
+
+                {/* Date comparison */}
+                {hasMultipleDates && (
+                  <ResultsChart results={results.results} chartType="date_comparison" />
+                )}
+
+                {/* DGP Distribution */}
+                <ResultsChart results={results.results} chartType="dgp_distribution" />
+
+                {/* Existing charts */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <ResultsChart results={results.results} chartType="time" />
-                  <ResultsChart results={results.results} chartType="month" />
+                  {hasMultipleViewpoints && (
+                    <ResultsChart results={results.results} chartType="viewpoint" />
+                  )}
                 </div>
-                <ResultsChart results={results.results} chartType="viewpoint" />
               </div>
             )}
 
@@ -430,6 +507,16 @@ export default function SketchUpPipelineTab() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Image Viewer Modal */}
+      {viewerResult && sessionId && (
+        <PipelineImageViewer
+          result={viewerResult}
+          apiUrl={apiUrl}
+          sessionId={sessionId}
+          onClose={() => setViewerResult(null)}
+        />
+      )}
     </div>
   )
 }

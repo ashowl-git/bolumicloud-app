@@ -3,7 +3,10 @@
 import { useCallback } from 'react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { CITY_PRESETS } from '@/lib/types/pipeline'
+import type { AnalysisDate } from '@/lib/types/pipeline'
 import HourChipSelector from './HourChipSelector'
+import DateSelector from './DateSelector'
+import RenderCountBadge from './RenderCountBadge'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 const txt = {
@@ -12,22 +15,20 @@ const txt = {
   latitude: { ko: '위도', en: 'Latitude' } as LocalizedText,
   longitude: { ko: '경도 (동경)', en: 'Longitude (East)' } as LocalizedText,
   timezone: { ko: '자오선 (동경)', en: 'Meridian (East)' } as LocalizedText,
-  date: { ko: '날짜', en: 'Date' } as LocalizedText,
-  month: { ko: '월', en: 'Month' } as LocalizedText,
-  day: { ko: '일', en: 'Day' } as LocalizedText,
+  dates: { ko: '분석 날짜', en: 'Analysis Dates' } as LocalizedText,
   hours: { ko: '분석 시간', en: 'Analysis Hours' } as LocalizedText,
   sky: { ko: '하늘 유형', en: 'Sky Type' } as LocalizedText,
   sunny: { ko: '맑음+태양', en: 'Sunny+Sun' } as LocalizedText,
   cloudy: { ko: '흐림', en: 'Cloudy' } as LocalizedText,
   intermediate: { ko: '중간', en: 'Intermediate' } as LocalizedText,
+  renderCount: { ko: '렌더 수 확인', en: 'Render Count' } as LocalizedText,
 }
 
 export interface LocationTimeConfigState {
   latitude: number
   longitude: number
   timezone: number
-  month: number
-  day: number
+  dates: AnalysisDate[]
   selectedHours: number[]
   skyType: 'sunny_with_sun' | 'cloudy' | 'intermediate'
 }
@@ -35,6 +36,7 @@ export interface LocationTimeConfigState {
 interface LocationTimeConfigProps {
   config: LocationTimeConfigState
   onChange: (partial: Partial<LocationTimeConfigState>) => void
+  vfCount: number
   disabled?: boolean
 }
 
@@ -44,7 +46,7 @@ const SKY_OPTIONS: { value: 'sunny_with_sun' | 'cloudy' | 'intermediate'; label:
   { value: 'intermediate', label: txt.intermediate },
 ]
 
-export default function LocationTimeConfig({ config, onChange, disabled }: LocationTimeConfigProps) {
+export default function LocationTimeConfig({ config, onChange, vfCount, disabled }: LocationTimeConfigProps) {
   const { t } = useLocalizedText()
 
   const handleCityPreset = useCallback(
@@ -126,40 +128,14 @@ export default function LocationTimeConfig({ config, onChange, disabled }: Locat
         </div>
       </div>
 
-      {/* Date */}
+      {/* Dates */}
       <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.date)}</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t(txt.month)}</label>
-            <select
-              value={config.month}
-              onChange={(e) => onChange({ month: Number(e.target.value) })}
-              disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                <option key={m} value={m}>
-                  {m}월
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t(txt.day)}</label>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              value={config.day}
-              onChange={(e) => onChange({ day: Number(e.target.value) })}
-              disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
-            />
-          </div>
-        </div>
+        <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.dates)}</h3>
+        <DateSelector
+          selectedDates={config.dates}
+          onChange={(dates) => onChange({ dates })}
+          disabled={disabled}
+        />
       </div>
 
       {/* Hours */}
@@ -169,6 +145,16 @@ export default function LocationTimeConfig({ config, onChange, disabled }: Locat
           selectedHours={config.selectedHours}
           onChange={(hours) => onChange({ selectedHours: hours })}
           disabled={disabled}
+        />
+      </div>
+
+      {/* Render Count Badge */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-900 mb-2">{t(txt.renderCount)}</h3>
+        <RenderCountBadge
+          vfCount={vfCount}
+          dateCount={config.dates.length}
+          hourCount={config.selectedHours.length}
         />
       </div>
 

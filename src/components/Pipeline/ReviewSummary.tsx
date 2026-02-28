@@ -1,17 +1,18 @@
 'use client'
 
-import { QUALITY_DETAILS, RENDER_TIME_ESTIMATES } from '@/lib/types/pipeline'
+import { QUALITY_DETAILS, RENDER_TIME_ESTIMATES, MAX_RENDERS } from '@/lib/types/pipeline'
+import type { AnalysisDate } from '@/lib/types/pipeline'
 
 interface ReviewSummaryProps {
   config: {
     latitude: number
     longitude: number
     timezone: number
-    month: number
-    day: number
+    dates: AnalysisDate[]
     selectedHours: number[]
     skyType: 'sunny_with_sun' | 'cloudy' | 'intermediate'
   }
+  vfNames: string[]
   hasMtl: boolean
   quality: 'low' | 'medium' | 'high'
 }
@@ -30,11 +31,15 @@ function formatEstimate(totalSeconds: number): string {
   return `~${hr.toFixed(1)}시간`
 }
 
-export default function ReviewSummary({ config, hasMtl, quality }: ReviewSummaryProps) {
+export default function ReviewSummary({ config, vfNames, hasMtl, quality }: ReviewSummaryProps) {
   const detail = QUALITY_DETAILS[quality]
-  const renderCount = config.selectedHours.length
+  const vfCount = vfNames.length
+  const dateCount = config.dates.length
+  const hourCount = config.selectedHours.length
+  const renderCount = vfCount * dateCount * hourCount
   const perRender = RENDER_TIME_ESTIMATES[quality]
   const totalSeconds = renderCount * perRender
+  const exceeds = renderCount > MAX_RENDERS
 
   const sortedHours = [...config.selectedHours].sort((a, b) => a - b)
   const hourRange =
@@ -57,16 +62,24 @@ export default function ReviewSummary({ config, hasMtl, quality }: ReviewSummary
           <span className="text-gray-500">Timezone</span>
           <span className="text-gray-900">+{config.timezone}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-gray-500">Date</span>
-          <span className="text-gray-900">
-            {config.month}/{config.day}
+        <div className="flex justify-between col-span-2">
+          <span className="text-gray-500">VF ({vfCount}개)</span>
+          <span className="text-gray-900 text-right">
+            {vfNames.join(', ')}
+          </span>
+        </div>
+        <div className="flex justify-between col-span-2">
+          <span className="text-gray-500">Dates ({dateCount}개)</span>
+          <span className="text-gray-900 text-right">
+            {config.dates.map(d =>
+              d.label !== 'custom' ? `${d.label}(${d.month}/${d.day})` : `${d.month}/${d.day}`
+            ).join(', ')}
           </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-500">Hours</span>
           <span className="text-gray-900">
-            {hourRange} ({renderCount} renders)
+            {hourRange} ({hourCount}개)
           </span>
         </div>
         <div className="flex justify-between">
@@ -79,7 +92,7 @@ export default function ReviewSummary({ config, hasMtl, quality }: ReviewSummary
             {quality.charAt(0).toUpperCase() + quality.slice(1)} ({detail.resolution}x{detail.resolution}, ab{detail.ab})
           </span>
         </div>
-        <div className="flex justify-between col-span-2">
+        <div className="flex justify-between">
           <span className="text-gray-500">Materials</span>
           <span className={hasMtl ? 'text-green-600' : 'text-amber-500'}>
             {hasMtl ? 'MTL 포함' : 'MTL 없음 (회색 기본값)'}
@@ -89,19 +102,22 @@ export default function ReviewSummary({ config, hasMtl, quality }: ReviewSummary
 
       {/* Estimation banner */}
       <div className="border-t border-gray-100 pt-4 mt-4">
-        <div className="bg-gray-50 p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{renderCount}</span> renders x{' '}
-              <span className="font-medium">~{perRender}s</span> ={' '}
-              <span className="font-medium text-red-600">{formatEstimate(totalSeconds)}</span> (예상)
+        <div className={`p-4 ${exceeds ? 'bg-red-50' : 'bg-gray-50'}`}>
+          <p className="text-sm text-gray-700">
+            <span className="font-medium">{vfCount}</span> VFs x{' '}
+            <span className="font-medium">{dateCount}</span> dates x{' '}
+            <span className="font-medium">{hourCount}</span> hours ={' '}
+            <span className={`font-medium ${exceeds ? 'text-red-600' : 'text-gray-900'}`}>
+              {renderCount} renders
+            </span>
+            {' '} x ~{perRender}s ={' '}
+            <span className="font-medium text-red-600">{formatEstimate(totalSeconds)}</span> (예상)
+          </p>
+          {exceeds && (
+            <p className="text-xs text-red-600 mt-1">
+              최대 {MAX_RENDERS}개를 초과합니다. VF, 날짜, 또는 시간을 줄여주세요.
             </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-400">
-              해상도: {detail.resolution} x {detail.resolution}
-            </p>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import type { GlareResult } from '@/lib/types/glare'
 
@@ -10,13 +10,21 @@ interface ResultsTableProps {
 
 export default function ResultsTable({ results }: ResultsTableProps) {
   const [filter, setFilter] = useState<'all' | 'disability' | 'normal'>('all')
+  const [filterDate, setFilterDate] = useState<string>('all')
   const [sortBy, setSortBy] = useState<keyof GlareResult>('file')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const dateLabels = useMemo(
+    () => Array.from(new Set(results.map(r => r.date_label).filter(Boolean))).sort(),
+    [results]
+  )
+  const hasDateLabels = dateLabels.length > 0
 
   // 필터링
   const filteredResults = results.filter(r => {
     if (filter === 'disability') return r.disability === 1
     if (filter === 'normal') return r.disability === 0
+    if (filterDate !== 'all' && r.date_label !== filterDate) return false
     return true
   })
 
@@ -68,7 +76,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
   return (
     <div className="border border-gray-200 overflow-hidden">
       {/* 필터 버튼 */}
-      <div className="p-6 border-b border-gray-200 flex gap-2">
+      <div className="p-6 border-b border-gray-200 flex flex-wrap gap-2 items-center">
         <button
           onClick={() => setFilter('all')}
           className={`px-4 py-2 text-sm transition-all duration-300 ${
@@ -101,6 +109,19 @@ export default function ResultsTable({ results }: ResultsTableProps) {
         >
           정상 ({results.filter(r => r.disability === 0).length})
         </button>
+
+        {hasDateLabels && (
+          <select
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="ml-auto border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+          >
+            <option value="all">모든 날짜</option>
+            {dateLabels.map(dl => (
+              <option key={dl} value={dl}>{dl}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* 테이블 */}
@@ -114,6 +135,14 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               >
                 파일명 <SortIcon column="file" />
               </th>
+              {hasDateLabels && (
+                <th
+                  className="p-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('date_label')}
+                >
+                  날짜 <SortIcon column="date_label" />
+                </th>
+              )}
               <th
                 className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('average')}
@@ -161,6 +190,9 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 className="border-b border-gray-100 hover:bg-gray-50"
               >
                 <td className="p-3 font-mono text-xs">{row.file}</td>
+                {hasDateLabels && (
+                  <td className="p-3 text-xs text-gray-600">{row.date_label || '-'}</td>
+                )}
                 <td className="p-3 text-right text-gray-700">{Number(row.average).toFixed(2)}</td>
                 <td className="p-3 text-right text-gray-700">{Number(row.max).toFixed(2)}</td>
                 <td className="p-3 text-right text-gray-700">{Number(row.dgp).toFixed(3)}</td>

@@ -9,11 +9,12 @@ import type { PipelineConfig, PipelineProgress } from '@/lib/types/pipeline'
 interface PipelineContextType {
   phase: PipelinePhase
   sessionId: string | null
+  vfCount: number
   progress: PipelineProgress | null
   results: AnalysisResponse | null
   error: string | null
 
-  uploadFiles: (vfFile: File, objFile: File, mtlFile: File | null) => Promise<void>
+  uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
   reset: () => void
 }
@@ -32,6 +33,7 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
     () => ({
       phase: pipeline.phase,
       sessionId: pipeline.sessionId,
+      vfCount: pipeline.vfCount,
       progress: pipeline.progress,
       results: pipeline.results,
       error: pipeline.error,
@@ -42,6 +44,7 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
     [
       pipeline.phase,
       pipeline.sessionId,
+      pipeline.vfCount,
       pipeline.progress,
       pipeline.results,
       pipeline.error,

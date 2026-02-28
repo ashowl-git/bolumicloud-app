@@ -1,9 +1,10 @@
 'use client'
 
 interface FileTypeChecklistProps {
-  vfFile: File | null
+  vfFiles: File[]
   objFile: File | null
   mtlFile: File | null
+  onRemoveVf?: (index: number) => void
 }
 
 function formatSize(bytes: number): string {
@@ -60,15 +61,52 @@ function FileRow({ ext, file, required, description }: FileRowProps) {
   )
 }
 
-export default function FileTypeChecklist({ vfFile, objFile, mtlFile }: FileTypeChecklistProps) {
+export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveVf }: FileTypeChecklistProps) {
   return (
     <div className="mt-4 space-y-1">
-      <FileRow
-        ext="vf"
-        file={vfFile}
-        required
-        description="카메라 위치와 방향 (SketchUp Ruby 내보내기)"
-      />
+      {/* VF files (multi) */}
+      <div className="flex items-start gap-3 py-2">
+        <div className="w-8 flex-shrink-0 pt-0.5">
+          {vfFiles.length > 0 ? (
+            <span className="text-green-600 text-sm font-bold">[OK]</span>
+          ) : (
+            <span className="text-red-500 text-sm font-bold">[--]</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">.vf</span>
+            {vfFiles.length > 0 ? (
+              <span className="text-xs text-gray-400">{vfFiles.length}개 파일</span>
+            ) : (
+              <span className="text-xs text-red-400">필수 (1개 이상)</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-400 mt-0.5">카메라 위치와 방향 (복수 가능)</p>
+
+          {/* VF file list */}
+          {vfFiles.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {vfFiles.map((f, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-600 font-mono">{f.name}</span>
+                  <span className="text-gray-400">({formatSize(f.size)})</span>
+                  {onRemoveVf && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveVf(idx)}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      x
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <FileRow
         ext="obj"
         file={objFile}
