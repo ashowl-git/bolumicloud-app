@@ -20,6 +20,7 @@ interface UsePipelineReturn {
   uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
   reset: () => void
+  resetForRerun: () => void
 }
 
 export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
@@ -50,6 +51,18 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     setPhase('idle')
     setSessionId(null)
     setVfCount(0)
+    setProgress(null)
+    setResults(null)
+    setError(null)
+    errorCountRef.current = 0
+  }, [])
+
+  const resetForRerun = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+    setPhase('idle')
     setProgress(null)
     setResults(null)
     setError(null)
@@ -210,5 +223,6 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     uploadFiles,
     runPipeline,
     reset,
+    resetForRerun,
   }
 }

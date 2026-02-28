@@ -59,6 +59,7 @@ export default function SketchUpPipelineTab() {
     uploadFiles,
     runPipeline,
     reset,
+    resetForRerun,
   } = usePipelineContext()
 
   // Step state
@@ -182,6 +183,12 @@ export default function SketchUpPipelineTab() {
     setViewerResult(null)
   }, [reset])
 
+  const handleBackToSettings = useCallback(() => {
+    resetForRerun()
+    setViewerResult(null)
+    setCurrentStep(2)
+  }, [resetForRerun])
+
   const handleConfigChange = useCallback((partial: Partial<LocationTimeConfigState>) => {
     setConfig((prev) => ({ ...prev, ...partial }))
   }, [])
@@ -203,15 +210,26 @@ export default function SketchUpPipelineTab() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div />
-        {currentStep > 1 && (
-          <button
-            onClick={handleReset}
-            className="border border-gray-200 hover:border-red-600/30 px-4 py-2
-              text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
-          >
-            {t(txt.reset)}
-          </button>
-        )}
+        <div className="flex gap-2">
+          {currentStep === 5 && sessionId && (
+            <button
+              onClick={handleBackToSettings}
+              className="border border-gray-200 hover:border-gray-400 px-4 py-2
+                text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+            >
+              {t({ ko: '설정으로', en: 'Back to Settings' })}
+            </button>
+          )}
+          {currentStep > 1 && (
+            <button
+              onClick={handleReset}
+              className="border border-gray-200 hover:border-red-600/30 px-4 py-2
+                text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+            >
+              {t(txt.reset)}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Step Indicator */}
