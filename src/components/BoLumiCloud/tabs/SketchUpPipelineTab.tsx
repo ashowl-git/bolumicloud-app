@@ -58,6 +58,7 @@ export default function SketchUpPipelineTab() {
     error,
     uploadFiles,
     runPipeline,
+    cancelPipeline,
     reset,
     resetForRerun,
   } = usePipelineContext()
@@ -446,6 +447,17 @@ export default function SketchUpPipelineTab() {
               <div className="border border-gray-200 p-8 text-center">
                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                 <p className="text-sm text-gray-500">{t(txt.running)}</p>
+              </div>
+            )}
+            {isRunning && (
+              <div className="pt-4">
+                <button
+                  onClick={cancelPipeline}
+                  className="border border-gray-200 hover:border-red-600/30 px-6 py-2
+                    text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
+                >
+                  {t({ ko: '파이프라인 취소', en: 'Cancel Pipeline' })}
+                </button>
               </div>
             )}
           </motion.div>

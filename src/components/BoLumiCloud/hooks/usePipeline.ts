@@ -19,6 +19,7 @@ interface UsePipelineReturn {
 
   uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
+  cancelPipeline: () => Promise<void>
   reset: () => void
   resetForRerun: () => void
 }
@@ -161,6 +162,22 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     }, 2000)
   }, [apiUrl])
 
+  const cancelPipeline = useCallback(async () => {
+    if (!sessionId) return
+    try {
+      await fetch(`${apiUrl}/pipeline/cancel/${sessionId}`, { method: 'POST' })
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+      setError('파이프라인이 취소되었습니다')
+      setPhase('error')
+      logger.info('Pipeline cancelled', { sessionId })
+    } catch (err) {
+      logger.error('Pipeline cancel error', err instanceof Error ? err : undefined)
+    }
+  }, [sessionId, apiUrl])
+
   const runPipeline = useCallback(async (config: PipelineConfig) => {
     if (!sessionId) {
       setError('먼저 파일을 업로드해주세요')
@@ -225,6 +242,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     error,
     uploadFiles,
     runPipeline,
+    cancelPipeline,
     reset,
     resetForRerun,
   }

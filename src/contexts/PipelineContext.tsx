@@ -16,6 +16,7 @@ interface PipelineContextType {
 
   uploadFiles: (vfFiles: File[], objFile: File, mtlFile: File | null) => Promise<void>
   runPipeline: (config: PipelineConfig) => Promise<void>
+  cancelPipeline: () => Promise<void>
   reset: () => void
   resetForRerun: () => void
 }
@@ -40,6 +41,7 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
       error: pipeline.error,
       uploadFiles: pipeline.uploadFiles,
       runPipeline: pipeline.runPipeline,
+      cancelPipeline: pipeline.cancelPipeline,
       reset: pipeline.reset,
       resetForRerun: pipeline.resetForRerun,
     }),
@@ -52,6 +54,7 @@ export function PipelineProvider({ children }: PipelineProviderProps) {
       pipeline.error,
       pipeline.uploadFiles,
       pipeline.runPipeline,
+      pipeline.cancelPipeline,
       pipeline.reset,
       pipeline.resetForRerun,
     ]
