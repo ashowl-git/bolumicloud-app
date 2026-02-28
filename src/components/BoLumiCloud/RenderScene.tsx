@@ -144,7 +144,7 @@ export default function RenderScene() {
                 <button
                   key={q}
                   onClick={() => setQuality(q)}
-                  className={`border p-3 text-sm transition-all duration-300 ${
+                  className={`border-2 p-4 text-sm transition-all duration-300 ${
                     quality === q
                       ? 'border-red-600 bg-red-50 text-gray-900'
                       : 'border-gray-200 hover:border-red-600/30 text-gray-700'

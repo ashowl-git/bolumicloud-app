@@ -209,7 +209,7 @@ export default function ImageProcessing() {
           <button
             onClick={handleProcess}
             disabled={!selectedFile || processing}
-            className="border border-gray-200 hover:border-red-600/30 px-8 py-4 text-lg
+            className="border border-gray-200 hover:border-red-600/30 px-8 py-3 text-base
               text-gray-900 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >

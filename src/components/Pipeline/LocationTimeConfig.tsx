@@ -140,7 +140,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
               placeholder={t(txt.addressPlaceholder)}
               disabled={disabled}
               className="flex-1 border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
             {isSearching && (
               <span className="self-center text-xs text-gray-400">{t(txt.searching)}</span>
@@ -196,7 +196,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
               onChange={(e) => onChange({ latitude: Number(e.target.value) })}
               disabled={disabled}
               className="w-full border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
@@ -208,7 +208,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
               onChange={(e) => onChange({ longitude: Number(e.target.value) })}
               disabled={disabled}
               className="w-full border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
@@ -220,7 +220,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
               onChange={(e) => onChange({ timezone: Number(e.target.value) })}
               disabled={disabled}
               className="w-full border border-gray-200 px-3 py-2 text-sm
-                focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
         </div>

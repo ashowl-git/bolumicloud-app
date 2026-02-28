@@ -81,7 +81,7 @@ export default function SkyGenerator() {
               <select
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                className="w-full border border-gray-200 p-3 text-sm"
+                className="w-full border border-gray-200 px-4 py-2 text-sm focus:border-red-600/30 transition-colors"
               >
                 {monthNames.map((name, index) => (
                   <option key={index + 1} value={index + 1}>
@@ -99,7 +99,7 @@ export default function SkyGenerator() {
                 max="31"
                 value={day}
                 onChange={(e) => setDay(Number(e.target.value))}
-                className="w-full border border-gray-200 p-3 text-sm"
+                className="w-full border border-gray-200 px-4 py-2 text-sm focus:border-red-600/30 transition-colors"
               />
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function SkyGenerator() {
                 step="0.0001"
                 value={latitude}
                 onChange={(e) => setLatitude(Number(e.target.value))}
-                className="w-full border border-gray-200 p-3 text-sm"
+                className="w-full border border-gray-200 px-4 py-2 text-sm focus:border-red-600/30 transition-colors"
               />
             </div>
 
@@ -173,7 +173,7 @@ export default function SkyGenerator() {
                 step="0.0001"
                 value={longitude}
                 onChange={(e) => setLongitude(Number(e.target.value))}
-                className="w-full border border-gray-200 p-3 text-sm"
+                className="w-full border border-gray-200 px-4 py-2 text-sm focus:border-red-600/30 transition-colors"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function SkyGenerator() {
                 type="number"
                 value={meridian}
                 onChange={(e) => setMeridian(Number(e.target.value))}
-                className="w-full border border-gray-200 p-3 text-sm"
+                className="w-full border border-gray-200 px-4 py-2 text-sm focus:border-red-600/30 transition-colors"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function SkyGenerator() {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="border border-gray-200 hover:border-red-600/30 px-8 py-4 text-lg
+            className="border border-gray-200 hover:border-red-600/30 px-8 py-3 text-base
               text-gray-900 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >

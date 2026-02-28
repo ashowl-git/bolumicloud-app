@@ -68,7 +68,7 @@ export default function PipelineImageGallery({
           <select
             value={filterViewpoint}
             onChange={(e) => setFilterViewpoint(e.target.value)}
-            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 뷰포인트</option>
             {viewpoints.map(vp => (
@@ -81,7 +81,7 @@ export default function PipelineImageGallery({
           <select
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 날짜</option>
             {dateLabels.map(dl => (
@@ -94,7 +94,7 @@ export default function PipelineImageGallery({
           <select
             value={filterHour}
             onChange={(e) => setFilterHour(e.target.value)}
-            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 시간</option>
             {hours.map(h => (
@@ -106,7 +106,7 @@ export default function PipelineImageGallery({
         <select
           value={filterRating}
           onChange={(e) => setFilterRating(e.target.value)}
-          className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+          className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
         >
           <option value="all">모든 등급</option>
           {ratings.map(r => (

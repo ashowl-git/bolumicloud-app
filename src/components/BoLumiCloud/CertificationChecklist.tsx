@@ -98,9 +98,9 @@ export default function CertificationChecklist() {
           </div>
         </div>
 
-        <div className="w-full h-1 bg-gray-200 mb-6">
+        <div className="w-full h-1.5 bg-gray-100 rounded-full mb-6">
           <div
-            className="h-full bg-red-600 transition-all duration-300"
+            className="h-full bg-red-600 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>

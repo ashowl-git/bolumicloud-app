@@ -261,7 +261,7 @@ export default function SketchUpPipelineTab() {
           {currentStep === 5 && sessionId && (
             <button
               onClick={handleBackToSettings}
-              className="border border-gray-200 hover:border-gray-400 px-4 py-2
+              className="border border-gray-200 hover:border-gray-400 px-4 py-3
                 text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
             >
               {t({ ko: '설정으로', en: 'Back to Settings' })}
@@ -270,7 +270,7 @@ export default function SketchUpPipelineTab() {
           {currentStep > 1 && (
             <button
               onClick={handleReset}
-              className="border border-gray-200 hover:border-red-600/30 px-4 py-2
+              className="border border-gray-200 hover:border-red-600/30 px-4 py-3
                 text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
             >
               {t(txt.reset)}
@@ -504,7 +504,7 @@ export default function SketchUpPipelineTab() {
               <div className="pt-4">
                 <button
                   onClick={cancelPipeline}
-                  className="border border-gray-200 hover:border-red-600/30 px-6 py-2
+                  className="border border-gray-200 hover:border-red-600/30 px-6 py-3
                     text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
                 >
                   {t({ ko: '파이프라인 취소', en: 'Cancel Pipeline' })}

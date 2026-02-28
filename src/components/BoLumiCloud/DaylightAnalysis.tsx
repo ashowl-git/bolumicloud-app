@@ -144,7 +144,7 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={1}
                 max={20}
-                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
             <div>
@@ -156,7 +156,7 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={1}
                 max={20}
-                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
             <div>
@@ -168,7 +168,7 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={2}
                 max={5}
-                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
           </div>

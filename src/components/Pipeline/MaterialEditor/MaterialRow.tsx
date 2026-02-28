@@ -107,7 +107,7 @@ export default function MaterialRow({
                 onChange={(e) => onColorChange(e.target.value)}
                 disabled={disabled}
                 className="w-24 border border-gray-200 px-2 py-1 text-xs font-mono
-                  focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
               />
             </div>
           </div>

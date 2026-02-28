@@ -39,9 +39,9 @@ export default function HourChipSelector({ selectedHours, onChange, disabled }: 
               type="button"
               onClick={() => toggle(hour)}
               disabled={disabled}
-              className={`px-3 py-1.5 text-sm cursor-pointer transition-all duration-200 ${
+              className={`px-3 py-1.5 text-sm cursor-pointer transition-all duration-300 ${
                 isSelected
-                  ? 'border border-red-600/50 bg-red-50 text-red-600'
+                  ? 'border border-red-600 bg-red-50 text-red-600'
                   : 'border border-gray-200 text-gray-700 hover:border-gray-400'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >

@@ -114,7 +114,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           <select
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="ml-auto border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-gray-400"
+            className="ml-auto border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 날짜</option>
             {dateLabels.map(dl => (
@@ -225,7 +225,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
         </table>
 
         {filteredResults.length === 0 && (
-          <div className="text-center text-gray-800 py-8">
+          <div className="text-center text-gray-500 py-12">
             조건에 맞는 데이터가 없습니다
           </div>
         )}
