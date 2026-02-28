@@ -36,7 +36,6 @@ export default function MaterialEditor({
   onChange,
   disabled,
 }: MaterialEditorProps) {
-  const [materials, setMaterials] = useState<MaterialOverride[]>([])
   const [loading, setLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
@@ -49,8 +48,6 @@ export default function MaterialEditor({
       .then(res => res.json())
       .then(data => {
         const mats: MaterialOverride[] = data.materials || []
-        setMaterials(mats)
-        // Initialize overrides from backend defaults if empty
         if (Object.keys(overrides).length === 0 && mats.length > 0) {
           const initial: Record<string, MaterialOverride> = {}
           for (const m of mats) {
@@ -59,7 +56,7 @@ export default function MaterialEditor({
           onChange(initial)
         }
       })
-      .catch(() => setMaterials([]))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [apiUrl, sessionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
