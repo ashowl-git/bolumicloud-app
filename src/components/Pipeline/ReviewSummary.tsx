@@ -1,7 +1,7 @@
 'use client'
 
 import { QUALITY_DETAILS, RENDER_TIME_ESTIMATES, MAX_RENDERS } from '@/lib/types/pipeline'
-import type { AnalysisDate } from '@/lib/types/pipeline'
+import type { AnalysisDate, QualityLevel, RenderParams } from '@/lib/types/pipeline'
 
 interface ReviewSummaryProps {
   config: {
@@ -14,7 +14,9 @@ interface ReviewSummaryProps {
   }
   vfNames: string[]
   hasMtl: boolean
-  quality: 'low' | 'medium' | 'high'
+  quality: QualityLevel
+  resolution: number
+  renderParams: RenderParams
 }
 
 const SKY_LABELS: Record<string, string> = {
@@ -31,13 +33,13 @@ function formatEstimate(totalSeconds: number): string {
   return `~${hr.toFixed(1)}시간`
 }
 
-export default function ReviewSummary({ config, vfNames, hasMtl, quality }: ReviewSummaryProps) {
-  const detail = QUALITY_DETAILS[quality]
+export default function ReviewSummary({ config, vfNames, hasMtl, quality, resolution, renderParams }: ReviewSummaryProps) {
+  const isCustom = quality === 'custom'
   const vfCount = vfNames.length
   const dateCount = config.dates.length
   const hourCount = config.selectedHours.length
   const renderCount = vfCount * dateCount * hourCount
-  const perRender = RENDER_TIME_ESTIMATES[quality]
+  const perRender = isCustom ? RENDER_TIME_ESTIMATES.medium : RENDER_TIME_ESTIMATES[quality]
   const totalSeconds = renderCount * perRender
   const exceeds = renderCount > MAX_RENDERS
 
@@ -89,7 +91,10 @@ export default function ReviewSummary({ config, vfNames, hasMtl, quality }: Revi
         <div className="flex justify-between">
           <span className="text-gray-500">Quality</span>
           <span className="text-gray-900">
-            {quality.charAt(0).toUpperCase() + quality.slice(1)} ({detail.resolution}x{detail.resolution}, ab{detail.ab})
+            {isCustom
+              ? `Custom (${resolution}x${resolution}, ab${renderParams.ab} ad${renderParams.ad} as${renderParams.as})`
+              : `${quality.charAt(0).toUpperCase() + quality.slice(1)} (${resolution}x${resolution}, ab${renderParams.ab})`
+            }
           </span>
         </div>
         <div className="flex justify-between">

@@ -6,7 +6,7 @@ import { usePipelineContext } from '@/contexts/PipelineContext'
 import { useApi } from '@/contexts/ApiContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { QUALITY_DETAILS, MAX_RENDERS, DATE_PRESETS } from '@/lib/types/pipeline'
-import type { PipelineConfig, MaterialOverride } from '@/lib/types/pipeline'
+import type { PipelineConfig, MaterialOverride, QualityPreset, QualityLevel, RenderParams } from '@/lib/types/pipeline'
 import type { GlareResult } from '@/lib/types/glare'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -79,7 +79,14 @@ export default function SketchUpPipelineTab() {
     selectedHours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
     skyType: 'sunny_with_sun',
   })
-  const [quality, setQuality] = useState<'low' | 'medium' | 'high'>('low')
+  const [quality, setQuality] = useState<QualityLevel>('low')
+  const [resolution, setResolution] = useState(QUALITY_DETAILS.low.resolution)
+  const [renderParams, setRenderParams] = useState<RenderParams>({
+    ab: QUALITY_DETAILS.low.ab,
+    ad: QUALITY_DETAILS.low.ad,
+    as: QUALITY_DETAILS.low.as,
+    ar: QUALITY_DETAILS.low.ar,
+  })
   const [materialOverrides, setMaterialOverrides] = useState<Record<string, MaterialOverride>>({})
 
   // Image viewer state
@@ -147,22 +154,35 @@ export default function SketchUpPipelineTab() {
     setCurrentStep(3)
   }, [config.selectedHours, config.dates, renderExceeds])
 
+  const handlePresetChange = useCallback((q: QualityPreset) => {
+    const detail = QUALITY_DETAILS[q]
+    setQuality(q)
+    setResolution(detail.resolution)
+    setRenderParams({ ab: detail.ab, ad: detail.ad, as: detail.as, ar: detail.ar })
+  }, [])
+
+  const handleParamsChange = useCallback((newRes: number, newParams: RenderParams) => {
+    setResolution(newRes)
+    setRenderParams(newParams)
+    setQuality('custom')
+  }, [])
+
   const handleStartPipeline = useCallback(async () => {
-    const detail = QUALITY_DETAILS[quality]
     const pipelineConfig: PipelineConfig = {
       latitude: config.latitude,
       longitude: config.longitude,
       timezone: config.timezone,
       dates: config.dates,
       hours: [...config.selectedHours].sort((a, b) => a - b),
-      xres: detail.resolution,
-      yres: detail.resolution,
+      xres: resolution,
+      yres: resolution,
       quality,
       skyType: config.skyType,
       materialOverrides: Object.keys(materialOverrides).length > 0 ? materialOverrides : undefined,
+      renderParams: quality === 'custom' ? renderParams : undefined,
     }
     await runPipeline(pipelineConfig)
-  }, [config, quality, materialOverrides, runPipeline])
+  }, [config, quality, resolution, renderParams, materialOverrides, runPipeline])
 
   const handleReset = useCallback(() => {
     reset()
@@ -179,6 +199,8 @@ export default function SketchUpPipelineTab() {
       skyType: 'sunny_with_sun',
     })
     setQuality('low')
+    setResolution(QUALITY_DETAILS.low.resolution)
+    setRenderParams({ ab: QUALITY_DETAILS.low.ab, ad: QUALITY_DETAILS.low.ad, as: QUALITY_DETAILS.low.as, ar: QUALITY_DETAILS.low.ar })
     setMaterialOverrides({})
     setViewerResult(null)
   }, [reset])
@@ -327,7 +349,14 @@ export default function SketchUpPipelineTab() {
 
             <div>
               <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.quality)}</h3>
-              <QualityCards selected={quality} onChange={setQuality} disabled={isRunning} />
+              <QualityCards
+                selected={quality}
+                resolution={resolution}
+                renderParams={renderParams}
+                onPresetChange={handlePresetChange}
+                onParamsChange={handleParamsChange}
+                disabled={isRunning}
+              />
             </div>
 
             {/* Continue button */}
@@ -377,6 +406,8 @@ export default function SketchUpPipelineTab() {
               vfNames={vfFiles.map(f => f.name.replace('.vf', ''))}
               hasMtl={!!mtlFile}
               quality={quality}
+              resolution={resolution}
+              renderParams={renderParams}
             />
 
             <div className="flex items-center gap-4">

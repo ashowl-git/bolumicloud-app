@@ -38,6 +38,16 @@ export const MATERIAL_TYPE_LABELS: Record<RadianceMaterialType, string> = {
   glass: '유리 (Glass)',
 }
 
+export interface RenderParams {
+  ab: number   // ambient bounces (2-8)
+  ad: number   // ambient divisions (512-8192)
+  as: number   // ambient super-samples (64-512)
+  ar: number   // ambient resolution (64-256)
+}
+
+export type QualityPreset = 'low' | 'medium' | 'high'
+export type QualityLevel = QualityPreset | 'custom'
+
 export interface PipelineConfig {
   latitude: number
   longitude: number
@@ -46,9 +56,10 @@ export interface PipelineConfig {
   hours: number[]
   xres: number
   yres: number
-  quality: 'low' | 'medium' | 'high'
+  quality: QualityLevel
   skyType: 'sunny_with_sun' | 'cloudy' | 'intermediate'
   materialOverrides?: Record<string, MaterialOverride>
+  renderParams?: RenderParams
 }
 
 export interface PipelineStage {
@@ -110,16 +121,18 @@ export interface CityPreset {
 }
 
 // Render time estimates (seconds per render)
-export const RENDER_TIME_ESTIMATES: Record<'low' | 'medium' | 'high', number> = {
+export const RENDER_TIME_ESTIMATES: Record<QualityPreset, number> = {
   low: 30,
   medium: 120,
   high: 480,
 }
 
-export const QUALITY_DETAILS: Record<'low' | 'medium' | 'high', { resolution: number; ab: number }> = {
-  low:    { resolution: 500,  ab: 2 },
-  medium: { resolution: 1000, ab: 3 },
-  high:   { resolution: 2000, ab: 4 },
+export const QUALITY_DETAILS: Record<QualityPreset, {
+  resolution: number; ab: number; ad: number; as: number; ar: number
+}> = {
+  low:    { resolution: 500,  ab: 4, ad: 4096, as: 256, ar: 128 },
+  medium: { resolution: 1000, ab: 4, ad: 4096, as: 256, ar: 128 },
+  high:   { resolution: 2000, ab: 4, ad: 4096, as: 256, ar: 128 },
 }
 
 export const CITY_PRESETS: CityPreset[] = [

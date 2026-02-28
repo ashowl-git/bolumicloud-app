@@ -191,6 +191,9 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       if (config.materialOverrides && Object.keys(config.materialOverrides).length > 0) {
         backendConfig.material_overrides = config.materialOverrides
       }
+      if (config.renderParams) {
+        backendConfig.render_params = config.renderParams
+      }
 
       const res = await fetch(`${apiUrl}/pipeline/run/${sessionId}`, {
         method: 'POST',
