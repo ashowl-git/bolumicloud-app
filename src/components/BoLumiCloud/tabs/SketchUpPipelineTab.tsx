@@ -6,11 +6,12 @@ import { usePipelineContext } from '@/contexts/PipelineContext'
 import { useApi } from '@/contexts/ApiContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { QUALITY_DETAILS, MAX_RENDERS, DATE_PRESETS } from '@/lib/types/pipeline'
-import type { PipelineConfig } from '@/lib/types/pipeline'
+import type { PipelineConfig, MaterialOverride } from '@/lib/types/pipeline'
 import type { GlareResult } from '@/lib/types/glare'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 import StepIndicator from '@/components/Pipeline/StepIndicator'
+import MaterialEditor from '@/components/Pipeline/MaterialEditor'
 import UnifiedFileDropZone from '@/components/Pipeline/UnifiedFileDropZone'
 import FileTypeChecklist from '@/components/Pipeline/FileTypeChecklist'
 import LocationTimeConfig from '@/components/Pipeline/LocationTimeConfig'
@@ -78,6 +79,7 @@ export default function SketchUpPipelineTab() {
     skyType: 'sunny_with_sun',
   })
   const [quality, setQuality] = useState<'low' | 'medium' | 'high'>('low')
+  const [materialOverrides, setMaterialOverrides] = useState<Record<string, MaterialOverride>>({})
 
   // Image viewer state
   const [viewerResult, setViewerResult] = useState<GlareResult | null>(null)
@@ -156,9 +158,10 @@ export default function SketchUpPipelineTab() {
       yres: detail.resolution,
       quality,
       skyType: config.skyType,
+      materialOverrides: Object.keys(materialOverrides).length > 0 ? materialOverrides : undefined,
     }
     await runPipeline(pipelineConfig)
-  }, [config, quality, runPipeline])
+  }, [config, quality, materialOverrides, runPipeline])
 
   const handleReset = useCallback(() => {
     reset()
@@ -175,6 +178,7 @@ export default function SketchUpPipelineTab() {
       skyType: 'sunny_with_sun',
     })
     setQuality('low')
+    setMaterialOverrides({})
     setViewerResult(null)
   }, [reset])
 
@@ -285,6 +289,17 @@ export default function SketchUpPipelineTab() {
             transition={{ duration: 0.25 }}
             className="space-y-8"
           >
+            {/* Material Editor */}
+            {sessionId && (
+              <MaterialEditor
+                apiUrl={apiUrl}
+                sessionId={sessionId}
+                overrides={materialOverrides}
+                onChange={setMaterialOverrides}
+                disabled={isRunning}
+              />
+            )}
+
             <LocationTimeConfig
               config={config}
               onChange={handleConfigChange}

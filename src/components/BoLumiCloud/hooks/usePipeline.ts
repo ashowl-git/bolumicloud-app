@@ -160,7 +160,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
 
     try {
       // Radiance West-positive 규약: 경도/자오선 음수 변환
-      const backendConfig = {
+      const backendConfig: Record<string, unknown> = {
         latitude: config.latitude,
         longitude: -config.longitude,
         timezone: -config.timezone,
@@ -174,6 +174,9 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         yres: config.yres,
         quality: config.quality,
         sky_type: config.skyType,
+      }
+      if (config.materialOverrides && Object.keys(config.materialOverrides).length > 0) {
+        backendConfig.material_overrides = config.materialOverrides
       }
 
       const res = await fetch(`${apiUrl}/pipeline/run/${sessionId}`, {

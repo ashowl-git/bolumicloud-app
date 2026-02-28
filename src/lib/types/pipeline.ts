@@ -16,16 +16,39 @@ export const DATE_PRESETS: AnalysisDate[] = [
 
 export const MAX_RENDERS = 800
 
+// Material types & overrides
+export type RadianceMaterialType = 'plastic' | 'trans' | 'metal' | 'glass'
+
+export interface MaterialOverride {
+  name: string
+  mat_type: RadianceMaterialType
+  r: number
+  g: number
+  b: number
+  specularity: number
+  roughness: number
+  transmissivity: number   // trans 타입 전용
+  trans_specular: number   // trans 타입 전용
+}
+
+export const MATERIAL_TYPE_LABELS: Record<RadianceMaterialType, string> = {
+  plastic: '불투명 (Plastic)',
+  trans: '반투명 (Trans)',
+  metal: '금속 (Metal)',
+  glass: '유리 (Glass)',
+}
+
 export interface PipelineConfig {
-  latitude: number       // 양수 (동경)
-  longitude: number      // 양수 (동경) — 백엔드 호출 시 음수 변환
-  timezone: number       // 양수 (예: 135) — 백엔드 호출 시 음수 변환
-  dates: AnalysisDate[]  // V2: 복수 날짜
-  hours: number[]        // [6, 7, 8, ..., 18]
-  xres: number           // 기본 500
-  yres: number           // 기본 500
+  latitude: number
+  longitude: number
+  timezone: number
+  dates: AnalysisDate[]
+  hours: number[]
+  xres: number
+  yres: number
   quality: 'low' | 'medium' | 'high'
   skyType: 'sunny_with_sun' | 'cloudy' | 'intermediate'
+  materialOverrides?: Record<string, MaterialOverride>
 }
 
 export interface PipelineStage {
