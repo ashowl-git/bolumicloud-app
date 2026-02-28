@@ -21,7 +21,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
   const [heatmapDate, setHeatmapDate] = useState<string>('all')
 
   // Get unique date labels for heatmap tab
-  const dateLabels = Array.from(new Set(results.map(r => r.date_label).filter(Boolean))).sort()
+  const dateLabels = Array.from(new Set(results.map(r => r.date_label).filter((v): v is string => !!v))).sort()
 
   const prepareData = useCallback(() => {
     if (chartType === 'time') {
