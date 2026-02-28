@@ -537,6 +537,24 @@ export default function SketchUpPipelineTab() {
             {results.results.length > 0 && (
               <ResultsTable results={results.results} />
             )}
+
+            {/* Bottom Navigation */}
+            <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
+              <button
+                onClick={handleBackToSettings}
+                className="border border-gray-200 hover:border-gray-400 px-6 py-3
+                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+              >
+                {t({ ko: '설정 변경', en: 'Change Settings' })}
+              </button>
+              <button
+                onClick={handleReset}
+                className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+                  text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+              >
+                {t(txt.reset)}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

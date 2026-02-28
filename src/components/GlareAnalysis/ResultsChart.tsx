@@ -24,46 +24,61 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
   const dateLabels = Array.from(new Set(results.map(r => r.date_label).filter((v): v is string => !!v))).sort()
 
   const prepareData = useCallback(() => {
+    // Refined palette: muted, elegant tones
+    const palette = ['#64748b', '#94a3b8', '#475569', '#6b7280', '#78716c']
+    const accentPalette = ['#475569', '#6366f1', '#0891b2', '#7c3aed', '#d97706']
+
     if (chartType === 'time') {
       const times = Array.from(new Set(results.map(r => r.time).filter(Boolean))).sort()
-      return times.map(time => ({
+      return times.map((time, i) => ({
         type: 'box',
         y: results.filter(r => r.time === time).map(r => r.average),
         name: `${time}시`,
         boxmean: 'sd',
-        marker: { color: '#dc2626' }
+        marker: { color: palette[i % palette.length], outliercolor: '#94a3b8' },
+        line: { color: palette[i % palette.length], width: 1.5 },
+        fillcolor: `${palette[i % palette.length]}18`,
       }))
     }
 
     if (chartType === 'month') {
       const months = Array.from(new Set(results.map(r => r.month).filter(Boolean)))
-      return months.map(month => ({
+      return months.map((month, i) => ({
         type: 'box',
         y: results.filter(r => r.month === month).map(r => r.average),
         name: month,
         boxmean: 'sd',
-        marker: { color: '#dc2626' }
+        marker: { color: palette[i % palette.length], outliercolor: '#94a3b8' },
+        line: { color: palette[i % palette.length], width: 1.5 },
+        fillcolor: `${palette[i % palette.length]}18`,
       }))
     }
 
     if (chartType === 'viewpoint') {
       const viewpoints = Array.from(new Set(results.map(r => r.viewp).filter(Boolean))).sort()
+      const avgDgps = viewpoints.map(vp => {
+        const vpResults = results.filter(r => r.viewp === vp)
+        return vpResults.reduce((sum, r) => sum + Number(r.dgp), 0) / vpResults.length
+      })
       return [{
         type: 'bar',
         x: viewpoints,
-        y: viewpoints.map(vp => {
-          const vpResults = results.filter(r => r.viewp === vp)
-          return vpResults.reduce((sum, r) => sum + Number(r.dgp), 0) / vpResults.length
-        }),
+        y: avgDgps,
         marker: {
-          color: '#dc2626',
-          line: { color: '#991b1b', width: 1 }
-        }
+          color: avgDgps.map(v =>
+            v >= 0.45 ? '#dc262640' : v >= 0.40 ? '#f9731640' : v >= 0.35 ? '#eab30840' : '#64748b20'
+          ),
+          line: {
+            color: avgDgps.map(v =>
+              v >= 0.45 ? '#dc2626' : v >= 0.40 ? '#f97316' : v >= 0.35 ? '#eab308' : '#64748b'
+            ),
+            width: 1.5,
+          },
+        },
       }]
     }
 
     if (chartType === 'heatmap') {
-      // Filter by selected date
       const filtered = heatmapDate === 'all'
         ? results
         : results.filter(r => r.date_label === heatmapDate)
@@ -71,7 +86,6 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
       const viewpoints = Array.from(new Set(filtered.map(r => r.viewp).filter(Boolean))).sort()
       const times = Array.from(new Set(filtered.map(r => r.time).filter(Boolean))).sort()
 
-      // Build z matrix: viewpoints (rows) x times (cols)
       const z = viewpoints.map(vp =>
         times.map(t => {
           const match = filtered.find(r => r.viewp === vp && r.time === t)
@@ -85,21 +99,29 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
         y: viewpoints,
         z,
         colorscale: [
-          [0, '#22c55e'],
-          [0.35, '#eab308'],
-          [0.45, '#f97316'],
-          [1, '#ef4444'],
+          [0, '#f8fafc'],
+          [0.2, '#bfdbfe'],
+          [0.35, '#fde68a'],
+          [0.45, '#fed7aa'],
+          [0.6, '#fca5a5'],
+          [1, '#dc2626'],
         ],
         zmin: 0,
         zmax: 0.6,
-        colorbar: { title: 'DGP' },
+        colorbar: {
+          title: { text: 'DGP', font: { size: 11, color: '#64748b' } },
+          tickfont: { size: 10, color: '#94a3b8' },
+          outlinewidth: 0,
+          thickness: 12,
+        },
         hoverongaps: false,
+        xgap: 2,
+        ygap: 2,
       }]
     }
 
     if (chartType === 'date_comparison') {
       const viewpoints = Array.from(new Set(results.map(r => r.viewp).filter(Boolean))).sort()
-      const colors = ['#dc2626', '#2563eb', '#16a34a', '#9333ea', '#ca8a04']
 
       return dateLabels.map((dl, i) => ({
         type: 'bar',
@@ -110,7 +132,10 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
           if (matched.length === 0) return 0
           return matched.reduce((sum, r) => sum + Number(r.dgp), 0) / matched.length
         }),
-        marker: { color: colors[i % colors.length] },
+        marker: {
+          color: `${accentPalette[i % accentPalette.length]}30`,
+          line: { color: accentPalette[i % accentPalette.length], width: 1.5 },
+        },
       }))
     }
 
@@ -122,11 +147,10 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
           x: dgpValues,
           xbins: { start: 0, end: 0.7, size: 0.02 },
           marker: {
-            color: dgpValues.map(v =>
-              v >= 0.45 ? '#ef4444' : v >= 0.40 ? '#f97316' : v >= 0.35 ? '#eab308' : '#22c55e'
-            ),
+            color: '#64748b30',
+            line: { color: '#475569', width: 1 },
           },
-          name: 'DGP 분포',
+          name: 'DGP',
         },
       ]
     }
@@ -135,6 +159,10 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
   }, [results, chartType, heatmapDate, dateLabels])
 
   const getLayout = useCallback(() => {
+    const titleFont = { size: 13, family: 'Inter, system-ui, sans-serif', color: '#334155' }
+    const axisFont = { size: 11, family: 'Inter, system-ui, sans-serif', color: '#64748b' }
+    const tickFont = { size: 10, color: '#94a3b8' }
+
     const titles: Record<string, string> = {
       time: '시간대별 평균 휘도 분포',
       month: '월별 평균 휘도 분포',
@@ -145,21 +173,21 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
     }
 
     const base = {
-      title: {
-        text: titles[chartType],
-        font: { size: 16, family: 'Inter, sans-serif' }
-      },
+      title: { text: titles[chartType], font: titleFont, x: 0.02, xanchor: 'left' as const },
       plot_bgcolor: '#ffffff',
       paper_bgcolor: '#ffffff',
-      height: 400,
-      margin: { t: 50, b: 50, l: 80, r: 30 },
+      height: 380,
+      margin: { t: 48, b: 52, l: 64, r: 24 },
+      font: { family: 'Inter, system-ui, sans-serif' },
     }
+
+    const gridStyle = { gridcolor: '#f1f5f9', gridwidth: 1, zeroline: false, tickfont: tickFont }
 
     if (chartType === 'heatmap') {
       return {
         ...base,
-        xaxis: { title: '시간', gridcolor: '#f1f5f9' },
-        yaxis: { title: '뷰포인트', gridcolor: '#f1f5f9' },
+        xaxis: { ...gridStyle, title: { text: '시간', font: axisFont } },
+        yaxis: { ...gridStyle, title: { text: '뷰포인트', font: axisFont } },
       }
     }
 
@@ -167,25 +195,29 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
       return {
         ...base,
         barmode: 'group',
-        xaxis: { title: '뷰포인트', gridcolor: '#f1f5f9' },
-        yaxis: { title: 'DGP', gridcolor: '#f1f5f9' },
+        bargap: 0.2,
+        bargroupgap: 0.08,
+        xaxis: { ...gridStyle, title: { text: '뷰포인트', font: axisFont } },
+        yaxis: { ...gridStyle, title: { text: 'DGP', font: axisFont } },
+        legend: { font: { size: 11, color: '#64748b' }, bgcolor: 'transparent' },
       }
     }
 
     if (chartType === 'dgp_distribution') {
       return {
         ...base,
-        xaxis: { title: 'DGP', gridcolor: '#f1f5f9' },
-        yaxis: { title: '빈도', gridcolor: '#f1f5f9' },
+        bargap: 0.05,
+        xaxis: { ...gridStyle, title: { text: 'DGP', font: axisFont } },
+        yaxis: { ...gridStyle, title: { text: '빈도', font: axisFont } },
         shapes: [
-          { type: 'line', x0: 0.35, x1: 0.35, y0: 0, y1: 1, yref: 'paper', line: { color: '#eab308', width: 2, dash: 'dash' } },
-          { type: 'line', x0: 0.40, x1: 0.40, y0: 0, y1: 1, yref: 'paper', line: { color: '#f97316', width: 2, dash: 'dash' } },
-          { type: 'line', x0: 0.45, x1: 0.45, y0: 0, y1: 1, yref: 'paper', line: { color: '#ef4444', width: 2, dash: 'dash' } },
+          { type: 'line', x0: 0.35, x1: 0.35, y0: 0, y1: 1, yref: 'paper', line: { color: '#eab30880', width: 1, dash: 'dot' } },
+          { type: 'line', x0: 0.40, x1: 0.40, y0: 0, y1: 1, yref: 'paper', line: { color: '#f9731680', width: 1, dash: 'dot' } },
+          { type: 'line', x0: 0.45, x1: 0.45, y0: 0, y1: 1, yref: 'paper', line: { color: '#dc262680', width: 1, dash: 'dot' } },
         ],
         annotations: [
-          { x: 0.35, y: 1.05, yref: 'paper', text: '감지', showarrow: false, font: { size: 10, color: '#eab308' } },
-          { x: 0.40, y: 1.05, yref: 'paper', text: '방해', showarrow: false, font: { size: 10, color: '#f97316' } },
-          { x: 0.45, y: 1.05, yref: 'paper', text: '견딜수없음', showarrow: false, font: { size: 10, color: '#ef4444' } },
+          { x: 0.35, y: 1.04, yref: 'paper', text: '감지', showarrow: false, font: { size: 9, color: '#ca8a04' } },
+          { x: 0.40, y: 1.04, yref: 'paper', text: '방해', showarrow: false, font: { size: 9, color: '#ea580c' } },
+          { x: 0.45, y: 1.04, yref: 'paper', text: '견딜수없음', showarrow: false, font: { size: 9, color: '#dc2626' } },
         ],
       }
     }
@@ -193,18 +225,21 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
     const yaxis_titles: Record<string, string> = {
       time: '평균 휘도 (cd/m2)',
       month: '평균 휘도 (cd/m2)',
-      viewpoint: 'DGP (Daylight Glare Probability)',
+      viewpoint: 'DGP',
     }
 
     return {
       ...base,
       xaxis: {
-        title: chartType === 'time' ? '시간' : chartType === 'month' ? '월' : '뷰포인트',
-        gridcolor: '#f1f5f9'
+        ...gridStyle,
+        title: {
+          text: chartType === 'time' ? '시간' : chartType === 'month' ? '월' : '뷰포인트',
+          font: axisFont,
+        },
       },
       yaxis: {
-        title: yaxis_titles[chartType] || '',
-        gridcolor: '#f1f5f9'
+        ...gridStyle,
+        title: { text: yaxis_titles[chartType] || '', font: axisFont },
       },
     }
   }, [chartType, heatmapDate])
@@ -217,6 +252,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
       responsive: true,
       displayModeBar: true,
       displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
     })
   }, [prepareData, getLayout])
 
@@ -245,7 +281,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
           <button
             onClick={() => setHeatmapDate('all')}
             className={`px-3 py-1 text-xs border transition-all ${
-              heatmapDate === 'all' ? 'border-red-600 text-red-600' : 'border-gray-200 text-gray-700'
+              heatmapDate === 'all' ? 'border-gray-900 text-gray-900' : 'border-gray-200 text-gray-500 hover:text-gray-700'
             }`}
           >
             전체
@@ -255,7 +291,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
               key={dl}
               onClick={() => setHeatmapDate(dl)}
               className={`px-3 py-1 text-xs border transition-all ${
-                heatmapDate === dl ? 'border-red-600 text-red-600' : 'border-gray-200 text-gray-700'
+                heatmapDate === dl ? 'border-gray-900 text-gray-900' : 'border-gray-200 text-gray-500 hover:text-gray-700'
               }`}
             >
               {dl}
