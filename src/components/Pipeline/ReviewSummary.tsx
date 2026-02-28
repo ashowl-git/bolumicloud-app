@@ -1,6 +1,6 @@
 'use client'
 
-import { QUALITY_DETAILS, RENDER_TIME_ESTIMATES, MAX_RENDERS } from '@/lib/types/pipeline'
+import { RENDER_TIME_ESTIMATES, MAX_RENDERS } from '@/lib/types/pipeline'
 import type { AnalysisDate, QualityLevel, RenderParams } from '@/lib/types/pipeline'
 
 interface ReviewSummaryProps {
