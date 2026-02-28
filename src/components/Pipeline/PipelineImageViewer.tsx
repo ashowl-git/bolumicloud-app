@@ -113,6 +113,7 @@ export default function PipelineImageViewer({
 
         {/* Image */}
         <div className="p-4 flex justify-center bg-gray-50">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={mode === 'falsecolor' ? `fc-${fcScale}` : 'preview'}
             src={mode === 'preview' ? previewUrl : falsecolorUrl}

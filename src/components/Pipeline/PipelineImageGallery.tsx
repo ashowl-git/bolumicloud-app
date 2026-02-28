@@ -10,8 +10,6 @@ interface PipelineImageGalleryProps {
   onImageClick: (result: GlareResult) => void
 }
 
-type FilterKey = 'viewpoint' | 'date' | 'hour' | 'rating'
-
 export default function PipelineImageGallery({
   results,
   apiUrl,
@@ -132,6 +130,7 @@ export default function PipelineImageGallery({
           >
             {/* Thumbnail */}
             <div className="aspect-video bg-gray-100 relative overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`${apiUrl}/pipeline/preview/${sessionId}/${result.file}`}
                 alt={result.file}

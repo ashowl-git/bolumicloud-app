@@ -6,7 +6,7 @@ import { usePipelineContext } from '@/contexts/PipelineContext'
 import { useApi } from '@/contexts/ApiContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { QUALITY_DETAILS, MAX_RENDERS, DATE_PRESETS } from '@/lib/types/pipeline'
-import type { PipelineConfig, AnalysisDate } from '@/lib/types/pipeline'
+import type { PipelineConfig } from '@/lib/types/pipeline'
 import type { GlareResult } from '@/lib/types/glare'
 import type { LocalizedText } from '@/lib/types/i18n'
 
