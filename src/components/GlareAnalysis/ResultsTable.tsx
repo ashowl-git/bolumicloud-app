@@ -193,8 +193,8 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 {hasDateLabels && (
                   <td className="p-3 text-xs text-gray-600">{row.date_label || '-'}</td>
                 )}
-                <td className="p-3 text-right text-gray-700">{Number(row.average).toFixed(2)}</td>
-                <td className="p-3 text-right text-gray-700">{Number(row.max).toFixed(2)}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.average).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-gray-700">{Number(row.max).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td className="p-3 text-right text-gray-700">{Number(row.dgp).toFixed(3)}</td>
                 <td className="p-3 text-right text-gray-700">{Number(row.dgi).toFixed(2)}</td>
                 <td className="p-3 text-center">

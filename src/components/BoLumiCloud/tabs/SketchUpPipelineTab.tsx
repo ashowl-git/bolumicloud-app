@@ -449,7 +449,7 @@ export default function SketchUpPipelineTab() {
               <div className="border border-gray-200 p-6">
                 <p className="text-sm text-gray-800 mb-2">평균 휘도</p>
                 <p className="text-4xl font-light text-gray-900">
-                  {Number(results.summary.average_luminance).toFixed(0)}
+                  {Number(results.summary.average_luminance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </p>
                 <p className="text-xs text-gray-800 mt-2">cd/m2</p>
               </div>

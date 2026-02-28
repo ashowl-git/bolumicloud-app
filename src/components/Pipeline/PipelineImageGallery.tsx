@@ -137,7 +137,15 @@ export default function PipelineImageGallery({
                 loading="lazy"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none'
+                  const img = e.target as HTMLImageElement
+                  img.style.display = 'none'
+                  const parent = img.parentElement
+                  if (parent && !parent.querySelector('.img-fallback')) {
+                    const fallback = document.createElement('div')
+                    fallback.className = 'img-fallback absolute inset-0 flex items-center justify-center text-gray-400 text-xs'
+                    fallback.textContent = 'Preview N/A'
+                    parent.appendChild(fallback)
+                  }
                 }}
               />
               {/* DGP badge */}
