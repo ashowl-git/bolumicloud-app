@@ -4,7 +4,6 @@
   "framework": "nextjs",
   "regions": ["icn1"],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://api.askwhy.works",
-    "NEXT_PUBLIC_ANALYSIS_API_URL": "https://analysis.askwhy.works"
+    "NEXT_PUBLIC_API_URL": "https://api.askwhy.works"
   }
 }

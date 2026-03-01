@@ -5,7 +5,6 @@ import { useBackendHealth, type BackendStatus, type BackendInfo } from '@/compon
 
 interface ApiContextType {
   apiUrl: string
-  analysisApiUrl: string
   backendStatus: BackendStatus
   backendInfo: BackendInfo | null
 }
@@ -19,18 +18,16 @@ interface ApiProviderProps {
 
 export function ApiProvider({ children, apiUrl }: ApiProviderProps) {
   const resolvedApiUrl = apiUrl || process.env.NEXT_PUBLIC_API_URL || 'https://api.askwhy.works'
-  const resolvedAnalysisApiUrl = process.env.NEXT_PUBLIC_ANALYSIS_API_URL || 'https://analysis.askwhy.works'
 
   const { backendStatus, backendInfo } = useBackendHealth(resolvedApiUrl)
 
   const value = useMemo<ApiContextType>(
     () => ({
       apiUrl: resolvedApiUrl,
-      analysisApiUrl: resolvedAnalysisApiUrl,
       backendStatus,
       backendInfo,
     }),
-    [resolvedApiUrl, resolvedAnalysisApiUrl, backendStatus, backendInfo]
+    [resolvedApiUrl, backendStatus, backendInfo]
   )
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>

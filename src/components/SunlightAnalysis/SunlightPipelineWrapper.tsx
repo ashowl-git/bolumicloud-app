@@ -5,10 +5,10 @@ import { SunlightPipelineProvider } from '@/contexts/SunlightPipelineContext'
 import SunlightPipelineTab from './SunlightPipelineTab'
 
 export default function SunlightPipelineWrapper() {
-  const { analysisApiUrl } = useApi()
+  const { apiUrl } = useApi()
 
   return (
-    <SunlightPipelineProvider analysisApiUrl={analysisApiUrl}>
+    <SunlightPipelineProvider apiUrl={apiUrl}>
       <SunlightPipelineTab />
     </SunlightPipelineProvider>
   )

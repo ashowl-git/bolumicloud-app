@@ -8,11 +8,11 @@ const SunlightPipelineContext = createContext<UseSunlightPipelineReturn | null>(
 
 interface SunlightPipelineProviderProps {
   children: ReactNode
-  analysisApiUrl: string
+  apiUrl: string
 }
 
-export function SunlightPipelineProvider({ children, analysisApiUrl }: SunlightPipelineProviderProps) {
-  const pipeline = useSunlightPipeline({ apiUrl: analysisApiUrl })
+export function SunlightPipelineProvider({ children, apiUrl }: SunlightPipelineProviderProps) {
+  const pipeline = useSunlightPipeline({ apiUrl })
 
   const value = useMemo(() => pipeline, [pipeline])
 
