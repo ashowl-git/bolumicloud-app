@@ -1,6 +1,6 @@
 // 일조 분석 (Track B) 타입 정의
 
-import type { AnalysisDate, CityPreset } from './pipeline'
+import type { AnalysisDate } from './pipeline'
 
 // ─── 건축물 유형 ─────────────────────────────
 

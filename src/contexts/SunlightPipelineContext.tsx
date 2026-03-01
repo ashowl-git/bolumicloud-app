@@ -14,15 +14,7 @@ interface SunlightPipelineProviderProps {
 export function SunlightPipelineProvider({ children, analysisApiUrl }: SunlightPipelineProviderProps) {
   const pipeline = useSunlightPipeline({ apiUrl: analysisApiUrl })
 
-  const value = useMemo(() => pipeline, [
-    pipeline.phase,
-    pipeline.sessionId,
-    pipeline.progress,
-    pipeline.results,
-    pipeline.error,
-    pipeline.isCancelled,
-    pipeline.estimatedRemainingSec,
-  ])
+  const value = useMemo(() => pipeline, [pipeline])
 
   return (
     <SunlightPipelineContext.Provider value={value}>

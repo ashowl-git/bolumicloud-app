@@ -14,7 +14,6 @@ import type {
   BuildingType,
   AnalysisResolution,
 } from '@/lib/types/sunlight'
-import type { AnalysisDate } from '@/lib/types/pipeline'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 const txt = {

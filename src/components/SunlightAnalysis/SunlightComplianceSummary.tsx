@@ -3,7 +3,7 @@
 import { CheckCircle2, XCircle, Building2 } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { BUILDING_TYPE_LABELS } from '@/lib/types/sunlight'
-import type { SunlightSummary, BuildingType } from '@/lib/types/sunlight'
+import type { SunlightSummary } from '@/lib/types/sunlight'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 const txt = {
