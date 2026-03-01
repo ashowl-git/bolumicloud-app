@@ -35,7 +35,7 @@ export const NAVIGATION: NavigationConfig = [
         name: { ko: '일조 분석', en: 'Sunlight Analysis' },
         description: { ko: 'Sanalyst 기반 일조 시뮬레이션', en: 'Sanalyst-based sunlight simulation' },
         icon: Telescope,
-        status: 'coming-soon',
+        status: 'active',
       },
       {
         id: 'view',
