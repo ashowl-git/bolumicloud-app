@@ -21,9 +21,15 @@ type SortDir = 'asc' | 'desc'
 
 interface SunlightResultsTableProps {
   points: PointSunlightResult[]
+  selectedPointId?: string | null
+  onPointSelect?: (id: string) => void
 }
 
-export default function SunlightResultsTable({ points }: SunlightResultsTableProps) {
+export default function SunlightResultsTable({
+  points,
+  selectedPointId,
+  onPointSelect,
+}: SunlightResultsTableProps) {
   const { t } = useLocalizedText()
   const [sortKey, setSortKey] = useState<SortKey>('id')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -110,8 +116,11 @@ export default function SunlightResultsTable({ points }: SunlightResultsTablePro
             {sorted.map((point) => (
               <tr
                 key={point.id}
-                className={`border-b border-gray-100 hover:bg-gray-50 ${
-                  !point.compliant ? 'bg-red-50/50' : ''
+                onClick={() => onPointSelect?.(point.id)}
+                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  selectedPointId === point.id
+                    ? 'bg-red-50 ring-1 ring-inset ring-red-200'
+                    : !point.compliant ? 'bg-red-50/50' : ''
                 }`}
               >
                 <td className="px-4 py-3 text-gray-500 font-mono text-xs">{point.id}</td>

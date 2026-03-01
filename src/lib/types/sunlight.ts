@@ -131,6 +131,51 @@ export interface SunlightAnalysisResult {
   }
 }
 
+// ─── 원인 분석 (Phase 4) ─────────────────────────
+
+export interface BlockerInfo {
+  building_id: string
+  shadow_minutes: number
+  shadow_percentage: number
+  bbox_min: [number, number, number]
+  bbox_max: [number, number, number]
+}
+
+export interface PointCauseResult {
+  point_id: string
+  point_name: string
+  compliant: boolean
+  total_hours: number
+  continuous_hours: number
+  blockers: BlockerInfo[]
+}
+
+export interface BuildingInfo {
+  building_id: string
+  height: number
+  bbox_min: [number, number, number]
+  bbox_max: [number, number, number]
+}
+
+export interface CauseAnalysisResult {
+  buildings: BuildingInfo[]
+  point_causes: PointCauseResult[]
+  total_non_compliant: number
+}
+
+// ─── 3D 모델 메타데이터 ─────────────────────────
+
+export interface ModelMetadata {
+  model_id: string
+  original_name: string
+  format: string
+  scene_url: string
+  vertices: number
+  faces: number
+  bounds_min: [number, number, number]
+  bounds_max: [number, number, number]
+}
+
 // ─── API 응답 ─────────────────────────────
 
 export interface SunlightUploadResponse {

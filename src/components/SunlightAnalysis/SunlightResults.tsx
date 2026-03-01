@@ -7,20 +7,33 @@ import type { LocalizedText } from '@/lib/types/i18n'
 
 import SunlightComplianceSummary from './SunlightComplianceSummary'
 import SunlightResultsTable from './SunlightResultsTable'
+import SunlightHourlyChart from './SunlightHourlyChart'
 
 const txt = {
   summary: { ko: '요약', en: 'Summary' } as LocalizedText,
   data: { ko: '데이터', en: 'Data' } as LocalizedText,
+  chart: { ko: '차트', en: 'Chart' } as LocalizedText,
   info: { ko: '분석 정보', en: 'Analysis Info' } as LocalizedText,
+  selectPoint: { ko: '테이블에서 측정점을 선택하세요', en: 'Select a point from the table' } as LocalizedText,
 }
 
 interface SunlightResultsProps {
   results: SunlightAnalysisResult
+  selectedPointId?: string | null
+  onPointSelect?: (id: string) => void
 }
 
-export default function SunlightResults({ results }: SunlightResultsProps) {
+export default function SunlightResults({
+  results,
+  selectedPointId,
+  onPointSelect,
+}: SunlightResultsProps) {
   const { t } = useLocalizedText()
-  const [activeTab, setActiveTab] = useState<'summary' | 'data'>('summary')
+  const [activeTab, setActiveTab] = useState<'summary' | 'data' | 'chart'>('summary')
+
+  const selectedPoint = selectedPointId
+    ? results.points.find((p) => p.id === selectedPointId) ?? null
+    : null
 
   return (
     <div className="space-y-6">
@@ -42,6 +55,7 @@ export default function SunlightResults({ results }: SunlightResultsProps) {
           {([
             { id: 'summary' as const, label: txt.summary },
             { id: 'data' as const, label: txt.data },
+            { id: 'chart' as const, label: txt.chart },
           ]).map((tab) => (
             <button
               key={tab.id}
@@ -64,7 +78,25 @@ export default function SunlightResults({ results }: SunlightResultsProps) {
       )}
 
       {activeTab === 'data' && (
-        <SunlightResultsTable points={results.points} />
+        <SunlightResultsTable
+          points={results.points}
+          selectedPointId={selectedPointId}
+          onPointSelect={onPointSelect}
+        />
+      )}
+
+      {activeTab === 'chart' && (
+        selectedPoint ? (
+          <SunlightHourlyChart
+            point={selectedPoint}
+            timeStart={results.time_window.start}
+            stepMinutes={results.time_window.step_minutes}
+          />
+        ) : (
+          <div className="border border-gray-200 p-8 text-center">
+            <p className="text-sm text-gray-400">{t(txt.selectPoint)}</p>
+          </div>
+        )
       )}
     </div>
   )

@@ -1,46 +1,45 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type {
-  SunlightConfig,
-  SunlightProgress,
-  SunlightAnalysisResult,
-  SunlightUploadResponse,
-  ModelMetadata,
-} from '@/lib/types/sunlight'
+  ViewConfig,
+  ViewProgress,
+  ViewAnalysisResult,
+  ViewUploadResponse,
+} from '@/lib/types/view'
+import type { ModelMetadata } from '@/lib/types/sunlight'
 import { logger } from '@/lib/logger'
 
-interface UseSunlightPipelineOptions {
+interface UseViewPipelineOptions {
   apiUrl: string
 }
 
-export type SunlightPipelinePhase = 'idle' | 'uploading' | 'running' | 'polling' | 'completed' | 'error'
+export type ViewPipelinePhase = 'idle' | 'uploading' | 'running' | 'polling' | 'completed' | 'error'
 
-export interface UseSunlightPipelineReturn {
-  phase: SunlightPipelinePhase
+export interface UseViewPipelineReturn {
+  phase: ViewPipelinePhase
   sessionId: string | null
-  modelId: string | null
   sceneUrl: string | null
   modelMeta: ModelMetadata | null
-  progress: SunlightProgress | null
-  results: SunlightAnalysisResult | null
+  progress: ViewProgress | null
+  results: ViewAnalysisResult | null
   error: string | null
   isCancelled: boolean
   estimatedRemainingSec: number | null
 
   uploadFile: (objFile: File) => Promise<void>
-  runAnalysis: (config: SunlightConfig) => Promise<void>
+  runAnalysis: (config: ViewConfig) => Promise<void>
   cancelAnalysis: () => Promise<void>
   reset: () => void
 }
 
-const SESSION_KEY = 'sunlightPipelineSession'
+const SESSION_KEY = 'viewPipelineSession'
 
-function saveSession(sessionId: string, phase: SunlightPipelinePhase) {
+function saveSession(sessionId: string, phase: ViewPipelinePhase) {
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ sessionId, phase }))
   } catch { /* ignore */ }
 }
 
-function loadSession(): { sessionId: string; phase: SunlightPipelinePhase } | null {
+function loadSession(): { sessionId: string; phase: ViewPipelinePhase } | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY)
     if (raw) return JSON.parse(raw)
@@ -54,14 +53,13 @@ function clearSession() {
   } catch { /* ignore */ }
 }
 
-export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): UseSunlightPipelineReturn {
-  const [phase, setPhase] = useState<SunlightPipelinePhase>('idle')
+export function useViewPipeline({ apiUrl }: UseViewPipelineOptions): UseViewPipelineReturn {
+  const [phase, setPhase] = useState<ViewPipelinePhase>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [modelId, setModelId] = useState<string | null>(null)
   const [sceneUrl, setSceneUrl] = useState<string | null>(null)
   const [modelMeta, setModelMeta] = useState<ModelMetadata | null>(null)
-  const [progress, setProgress] = useState<SunlightProgress | null>(null)
-  const [results, setResults] = useState<SunlightAnalysisResult | null>(null)
+  const [progress, setProgress] = useState<ViewProgress | null>(null)
+  const [results, setResults] = useState<ViewAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isCancelled, setIsCancelled] = useState(false)
   const [estimatedRemainingSec, setEstimatedRemainingSec] = useState<number | null>(null)
@@ -70,7 +68,6 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
   const errorCountRef = useRef(0)
   const startTimeRef = useRef<number | null>(null)
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) {
@@ -80,7 +77,6 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     }
   }, [])
 
-  // beforeunload warning
   useEffect(() => {
     if (phase === 'running' || phase === 'polling') {
       const handler = (e: BeforeUnloadEvent) => {
@@ -99,7 +95,6 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     }
     setPhase('idle')
     setSessionId(null)
-    setModelId(null)
     setSceneUrl(null)
     setModelMeta(null)
     setProgress(null)
@@ -120,13 +115,12 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
 
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`${apiUrl}/sunlight/${sid}/status`)
-        const data: SunlightProgress = await res.json()
+        const res = await fetch(`${apiUrl}/view/${sid}/status`)
+        const data: ViewProgress = await res.json()
 
         errorCountRef.current = 0
         setProgress(data)
 
-        // ETA
         if (data.overall_progress > 5 && startTimeRef.current !== null) {
           const elapsed = (Date.now() - startTimeRef.current) / 1000
           const remaining = (elapsed / data.overall_progress) * (100 - data.overall_progress)
@@ -141,9 +135,9 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
             pollIntervalRef.current = null
           }
 
-          const resultsRes = await fetch(`${apiUrl}/sunlight/${sid}/result`)
+          const resultsRes = await fetch(`${apiUrl}/view/${sid}/result`)
           if (resultsRes.ok) {
-            const resultsData: SunlightAnalysisResult = await resultsRes.json()
+            const resultsData: ViewAnalysisResult = await resultsRes.json()
             setResults(resultsData)
             setPhase('completed')
             setEstimatedRemainingSec(null)
@@ -164,7 +158,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
         }
       } catch (e) {
         errorCountRef.current += 1
-        logger.error('Sunlight progress fetch error', { error: e, count: errorCountRef.current })
+        logger.error('View progress fetch error', { error: e, count: errorCountRef.current })
 
         if (errorCountRef.current >= 5) {
           if (pollIntervalRef.current) {
@@ -179,7 +173,6 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     }, 2000)
   }, [apiUrl])
 
-  // Session restore
   useEffect(() => {
     const session = loadSession()
     if (session && (session.phase === 'polling' || session.phase === 'running')) {
@@ -195,11 +188,11 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     setError(null)
 
     try {
-      // 1) 기존 sunlight 업로드 (분석 엔진용)
+      // 1) View 업로드 (분석 엔진용)
       const formData = new FormData()
       formData.append('obj_file', objFile)
 
-      const res = await fetch(`${apiUrl}/sunlight/upload`, {
+      const res = await fetch(`${apiUrl}/view/upload`, {
         method: 'POST',
         body: formData,
       })
@@ -209,7 +202,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
         throw new Error(errData.detail || '파일 업로드 실패')
       }
 
-      const data: SunlightUploadResponse = await res.json()
+      const data: ViewUploadResponse = await res.json()
       setSessionId(data.session_id)
 
       // 2) 3D 모델 업로드 (GLB 변환 + 뷰어용)
@@ -223,26 +216,21 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
 
       if (modelRes.ok) {
         const modelData: ModelMetadata = await modelRes.json()
-        setModelId(modelData.model_id)
         setSceneUrl(`${apiUrl}${modelData.scene_url}`)
         setModelMeta(modelData)
-        logger.info('Model upload success', { modelId: modelData.model_id })
       } else {
-        // 3D 프리뷰 실패는 분석을 중단하지 않음
         logger.warn('Model upload failed, 3D preview unavailable')
       }
 
       setPhase('idle')
-      logger.info('Sunlight upload success', { sessionId: data.session_id })
     } catch (err) {
       const msg = err instanceof Error ? err.message : '업로드 중 오류 발생'
       setError(msg)
       setPhase('error')
-      logger.error('Sunlight upload error', err instanceof Error ? err : undefined)
     }
   }, [apiUrl])
 
-  const runAnalysis = useCallback(async (config: SunlightConfig) => {
+  const runAnalysis = useCallback(async (config: ViewConfig) => {
     if (!sessionId) {
       setError('먼저 파일을 업로드해주세요')
       return
@@ -255,7 +243,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     saveSession(sessionId, 'running')
 
     try {
-      const res = await fetch(`${apiUrl}/sunlight/run?session_id=${sessionId}`, {
+      const res = await fetch(`${apiUrl}/view/run?session_id=${sessionId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -273,14 +261,13 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
       const msg = err instanceof Error ? err.message : '분석 시작 중 오류 발생'
       setError(msg)
       setPhase('error')
-      logger.error('Sunlight run error', err instanceof Error ? err : undefined)
     }
   }, [sessionId, apiUrl, startPolling])
 
   const cancelAnalysis = useCallback(async () => {
     if (!sessionId) return
     try {
-      await fetch(`${apiUrl}/sunlight/${sessionId}`, { method: 'DELETE' })
+      await fetch(`${apiUrl}/view/${sessionId}`, { method: 'DELETE' })
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current)
         pollIntervalRef.current = null
@@ -290,16 +277,14 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
       setEstimatedRemainingSec(null)
       startTimeRef.current = null
       clearSession()
-      logger.info('Sunlight analysis cancelled', { sessionId })
     } catch (err) {
-      logger.error('Sunlight cancel error', err instanceof Error ? err : undefined)
+      logger.error('View cancel error', err instanceof Error ? err : undefined)
     }
   }, [sessionId, apiUrl])
 
   return {
     phase,
     sessionId,
-    modelId,
     sceneUrl,
     modelMeta,
     progress,

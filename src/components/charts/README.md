@@ -9,4 +9,4 @@ Phase 6 시각화 컴포넌트 — Waldram 다이어그램, 태양 경로도 웹
 
 ## 참조
 
-- [[../../../../07_Documentation/Module_Specs/01_Sunlight_Analysis|일조 분석 모듈 명세]]
+- [[../../../../docs/module-specs/01_Sunlight_Analysis|일조 분석 모듈 명세]]

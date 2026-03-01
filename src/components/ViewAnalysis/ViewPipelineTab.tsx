@@ -3,16 +3,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, Settings, Loader2, BarChart3, CheckCircle2, CloudUpload } from 'lucide-react'
-import { useSunlightPipelineContext } from '@/contexts/SunlightPipelineContext'
-import { useApi } from '@/contexts/ApiContext'
+import { useViewPipelineContext } from '@/contexts/ViewPipelineContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
-import { SUNLIGHT_STAGE_LABELS, SUNLIGHT_DATE_PRESETS } from '@/lib/types/sunlight'
-import type { SunlightConfig, SunlightConfigState } from '@/lib/types/sunlight'
-import type { SunlightProgress as SunlightProgressType } from '@/lib/types/sunlight'
+import { VIEW_STAGE_LABELS } from '@/lib/types/view'
+import type { ViewConfig, ViewConfigState, ViewObserverPoint } from '@/lib/types/view'
+import type { ViewProgress as ViewProgressType } from '@/lib/types/view'
 import type { LocalizedText } from '@/lib/types/i18n'
 
-import SunlightConfigPanel from './SunlightConfigPanel'
-import SunlightResults from './SunlightResults'
+import ViewConfigPanel from './ViewConfigPanel'
+import ViewResults from './ViewResults'
 
 // 3D 뷰어 (dynamic import for SSR safety)
 import dynamic from 'next/dynamic'
@@ -25,22 +24,10 @@ import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
 import type { CameraPresetId, ModelConfig } from '@/components/shared/3d/types'
 
-// Shadow animation (Phase 2)
-import ShadowAnimationPlayer from './3d/ShadowAnimationPlayer'
-import { useShadowAnimation } from './hooks/useShadowAnimation'
-
-// Measurement tools (Phase 3)
-import { useMeasurementPlacement } from './hooks/useMeasurementPlacement'
-import MeasurementToolbar from './3d/MeasurementToolbar'
-import SunlightLegend from './3d/SunlightLegend'
-const MeasurementPoints = dynamic(() => import('./3d/MeasurementPoints'), { ssr: false })
-const SunlightHeatmapOverlay = dynamic(() => import('./3d/SunlightHeatmapOverlay'), { ssr: false })
-
-// Reports + Cause analysis (Phase 4)
-import type { CauseAnalysisResult } from '@/lib/types/sunlight'
-import ReportDownloadPanel from './ReportDownloadPanel'
-import CauseAnalysisView from './CauseAnalysisView'
-const ViolationHighlight = dynamic(() => import('./3d/ViolationHighlight'), { ssr: false })
+// Measurement (관찰점 배치 — Phase 3 도구 재사용)
+import { useMeasurementPlacement } from '@/components/SunlightAnalysis/hooks/useMeasurementPlacement'
+import MeasurementToolbar from '@/components/SunlightAnalysis/3d/MeasurementToolbar'
+const MeasurementPoints = dynamic(() => import('@/components/SunlightAnalysis/3d/MeasurementPoints'), { ssr: false })
 
 // ─── 텍스트 ─────────────────────────────────
 
@@ -57,12 +44,8 @@ const txt = {
   backToSettings: { ko: '설정 변경', en: 'Change Settings' } as LocalizedText,
   dropzone: { ko: 'OBJ 파일을 드래그하거나 클릭하세요', en: 'Drag or click to upload OBJ file' } as LocalizedText,
   dropzoneHint: { ko: '.obj 파일 (최대 100MB)', en: '.obj file (max 100MB)' } as LocalizedText,
-  elapsed: { ko: '경과', en: 'Elapsed' } as LocalizedText,
   overall: { ko: '전체', en: 'Overall' } as LocalizedText,
-  current: { ko: '현재:', en: 'Current:' } as LocalizedText,
 }
-
-// ─── Step 정의 ─────────────────────────────
 
 const STEPS = [
   { label: 'Upload', icon: Upload },
@@ -71,15 +54,12 @@ const STEPS = [
   { label: 'Results', icon: BarChart3 },
 ]
 
-// ─── 기본 설정 ─────────────────────────────
-
-const DEFAULT_CONFIG: SunlightConfigState = {
+const DEFAULT_CONFIG: ViewConfigState = {
   latitude: 37.5665,
   longitude: 126.978,
   timezone: 135,
-  date: SUNLIGHT_DATE_PRESETS[0], // 동지
-  buildingType: 'apartment',
-  resolution: 'legal',
+  hemisphereResolution: 180,
+  projectionType: 'equal_solid_angle',
 }
 
 const fadeVariants = {
@@ -87,8 +67,6 @@ const fadeVariants = {
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
 }
-
-// ─── 유틸 ─────────────────────────────────
 
 function formatDuration(sec: number): string {
   if (sec < 60) return `${sec.toFixed(1)}s`
@@ -106,9 +84,8 @@ function formatEta(sec: number): string {
 
 // ─── 컴포넌트 ─────────────────────────────
 
-export default function SunlightPipelineTab() {
+export default function ViewPipelineTab() {
   const { t } = useLocalizedText()
-  const { apiUrl } = useApi()
   const {
     phase,
     sessionId,
@@ -123,88 +100,54 @@ export default function SunlightPipelineTab() {
     runAnalysis,
     cancelAnalysis,
     reset,
-  } = useSunlightPipelineContext()
+  } = useViewPipelineContext()
 
-  // Step state
   const [currentStep, setCurrentStep] = useState(1)
-
-  // File state
   const [objFile, setObjFile] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
-
-  // Config state
-  const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_CONFIG })
-
-  // 3D viewer state
+  const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_CONFIG })
   const [cameraPreset, setCameraPreset] = useState<CameraPresetId>('perspective')
+  const [selectedObserverId, setSelectedObserverId] = useState<string | null>(null)
+
   const modelConfig: ModelConfig | null = sceneUrl
     ? { url: sceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
-  // Shadow animation
-  const shadow = useShadowAnimation({ apiUrl })
-
-  // Measurement placement
+  // 관찰점 배치 (Phase 3 hook 재사용)
   const measurement = useMeasurementPlacement()
 
-  // Cause analysis (Phase 4)
-  const [causeResult, setCauseResult] = useState<CauseAnalysisResult | null>(null)
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
-
-  // 분석 완료 시 그림자 자동 계산
+  // Auto-transition
   useEffect(() => {
-    if (phase === 'completed' && results && sessionId && shadow.frames.length === 0 && !shadow.isComputing) {
-      shadow.computeShadows({
-        sessionId,
-        latitude: config.latitude,
-        longitude: config.longitude,
-        month: config.date.month,
-        day: config.date.day,
-        timezoneOffset: config.timezone / 15,
-        stepMinutes: 10,
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, results, sessionId])
-
-  // Auto-transition based on phase
-  useEffect(() => {
-    if (phase === 'idle' && sessionId && currentStep === 1) {
-      setCurrentStep(2)
-    }
+    if (phase === 'idle' && sessionId && currentStep === 1) setCurrentStep(2)
   }, [phase, sessionId, currentStep])
 
   useEffect(() => {
-    if (phase === 'polling' || phase === 'running') {
-      setCurrentStep(3)
-    }
+    if (phase === 'polling' || phase === 'running') setCurrentStep(3)
   }, [phase])
 
   useEffect(() => {
     if (phase === 'completed' && results) {
       setCurrentStep(4)
       setTimeout(() => {
-        const el = document.getElementById('sunlight-results-section')
+        const el = document.getElementById('view-results-section')
         el?.scrollIntoView({ behavior: 'smooth' })
       }, 300)
     }
   }, [phase, results])
 
-  // Browser tab title
   useEffect(() => {
     if (phase === 'polling' && progress) {
-      document.title = `[${progress.overall_progress}%] 일조 분석 - BoLumiCloud`
+      document.title = `[${progress.overall_progress}%] 조망 분석 - BoLumiCloud`
     } else if (phase === 'completed') {
-      document.title = '[완료] 일조 분석 - BoLumiCloud'
+      document.title = '[완료] 조망 분석 - BoLumiCloud'
     } else {
-      document.title = '일조 분석 - BoLumiCloud'
+      document.title = '조망 분석 - BoLumiCloud'
     }
     return () => { document.title = 'BoLumiCloud' }
   }, [phase, progress])
 
-  // Completed steps
   const getCompletedSteps = (): number[] => {
     const steps: number[] = []
     if (sessionId) steps.push(1)
@@ -213,17 +156,13 @@ export default function SunlightPipelineTab() {
     return steps
   }
 
-  // Handlers
-  const handleFileDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      const files = Array.from(e.dataTransfer.files)
-      const obj = files.find((f) => f.name.toLowerCase().endsWith('.obj'))
-      if (obj) setObjFile(obj)
-    },
-    []
-  )
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const files = Array.from(e.dataTransfer.files)
+    const obj = files.find((f) => f.name.toLowerCase().endsWith('.obj'))
+    if (obj) setObjFile(obj)
+  }, [])
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
@@ -239,20 +178,21 @@ export default function SunlightPipelineTab() {
   }, [objFile, uploadFile])
 
   const handleStartAnalysis = useCallback(async () => {
-    const analysisConfig: SunlightConfig = {
+    const observers: ViewObserverPoint[] = measurement.points.map((p) => ({
+      id: p.id,
+      x: p.x,
+      y: p.y,
+      z: p.z,
+      name: p.name,
+    }))
+
+    const analysisConfig: ViewConfig = {
       latitude: config.latitude,
       longitude: config.longitude,
-      timezone_offset: config.timezone / 15, // 자오선(도) -> UTC 오프셋
-      standard_meridian: config.timezone,
-      month: config.date.month,
-      day: config.date.day,
-      date_label: config.date.label,
-      building_type: config.buildingType,
-      time_start: '08:00',
-      time_end: '16:00',
-      resolution: config.resolution,
-      solar_time_mode: 'true_solar',
-      measurement_points: measurement.points,
+      hemisphere_resolution: config.hemisphereResolution,
+      projection_type: config.projectionType,
+      observer_points: observers,
+      landscape_categories: {},
     }
     await runAnalysis(analysisConfig)
   }, [config, runAnalysis, measurement.points])
@@ -263,11 +203,10 @@ export default function SunlightPipelineTab() {
     setObjFile(null)
     setConfig({ ...DEFAULT_CONFIG })
     measurement.clearPoints()
-    setCauseResult(null)
-    setSelectedBuildingId(null)
+    setSelectedObserverId(null)
   }, [reset, measurement])
 
-  const handleConfigChange = useCallback((partial: Partial<SunlightConfigState>) => {
+  const handleConfigChange = useCallback((partial: Partial<ViewConfigState>) => {
     setConfig((prev) => ({ ...prev, ...partial }))
   }, [])
 
@@ -283,7 +222,7 @@ export default function SunlightPipelineTab() {
         <div className="flex gap-2">
           {currentStep === 4 && sessionId && (
             <button
-              onClick={() => { setCurrentStep(2) }}
+              onClick={() => setCurrentStep(2)}
               className="border border-gray-200 hover:border-gray-400 px-4 py-3
                 text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
             >
@@ -302,7 +241,7 @@ export default function SunlightPipelineTab() {
         </div>
       </div>
 
-      {/* Step Indicator (4 steps) */}
+      {/* Step Indicator */}
       <div className="flex items-center justify-center mb-10">
         {STEPS.map((step, idx) => {
           const stepNum = idx + 1
@@ -350,16 +289,9 @@ export default function SunlightPipelineTab() {
 
       {/* Cancel Banner */}
       {isCancelled && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="border border-amber-200 bg-amber-50 p-4"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm text-amber-700">{t(txt.cancelled)}</p>
-          <button
-            onClick={handleReset}
-            className="mt-2 text-xs text-amber-600 hover:text-amber-800 underline"
-          >
+          <button onClick={handleReset} className="mt-2 text-xs text-amber-600 hover:text-amber-800 underline">
             처음부터 다시 시작
           </button>
         </motion.div>
@@ -367,60 +299,33 @@ export default function SunlightPipelineTab() {
 
       {/* Error Banner */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="border border-red-200 bg-red-50 p-4"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-600">{error}</p>
-          <div className="flex gap-3 mt-2">
-            <button
-              onClick={handleReset}
-              className="text-xs text-red-500 hover:text-red-700 underline"
-            >
-              {t(txt.reset)}
-            </button>
-          </div>
+          <button onClick={handleReset} className="mt-2 text-xs text-red-500 hover:text-red-700 underline">
+            {t(txt.reset)}
+          </button>
         </motion.div>
       )}
 
       <AnimatePresence mode="wait">
         {/* ========== Step 1: Upload ========== */}
         {currentStep === 1 && (
-          <motion.div
-            key="step-1"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-6"
+          <motion.div key="step-1" variants={fadeVariants} initial="initial" animate="animate" exit="exit"
+            transition={{ duration: 0.25 }} className="space-y-6"
           >
-            {/* Drop Zone */}
             <div
-              onDragOver={(e) => {
-                e.preventDefault()
-                if (!isUploading && !sessionId) setIsDragging(true)
-              }}
+              onDragOver={(e) => { e.preventDefault(); if (!isUploading && !sessionId) setIsDragging(true) }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleFileDrop}
               onClick={() => !isUploading && !sessionId && inputRef.current?.click()}
               className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
                 isUploading || sessionId
                   ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                  : isDragging
-                  ? 'border-red-600 bg-red-50'
-                  : 'border-gray-300 hover:border-red-600/30'
+                  : isDragging ? 'border-red-600 bg-red-50' : 'border-gray-300 hover:border-red-600/30'
               }`}
             >
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".obj"
-                onChange={handleFileChange}
-                className="hidden"
-                disabled={isUploading || !!sessionId}
-              />
+              <input ref={inputRef} type="file" accept=".obj" onChange={handleFileChange} className="hidden"
+                disabled={isUploading || !!sessionId} />
               {isUploading ? (
                 <div className="space-y-2">
                   <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -435,42 +340,29 @@ export default function SunlightPipelineTab() {
               )}
             </div>
 
-            {/* Selected File */}
             {objFile && (
               <div className="border border-gray-200 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-700">{objFile.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {(objFile.size / (1024 * 1024)).toFixed(1)} MB
-                  </p>
+                  <p className="text-xs text-gray-400">{(objFile.size / (1024 * 1024)).toFixed(1)} MB</p>
                 </div>
                 {!sessionId && (
-                  <button
-                    onClick={() => setObjFile(null)}
-                    className="text-xs text-gray-400 hover:text-red-500"
-                  >
-                    제거
-                  </button>
+                  <button onClick={() => setObjFile(null)} className="text-xs text-gray-400 hover:text-red-500">제거</button>
                 )}
               </div>
             )}
 
-            {/* Upload Button */}
             {canUpload && !sessionId && (
               <div className="pt-2">
-                <button
-                  onClick={handleUpload}
-                  disabled={isUploading}
+                <button onClick={handleUpload} disabled={isUploading}
                   className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                    text-gray-900 hover:text-red-600 transition-all duration-300
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                    text-gray-900 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
                 >
                   {isUploading ? t(txt.uploading) : t(txt.uploadBtn)}
                 </button>
               </div>
             )}
 
-            {/* 3D Preview after upload */}
             {sessionId && modelState === 'loaded' && modelScene && (
               <div className="border border-gray-200 relative">
                 <ThreeViewer bbox={modelBbox} height="360px">
@@ -479,11 +371,7 @@ export default function SunlightPipelineTab() {
                   <GroundGrid bbox={modelBbox} />
                   <CompassRose bbox={modelBbox} />
                 </ThreeViewer>
-                <CameraPresetBar
-                  bbox={modelBbox}
-                  activePreset={cameraPreset}
-                  onPresetChange={setCameraPreset}
-                />
+                <CameraPresetBar bbox={modelBbox} activePreset={cameraPreset} onPresetChange={setCameraPreset} />
                 {modelMeta && (
                   <div className="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-xs text-gray-500">
@@ -501,11 +389,9 @@ export default function SunlightPipelineTab() {
               </div>
             )}
 
-            {/* Continue to Settings */}
             {sessionId && (
               <div className="pt-2">
-                <button
-                  onClick={() => setCurrentStep(2)}
+                <button onClick={() => setCurrentStep(2)}
                   className="border border-gray-200 hover:border-red-600/30 px-8 py-3
                     text-gray-900 hover:text-red-600 transition-all duration-300"
                 >
@@ -516,28 +402,16 @@ export default function SunlightPipelineTab() {
           </motion.div>
         )}
 
-        {/* ========== Step 2: Settings + 3D Preview ========== */}
+        {/* ========== Step 2: Settings + 관찰점 배치 ========== */}
         {currentStep === 2 && (
-          <motion.div
-            key="step-2"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-8"
+          <motion.div key="step-2" variants={fadeVariants} initial="initial" animate="animate" exit="exit"
+            transition={{ duration: 0.25 }} className="space-y-8"
           >
             <div className={`${modelScene ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}`}>
-              {/* 설정 패널 */}
               <div className="space-y-6">
-                <SunlightConfigPanel
-                  config={config}
-                  onChange={handleConfigChange}
-                  disabled={isRunning}
-                />
+                <ViewConfigPanel config={config} onChange={handleConfigChange} disabled={isRunning} />
               </div>
 
-              {/* 3D 프리뷰 + 측정점 배치 */}
               {modelScene && (
                 <div className="border border-gray-200 relative">
                   <MeasurementToolbar
@@ -565,16 +439,12 @@ export default function SunlightPipelineTab() {
                       onGroundClick={measurement.addPoint}
                     />
                   </ThreeViewer>
-                  <CameraPresetBar
-                    bbox={modelBbox}
-                    activePreset={cameraPreset}
-                    onPresetChange={setCameraPreset}
-                  />
+                  <CameraPresetBar bbox={modelBbox} activePreset={cameraPreset} onPresetChange={setCameraPreset} />
                   {measurement.points.length > 0 && (
                     <div className="px-4 py-2 border-t border-gray-100">
                       <p className="text-xs text-gray-500">
-                        {measurement.points.length}개 측정점 배치됨
-                        {measurement.mode === 'add' && ' — 지면을 클릭하여 추가'}
+                        {measurement.points.length}개 관찰점 배치됨
+                        {measurement.mode === 'add' && ' — 건물 표면을 클릭하여 추가'}
                       </p>
                     </div>
                   )}
@@ -582,21 +452,16 @@ export default function SunlightPipelineTab() {
               )}
             </div>
 
-            {/* Start Button */}
             <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => setCurrentStep(1)}
+              <button onClick={() => setCurrentStep(1)}
                 className="border border-gray-200 hover:border-gray-400 px-6 py-3
                   text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
               >
                 {t(txt.back)}
               </button>
-              <button
-                onClick={handleStartAnalysis}
-                disabled={isRunning}
+              <button onClick={handleStartAnalysis} disabled={isRunning}
                 className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                  text-gray-900 hover:text-red-600 transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed"
+                  text-gray-900 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
               >
                 {isRunning ? t(txt.running) : t(txt.startAnalysis)}
               </button>
@@ -606,16 +471,11 @@ export default function SunlightPipelineTab() {
 
         {/* ========== Step 3: Progress ========== */}
         {currentStep === 3 && (
-          <motion.div
-            key="step-3"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+          <motion.div key="step-3" variants={fadeVariants} initial="initial" animate="animate" exit="exit"
             transition={{ duration: 0.25 }}
           >
             {progress && (
-              <SunlightProgressView progress={progress} estimatedRemainingSec={estimatedRemainingSec} />
+              <ViewProgressView progress={progress} estimatedRemainingSec={estimatedRemainingSec} />
             )}
             {!progress && isRunning && (
               <div className="border border-gray-200 p-8 text-center">
@@ -625,8 +485,7 @@ export default function SunlightPipelineTab() {
             )}
             {isRunning && (
               <div className="pt-4">
-                <button
-                  onClick={cancelAnalysis}
+                <button onClick={cancelAnalysis}
                   className="border border-gray-200 hover:border-red-600/30 px-6 py-3
                     text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
                 >
@@ -637,105 +496,26 @@ export default function SunlightPipelineTab() {
           </motion.div>
         )}
 
-        {/* ========== Step 4: Results + Shadow Visualization ========== */}
+        {/* ========== Step 4: Results ========== */}
         {currentStep === 4 && results && (
-          <motion.div
-            key="step-4"
-            id="sunlight-results-section"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-6"
+          <motion.div key="step-4" id="view-results-section" variants={fadeVariants}
+            initial="initial" animate="animate" exit="exit"
+            transition={{ duration: 0.25 }} className="space-y-6"
           >
-            {/* 그림자 3D 시각화 + 측정점 히트맵 */}
-            {modelScene && shadow.frames.length > 0 && (
-              <div className="relative">
-                <ShadowAnimationPlayer
-                  modelScene={modelScene}
-                  modelBbox={modelBbox}
-                  currentFrame={shadow.currentFrame}
-                  playback={shadow.playback}
-                  maxMinute={shadow.frames.length > 0 ? shadow.frames[shadow.frames.length - 1].minute : 479}
-                  stepSize={shadow.frames.length > 1 ? shadow.frames[1].minute - shadow.frames[0].minute : 10}
-                  onMinuteChange={shadow.setCurrentMinute}
-                  onPlay={shadow.play}
-                  onPause={shadow.pause}
-                  onSpeedChange={shadow.setSpeed}
-                >
-                  {results.points.length > 0 && (
-                    <SunlightHeatmapOverlay
-                      points={measurement.points.length > 0 ? measurement.points : results.points.map((p) => ({
-                        id: p.id, x: p.x, y: p.y, z: p.z, name: p.name,
-                      }))}
-                      results={results.points}
-                      selectedPointId={measurement.selectedPointId}
-                      onPointClick={measurement.selectPoint}
-                    />
-                  )}
-                  {causeResult && causeResult.point_causes.length > 0 && (
-                    <ViolationHighlight
-                      blockers={causeResult.point_causes.flatMap((pc) => pc.blockers)}
-                      selectedBuildingId={selectedBuildingId}
-                    />
-                  )}
-                </ShadowAnimationPlayer>
-                {results.points.length > 0 && <SunlightLegend />}
-              </div>
-            )}
-            {shadow.isComputing && (
-              <div className="border border-gray-200 p-6 text-center">
-                <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-xs text-gray-500">
-                  그림자 계산 중... {shadow.computeProgress.toFixed(0)}%
-                </p>
-                <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden mx-auto mt-2">
-                  <div
-                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                    style={{ width: `${shadow.computeProgress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* 보고서 생성 + 다운로드 (Phase 4) */}
-            {sessionId && (
-              <ReportDownloadPanel
-                sessionId={sessionId}
-                results={results}
-                config={config}
-                onCauseAnalysis={setCauseResult}
-              />
-            )}
-
-            {/* 분석 결과 테이블 */}
-            <SunlightResults
+            <ViewResults
               results={results}
-              selectedPointId={measurement.selectedPointId}
-              onPointSelect={measurement.selectPoint}
+              selectedObserverId={selectedObserverId}
+              onObserverSelect={setSelectedObserverId}
             />
 
-            {/* 원인 분석 (Phase 4) */}
-            {causeResult && causeResult.total_non_compliant > 0 && (
-              <CauseAnalysisView
-                causeResult={causeResult}
-                selectedBuildingId={selectedBuildingId}
-                onBuildingSelect={setSelectedBuildingId}
-              />
-            )}
-
-            {/* Bottom Navigation */}
             <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
-              <button
-                onClick={() => setCurrentStep(2)}
+              <button onClick={() => setCurrentStep(2)}
                 className="border border-gray-200 hover:border-gray-400 px-6 py-3
                   text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
               >
                 {t(txt.backToSettings)}
               </button>
-              <button
-                onClick={handleReset}
+              <button onClick={handleReset}
                 className="border border-gray-200 hover:border-red-600/30 px-6 py-3
                   text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
               >
@@ -751,25 +531,20 @@ export default function SunlightPipelineTab() {
 
 // ─── 진행률 서브 컴포넌트 ─────────────────────
 
-function SunlightProgressView({
+function ViewProgressView({
   progress,
   estimatedRemainingSec,
 }: {
-  progress: SunlightProgressType
+  progress: ViewProgressType
   estimatedRemainingSec: number | null
 }) {
   const { t } = useLocalizedText()
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="border border-gray-200 p-6"
-    >
-      {/* Stage Checklist */}
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="border border-gray-200 p-6">
       <div className="space-y-3 mb-6">
         {progress.stages.map((stage, idx) => {
-          const label = SUNLIGHT_STAGE_LABELS[stage.name]
+          const label = VIEW_STAGE_LABELS[stage.name]
           const stageLabel = label ? t(label) : stage.name
 
           return (
@@ -787,33 +562,24 @@ function SunlightProgressView({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`text-sm ${
-                      stage.status === 'completed'
-                        ? 'text-gray-700'
-                        : stage.status === 'processing'
-                        ? 'text-blue-700 font-medium'
-                        : stage.status === 'error'
-                        ? 'text-red-700'
-                        : 'text-gray-400'
-                    }`}
-                  >
+                  <span className={`text-sm ${
+                    stage.status === 'completed' ? 'text-gray-700'
+                    : stage.status === 'processing' ? 'text-blue-700 font-medium'
+                    : stage.status === 'error' ? 'text-red-700'
+                    : 'text-gray-400'
+                  }`}>
                     {idx + 1}. {stageLabel}
                   </span>
                   {stage.duration_sec !== null && (
                     <span className="text-xs text-gray-400">({stage.duration_sec.toFixed(1)}s)</span>
                   )}
                 </div>
-
                 {stage.status === 'processing' && progress.stage_progress.total > 0 && (
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                          style={{
-                            width: `${(progress.stage_progress.completed / progress.stage_progress.total) * 100}%`,
-                          }}
+                        <div className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                          style={{ width: `${(progress.stage_progress.completed / progress.stage_progress.total) * 100}%` }}
                         />
                       </div>
                       <span className="text-xs text-gray-500 tabular-nums">
@@ -828,7 +594,6 @@ function SunlightProgressView({
         })}
       </div>
 
-      {/* Overall Progress Bar */}
       <div className="border-t border-gray-100 pt-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">{t(txt.overall)}</span>
@@ -837,14 +602,10 @@ function SunlightProgressView({
             {estimatedRemainingSec !== null && estimatedRemainingSec > 0 && (
               <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
             )}
-            {estimatedRemainingSec === null && progress.overall_progress < 5 && progress.status === 'processing' && (
-              <> | 계산 중...</>
-            )}
           </span>
         </div>
         <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700"
+          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700"
             style={{ width: `${progress.overall_progress}%` }}
           />
         </div>
