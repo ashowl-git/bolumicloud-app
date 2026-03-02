@@ -9,7 +9,7 @@ import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPl
 import { useAreaPlacement } from '@/components/shared/3d/interaction/useAreaPlacement'
 import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
-import { SUNLIGHT_DATE_PRESETS } from '@/lib/types/sunlight'
+import { SUNLIGHT_DATE_PRESETS, DEFAULT_TOTAL_THRESHOLD, DEFAULT_CONTINUOUS_THRESHOLD } from '@/lib/types/sunlight'
 import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult } from '@/lib/types/sunlight'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import type { StatusBarState } from '../WorkspaceStatusBar'
@@ -44,9 +44,13 @@ const DEFAULT_CONFIG: SunlightConfigState = {
   latitude: 37.5665,
   longitude: 126.978,
   timezone: 135,
+  azimuth: 0,
   date: SUNLIGHT_DATE_PRESETS[0],
   buildingType: 'apartment',
   resolution: 'legal',
+  solarTimeMode: 'true_solar',
+  totalThreshold: { ...DEFAULT_TOTAL_THRESHOLD },
+  continuousThreshold: { ...DEFAULT_CONTINUOUS_THRESHOLD },
 }
 
 function formatEta(sec: number): string {
@@ -167,14 +171,19 @@ export default function SunlightWorkspace() {
       longitude: config.longitude,
       timezone_offset: config.timezone / 15,
       standard_meridian: config.timezone,
+      azimuth: config.azimuth,
       month: config.date.month,
       day: config.date.day,
       date_label: config.date.label,
       building_type: config.buildingType,
-      time_start: '08:00',
-      time_end: '16:00',
+      time_start: `${String(config.totalThreshold.startHour).padStart(2, '0')}:00`,
+      time_end: `${String(config.totalThreshold.endHour).padStart(2, '0')}:00`,
+      continuous_start: `${String(config.continuousThreshold.startHour).padStart(2, '0')}:00`,
+      continuous_end: `${String(config.continuousThreshold.endHour).padStart(2, '0')}:00`,
+      total_required_hours: config.totalThreshold.requiredHours,
+      continuous_required_hours: config.continuousThreshold.requiredHours,
       resolution: config.resolution,
-      solar_time_mode: 'true_solar',
+      solar_time_mode: config.solarTimeMode,
       measurement_points: measurementPoints,
     }
     await runAnalysis(analysisConfig)

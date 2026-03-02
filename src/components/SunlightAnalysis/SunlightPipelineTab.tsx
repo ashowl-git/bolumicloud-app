@@ -84,9 +84,13 @@ const DEFAULT_CONFIG: SunlightConfigState = {
   latitude: 37.5665,
   longitude: 126.978,
   timezone: 135,
+  azimuth: 0,
   date: SUNLIGHT_DATE_PRESETS[0], // 동지
   buildingType: 'apartment',
   resolution: 'legal',
+  solarTimeMode: 'true_solar',
+  totalThreshold: { startHour: 8, endHour: 16, requiredHours: 4 },
+  continuousThreshold: { startHour: 9, endHour: 15, requiredHours: 2 },
 }
 
 const fadeVariants = {
@@ -259,16 +263,21 @@ export default function SunlightPipelineTab() {
     const analysisConfig: SunlightConfig = {
       latitude: config.latitude,
       longitude: config.longitude,
-      timezone_offset: config.timezone / 15, // 자오선(도) -> UTC 오프셋
+      timezone_offset: config.timezone / 15,
       standard_meridian: config.timezone,
+      azimuth: config.azimuth,
       month: config.date.month,
       day: config.date.day,
       date_label: config.date.label,
       building_type: config.buildingType,
-      time_start: '08:00',
-      time_end: '16:00',
+      time_start: `${String(config.totalThreshold.startHour).padStart(2, '0')}:00`,
+      time_end: `${String(config.totalThreshold.endHour).padStart(2, '0')}:00`,
+      continuous_start: `${String(config.continuousThreshold.startHour).padStart(2, '0')}:00`,
+      continuous_end: `${String(config.continuousThreshold.endHour).padStart(2, '0')}:00`,
+      total_required_hours: config.totalThreshold.requiredHours,
+      continuous_required_hours: config.continuousThreshold.requiredHours,
       resolution: config.resolution,
-      solar_time_mode: 'true_solar',
+      solar_time_mode: config.solarTimeMode,
       measurement_points: measurementPoints,
     }
     await runAnalysis(analysisConfig)

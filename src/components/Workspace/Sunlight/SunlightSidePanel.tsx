@@ -10,6 +10,7 @@ import {
   BUILDING_TYPE_LABELS,
   RESOLUTION_LABELS,
   SUNLIGHT_DATE_PRESETS,
+  SOLAR_TIME_MODE_LABELS,
 } from '@/lib/types/sunlight'
 import type {
   SunlightConfigState,
@@ -17,6 +18,7 @@ import type {
   CauseAnalysisResult,
   BuildingType,
   AnalysisResolution,
+  SolarTimeMode,
 } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
 
@@ -229,8 +231,8 @@ export default function SunlightSidePanel({
           })}
         </div>
 
-        {/* Lat/Lon/TZ inputs */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Lat/Lon/TZ/Azimuth inputs */}
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <div>
             <label className="text-[10px] font-medium text-gray-500 block mb-1">위도</label>
             <input
@@ -255,8 +257,10 @@ export default function SunlightSidePanel({
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-[10px] font-medium text-gray-500 block mb-1">자오선</label>
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">자오선 (E)</label>
             <input
               type="number"
               step="1"
@@ -265,6 +269,19 @@ export default function SunlightSidePanel({
               disabled={disabled}
               className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">방위각 (W)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={config.azimuth}
+              onChange={(e) => onConfigChange({ azimuth: Number(e.target.value) })}
+              disabled={disabled}
+              className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
+                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              title="도면 Y축이 진북에서 서향으로 벗어난 각도"
             />
           </div>
         </div>
@@ -320,7 +337,7 @@ export default function SunlightSidePanel({
         </div>
 
         {/* Resolution */}
-        <div>
+        <div className="mb-3">
           <label className="text-[10px] font-medium text-gray-500 block mb-1.5">분석 해상도</label>
           <div className="grid grid-cols-3 gap-1.5">
             {(Object.entries(RESOLUTION_LABELS) as [AnalysisResolution, typeof RESOLUTION_LABELS['legal']][]).map(
@@ -332,7 +349,7 @@ export default function SunlightSidePanel({
                     type="button"
                     onClick={() => onConfigChange({ resolution: value })}
                     disabled={disabled}
-                    className={`border p-2 text-left transition-all disabled:opacity-50 ${
+                    className={`border p-2 text-left transition-all disabled:opacity-50 rounded ${
                       isSelected
                         ? 'border-red-600 bg-red-50'
                         : 'border-gray-200 hover:border-red-600/30'
@@ -345,6 +362,143 @@ export default function SunlightSidePanel({
                 )
               }
             )}
+          </div>
+        </div>
+
+        {/* Solar time mode */}
+        <div className="mb-3">
+          <label className="text-[10px] font-medium text-gray-500 block mb-1.5">기준시</label>
+          <div className="flex gap-1.5">
+            {(Object.entries(SOLAR_TIME_MODE_LABELS) as [SolarTimeMode, { ko: string }][]).map(
+              ([value, label]) => {
+                const isSelected = config.solarTimeMode === value
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onConfigChange({ solarTimeMode: value })}
+                    disabled={disabled}
+                    className={`flex-1 py-1.5 text-xs text-center transition-all rounded disabled:opacity-50 ${
+                      isSelected
+                        ? 'border border-red-600 bg-red-50 text-red-600 font-medium'
+                        : 'border border-gray-200 text-gray-700 hover:border-red-600/30'
+                    }`}
+                  >
+                    {label.ko}
+                  </button>
+                )
+              }
+            )}
+          </div>
+        </div>
+
+        {/* Total sunlight threshold */}
+        <div className="mb-3 border border-gray-200 rounded p-2.5">
+          <label className="text-[10px] font-semibold text-gray-600 block mb-2">총일조시간 계산</label>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">시작</label>
+              <select
+                value={config.totalThreshold.startHour}
+                onChange={(e) => onConfigChange({
+                  totalThreshold: { ...config.totalThreshold, startHour: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {Array.from({ length: 13 }, (_, i) => i + 5).map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">끝</label>
+              <select
+                value={config.totalThreshold.endHour}
+                onChange={(e) => onConfigChange({
+                  totalThreshold: { ...config.totalThreshold, endHour: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {Array.from({ length: 13 }, (_, i) => i + 10).map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">수인한도</label>
+              <select
+                value={config.totalThreshold.requiredHours}
+                onChange={(e) => onConfigChange({
+                  totalThreshold: { ...config.totalThreshold, requiredHours: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {[1, 2, 3, 4, 5, 6].map((h) => (
+                  <option key={h} value={h}>{h}시간</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Continuous sunlight threshold */}
+        <div className="border border-gray-200 rounded p-2.5">
+          <label className="text-[10px] font-semibold text-gray-600 block mb-2">연속일조시간 계산</label>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">시작</label>
+              <select
+                value={config.continuousThreshold.startHour}
+                onChange={(e) => onConfigChange({
+                  continuousThreshold: { ...config.continuousThreshold, startHour: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {Array.from({ length: 13 }, (_, i) => i + 5).map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">끝</label>
+              <select
+                value={config.continuousThreshold.endHour}
+                onChange={(e) => onConfigChange({
+                  continuousThreshold: { ...config.continuousThreshold, endHour: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {Array.from({ length: 13 }, (_, i) => i + 10).map((h) => (
+                  <option key={h} value={h}>{h}시</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 block mb-0.5">수인한도</label>
+              <select
+                value={config.continuousThreshold.requiredHours}
+                onChange={(e) => onConfigChange({
+                  continuousThreshold: { ...config.continuousThreshold, requiredHours: Number(e.target.value) }
+                })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-1.5 py-1 text-xs
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              >
+                {[1, 2, 3, 4].map((h) => (
+                  <option key={h} value={h}>{h}시간</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </WorkspacePanelSection>

@@ -29,14 +29,19 @@ export interface SunlightConfig {
   longitude: number
   timezone_offset: number
   standard_meridian: number
+  azimuth: number               // 방위각 (W 양수)
   month: number
   day: number
   date_label: string
   building_type: BuildingType
-  time_start: string
-  time_end: string
+  time_start: string            // 총일조 시작 (e.g. "08:00")
+  time_end: string              // 총일조 끝 (e.g. "16:00")
+  continuous_start: string      // 연속일조 시작 (e.g. "09:00")
+  continuous_end: string        // 연속일조 끝 (e.g. "15:00")
+  total_required_hours: number  // 총일조 수인한도 (시간)
+  continuous_required_hours: number  // 연속일조 수인한도 (시간)
   resolution: AnalysisResolution
-  solar_time_mode: 'true_solar' | 'local_standard'
+  solar_time_mode: SolarTimeMode
   measurement_points: MeasurementPoint[]
 }
 
@@ -48,15 +53,47 @@ export interface MeasurementPoint {
   name: string
 }
 
+// ─── 기준시 ─────────────────────────────
+export type SolarTimeMode = 'true_solar' | 'local_standard'
+
+export const SOLAR_TIME_MODE_LABELS: Record<SolarTimeMode, { ko: string; en: string }> = {
+  true_solar: { ko: '진태양시', en: 'True Solar Time' },
+  local_standard: { ko: '지방표준시', en: 'Local Standard Time' },
+}
+
+// ─── 총일조/연속일조 수인한도 설정 ──────────
+
+export interface SunlightThreshold {
+  startHour: number   // 시작 시각 (0-23)
+  endHour: number     // 끝 시각 (0-23)
+  requiredHours: number  // 수인한도 (시간)
+}
+
+export const DEFAULT_TOTAL_THRESHOLD: SunlightThreshold = {
+  startHour: 8,
+  endHour: 16,
+  requiredHours: 4,
+}
+
+export const DEFAULT_CONTINUOUS_THRESHOLD: SunlightThreshold = {
+  startHour: 9,
+  endHour: 15,
+  requiredHours: 2,
+}
+
 // ─── 프론트엔드 설정 상태 (UI 레벨) ──────────
 
 export interface SunlightConfigState {
   latitude: number
   longitude: number
   timezone: number
+  azimuth: number  // 방위각 (도면 Y축 기준, 서향 양수)
   date: AnalysisDate
   buildingType: BuildingType
   resolution: AnalysisResolution
+  solarTimeMode: SolarTimeMode
+  totalThreshold: SunlightThreshold      // 총일조시간 수인한도
+  continuousThreshold: SunlightThreshold  // 연속일조시간 수인한도
 }
 
 // ─── 분석 진행률 ─────────────────────────────
