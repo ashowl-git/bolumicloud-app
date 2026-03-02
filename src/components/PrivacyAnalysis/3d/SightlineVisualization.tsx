@@ -11,9 +11,9 @@ const GRADE_COLORS: Record<number, string> = {
   3: '#16a34a', // green
 }
 
-// ─── 좌표 변환: 백엔드(X=동, Y=북, Z=위) → Three.js(X=동, Y=위, Z=남) ──
+// ─── 좌표 변환: 백엔드(X=동, Y=북, Z=위) → Three.js(X=동, Y=위, Z=북) ──
 function backendToThree(x: number, y: number, z: number): [number, number, number] {
-  return [x, z, -y]
+  return [x, z, y]
 }
 
 // ─── PII → opacity 변환 (0.3 ~ 0.9) ────────────

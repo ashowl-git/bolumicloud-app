@@ -6,11 +6,21 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { usePrivacyPipelineContext } from '@/contexts/PrivacyPipelineContext'
 import { PRIVACY_STAGE_LABELS } from '@/lib/types/privacy'
-import type { PrivacyStage } from '@/lib/types/privacy'
+import type { PrivacyStage, WindowSpec } from '@/lib/types/privacy'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 import PrivacyConfigPanel from './PrivacyConfigPanel'
 import PrivacyResults from './PrivacyResults'
+
+// 3D 뷰어 + 인터랙션
+import dynamic from 'next/dynamic'
+import { useModelLoader } from '@/components/shared/3d/useModelLoader'
+import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
+import { threeToBackend, threeNormalToBackend } from '@/components/shared/3d/interaction/types'
+import type { SurfaceHit } from '@/components/shared/3d/interaction/types'
+import type { ModelConfig } from '@/components/shared/3d/types'
+import InteractionToolbar from '@/components/shared/3d/interaction/InteractionToolbar'
+const PrivacyBuildingViewer = dynamic(() => import('./3d/PrivacyBuildingViewer'), { ssr: false })
 
 // ─── 텍스트 ────────────────────────────────
 const txt = {
@@ -45,6 +55,7 @@ export default function PrivacyPipelineTab() {
   const {
     phase, sessionId, config, progress, results,
     error,
+    targetSceneUrl, observerSceneUrl,
     setConfig, upload, run, cancel, reset,
   } = usePrivacyPipelineContext()
 
@@ -52,9 +63,24 @@ export default function PrivacyPipelineTab() {
   const [targetFile, setTargetFile] = useState<File | null>(null)
   const [observerFile, setObserverFile] = useState<File | null>(null)
   const [selectedPairId, setSelectedPairId] = useState<number | null>(null)
+  const [activeRole, setActiveRole] = useState<'target' | 'observer'>('target')
+  const [selectedWindowId, setSelectedWindowId] = useState<string | null>(null)
 
   const targetInputRef = useRef<HTMLInputElement>(null)
   const observerInputRef = useRef<HTMLInputElement>(null)
+  const windowIdCounter = useRef(1)
+
+  // 3D 모델 로딩
+  const targetModelConfig: ModelConfig | null = targetSceneUrl
+    ? { url: targetSceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true } : null
+  const observerModelConfig: ModelConfig | null = observerSceneUrl
+    ? { url: observerSceneUrl, format: 'glb', autoCenter: true, autoFitCamera: false } : null
+
+  const { scene: targetScene, bbox: targetBbox } = useModelLoader(targetModelConfig)
+  const { scene: observerScene, bbox: observerBbox } = useModelLoader(observerModelConfig)
+
+  // 창문 배치 (인터랙션 레이어)
+  const placement = usePointPlacement({ prefix: 'W' })
 
   // Auto step transitions
   useEffect(() => {
@@ -76,6 +102,35 @@ export default function PrivacyPipelineTab() {
     setStep(2)
   }, [targetFile, observerFile, upload])
 
+  // 표면 클릭 -> WindowSpec 생성
+  const handleWindowPlacement = useCallback((hit: SurfaceHit) => {
+    const backend = threeToBackend(hit.point[0], hit.point[1], hit.point[2])
+    const backendNormal = threeNormalToBackend(hit.normal[0], hit.normal[1], hit.normal[2])
+    const buildingName = activeRole === 'target' ? 'target' : 'observer'
+    const floor = Math.max(1, Math.floor(backend.z / 3.0) + 1)
+    const id = `${activeRole === 'target' ? 'TW' : 'OW'}${windowIdCounter.current++}`
+
+    const windowSpec: WindowSpec = {
+      id,
+      x: backend.x,
+      y: backend.y,
+      z: backend.z,
+      normal_dx: backendNormal.dx,
+      normal_dy: backendNormal.dy,
+      normal_dz: backendNormal.dz,
+      width: 1.2,
+      height: 1.5,
+      building_name: buildingName,
+      floor,
+    }
+
+    if (activeRole === 'target') {
+      setConfig({ targetWindows: [...config.targetWindows, windowSpec] })
+    } else {
+      setConfig({ observerWindows: [...config.observerWindows, windowSpec] })
+    }
+  }, [activeRole, config.targetWindows, config.observerWindows, setConfig])
+
   const handleRun = useCallback(async () => {
     await run()
   }, [run])
@@ -86,10 +141,24 @@ export default function PrivacyPipelineTab() {
     setTargetFile(null)
     setObserverFile(null)
     setSelectedPairId(null)
-  }, [reset])
+    setSelectedWindowId(null)
+    placement.clearPoints()
+    windowIdCounter.current = 1
+  }, [reset, placement])
+
+  // 개별 창문 삭제
+  const handleRemoveWindow = useCallback((id: string) => {
+    setConfig({
+      targetWindows: config.targetWindows.filter((w) => w.id !== id),
+      observerWindows: config.observerWindows.filter((w) => w.id !== id),
+    })
+    if (selectedWindowId === id) setSelectedWindowId(null)
+  }, [config.targetWindows, config.observerWindows, setConfig, selectedWindowId])
 
   const canProceedStep1 = targetFile && observerFile && phase !== 'uploading'
   const canProceedStep2 = sessionId && phase !== 'running' && phase !== 'polling'
+  const has3DModels = targetScene || observerScene
+  const totalWindows = config.targetWindows.length + config.observerWindows.length
 
   return (
     <div className="space-y-8">
@@ -192,14 +261,67 @@ export default function PrivacyPipelineTab() {
           </motion.div>
         )}
 
-        {/* Step 2: Settings */}
+        {/* Step 2: Settings + 3D 창문 배치 */}
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <PrivacyConfigPanel
-              config={config}
-              onChange={setConfig}
-              disabled={phase === 'running' || phase === 'polling'}
-            />
+            <div className={has3DModels ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}>
+              {/* 좌측: 설정 패널 */}
+              <div className="space-y-6">
+                <PrivacyConfigPanel
+                  config={config}
+                  onChange={setConfig}
+                  disabled={phase === 'running' || phase === 'polling'}
+                  onRemoveWindow={handleRemoveWindow}
+                />
+              </div>
+
+              {/* 우측: 3D 뷰어 + 창문 배치 */}
+              {has3DModels && (
+                <div className="border border-gray-200 relative">
+                  <InteractionToolbar
+                    analysisType="privacy"
+                    mode={placement.mode}
+                    pointCount={totalWindows}
+                    onModeChange={placement.setMode}
+                    onClearAll={() => {
+                      setConfig({ targetWindows: [], observerWindows: [] })
+                      windowIdCounter.current = 1
+                    }}
+                    targetCount={config.targetWindows.length}
+                    observerCount={config.observerWindows.length}
+                    activeRole={activeRole}
+                    onRoleChange={setActiveRole}
+                  />
+                  <PrivacyBuildingViewer
+                    targetScene={targetScene}
+                    observerScene={observerScene}
+                    targetBbox={targetBbox}
+                    observerBbox={observerBbox}
+                    activeRole={activeRole}
+                    interactionEnabled={placement.mode === 'place_point'}
+                    hoverHit={placement.hoverHit}
+                    onSurfaceHover={placement.setHoverHit}
+                    onSurfaceClick={handleWindowPlacement}
+                    orbitEnabled={placement.mode === 'navigate'}
+                    targetWindows={config.targetWindows}
+                    observerWindows={config.observerWindows}
+                    selectedWindowId={selectedWindowId}
+                    onWindowClick={setSelectedWindowId}
+                  />
+                  {totalWindows > 0 && (
+                    <div className="px-4 py-2 border-t border-gray-100">
+                      <p className="text-xs text-gray-500">
+                        <span className="text-orange-600">대상 {config.targetWindows.length}개</span>
+                        {' / '}
+                        <span className="text-blue-600">관찰 {config.observerWindows.length}개</span>
+                        {placement.mode === 'place_point' && ` — ${activeRole === 'target' ? '대상' : '관찰'} 건물 벽면을 클릭하여 창문 추가`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between">
               <button onClick={() => setStep(1)} className="border border-gray-200 px-6 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                 {t(txt.prev)}

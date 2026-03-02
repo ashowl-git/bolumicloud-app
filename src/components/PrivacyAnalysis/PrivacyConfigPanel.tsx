@@ -20,9 +20,10 @@ interface PrivacyConfigPanelProps {
   config: PrivacyConfigState
   onChange: (partial: Partial<PrivacyConfigState>) => void
   disabled?: boolean
+  onRemoveWindow?: (id: string) => void
 }
 
-export default function PrivacyConfigPanel({ config, onChange, disabled }: PrivacyConfigPanelProps) {
+export default function PrivacyConfigPanel({ config, onChange, disabled, onRemoveWindow }: PrivacyConfigPanelProps) {
   const { t } = useLocalizedText()
 
   return (
@@ -102,11 +103,55 @@ export default function PrivacyConfigPanel({ config, onChange, disabled }: Priva
         <p className="text-xs text-gray-400 mt-1">{t(txt.piiUnit)}</p>
       </div>
 
-      {/* Window Count Summary */}
-      <div className="border border-gray-200 p-4">
-        <p className="text-xs text-gray-500">
-          {t(txt.windowCount)}: {t(txt.observer)} {config.observerWindows.length}개 | {t(txt.target)} {config.targetWindows.length}개
+      {/* Window List */}
+      <div className="border border-gray-200 p-4 space-y-3">
+        <p className="text-xs font-medium text-gray-700">
+          {t(txt.windowCount)}: {t(txt.target)} {config.targetWindows.length}개 | {t(txt.observer)} {config.observerWindows.length}개
         </p>
+
+        {/* 대상 창문 */}
+        {config.targetWindows.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-orange-600 font-medium">{t(txt.target)}</p>
+            {config.targetWindows.map((w) => (
+              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 py-0.5">
+                <span className="font-mono">
+                  {w.id} ({w.x.toFixed(1)}, {w.y.toFixed(1)}, {w.z.toFixed(1)}) F{w.floor}
+                </span>
+                {onRemoveWindow && !disabled && (
+                  <button
+                    onClick={() => onRemoveWindow(w.id)}
+                    className="text-gray-300 hover:text-red-500 ml-2"
+                  >
+                    x
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 관찰 창문 */}
+        {config.observerWindows.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-blue-600 font-medium">{t(txt.observer)}</p>
+            {config.observerWindows.map((w) => (
+              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 py-0.5">
+                <span className="font-mono">
+                  {w.id} ({w.x.toFixed(1)}, {w.y.toFixed(1)}, {w.z.toFixed(1)}) F{w.floor}
+                </span>
+                {onRemoveWindow && !disabled && (
+                  <button
+                    onClick={() => onRemoveWindow(w.id)}
+                    className="text-gray-300 hover:text-red-500 ml-2"
+                  >
+                    x
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -17,7 +17,7 @@ import SunlightResults from './SunlightResults'
 // 3D 뷰어 (dynamic import for SSR safety)
 import dynamic from 'next/dynamic'
 const ThreeViewer = dynamic(() => import('@/components/shared/3d/ThreeViewer'), { ssr: false })
-const BuildingModel = dynamic(() => import('@/components/shared/3d/BuildingModel'), { ssr: false })
+const BuildingModel = dynamic(() => import('@/components/shared/3d/BuildingModel'), { ssr: false }) // Step 1, 4 프리뷰용
 const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
 const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
 const SceneLighting = dynamic(() => import('@/components/shared/3d/SceneLighting'), { ssr: false })
@@ -29,11 +29,18 @@ import type { CameraPresetId, ModelConfig } from '@/components/shared/3d/types'
 import ShadowAnimationPlayer from './3d/ShadowAnimationPlayer'
 import { useShadowAnimation } from './hooks/useShadowAnimation'
 
-// Measurement tools (Phase 3)
-import { useMeasurementPlacement } from './hooks/useMeasurementPlacement'
-import MeasurementToolbar from './3d/MeasurementToolbar'
+// Measurement tools (Phase 3) — 인터랙션 레이어
+import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
+import { useAreaPlacement } from '@/components/shared/3d/interaction/useAreaPlacement'
+import InteractionToolbar from '@/components/shared/3d/interaction/InteractionToolbar'
+const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
+const InteractiveGround = dynamic(() => import('@/components/shared/3d/interaction/InteractiveGround'), { ssr: false })
+const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interaction/SurfaceHighlight'), { ssr: false })
+const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
+const AreaGridPreview = dynamic(() => import('@/components/shared/3d/interaction/AreaGridPreview'), { ssr: false })
+
+// 기존 결과 표시용 (Step 4)
 import SunlightLegend from './3d/SunlightLegend'
-const MeasurementPoints = dynamic(() => import('./3d/MeasurementPoints'), { ssr: false })
 const SunlightHeatmapOverlay = dynamic(() => import('./3d/SunlightHeatmapOverlay'), { ssr: false })
 
 // Reports + Cause analysis (Phase 4)
@@ -146,8 +153,9 @@ export default function SunlightPipelineTab() {
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
 
-  // Measurement placement
-  const measurement = useMeasurementPlacement()
+  // Measurement placement (인터랙션 레이어)
+  const placement = usePointPlacement({ prefix: 'P' })
+  const areaPlacement = useAreaPlacement('G')
 
   // Cause analysis (Phase 4)
   const [causeResult, setCauseResult] = useState<CauseAnalysisResult | null>(null)
@@ -239,6 +247,15 @@ export default function SunlightPipelineTab() {
   }, [objFile, uploadFile])
 
   const handleStartAnalysis = useCallback(async () => {
+    // BaseAnalysisPoint -> MeasurementPoint (API 형식)
+    const measurementPoints = placement.points.map((p) => ({
+      id: p.id,
+      x: p.position.x,
+      y: p.position.y,
+      z: p.position.z,
+      name: p.name,
+    }))
+
     const analysisConfig: SunlightConfig = {
       latitude: config.latitude,
       longitude: config.longitude,
@@ -252,20 +269,21 @@ export default function SunlightPipelineTab() {
       time_end: '16:00',
       resolution: config.resolution,
       solar_time_mode: 'true_solar',
-      measurement_points: measurement.points,
+      measurement_points: measurementPoints,
     }
     await runAnalysis(analysisConfig)
-  }, [config, runAnalysis, measurement.points])
+  }, [config, runAnalysis, placement.points])
 
   const handleReset = useCallback(() => {
     reset()
     setCurrentStep(1)
     setObjFile(null)
     setConfig({ ...DEFAULT_CONFIG })
-    measurement.clearPoints()
+    placement.clearPoints()
+    areaPlacement.resetArea()
     setCauseResult(null)
     setSelectedBuildingId(null)
-  }, [reset, measurement])
+  }, [reset, placement, areaPlacement])
 
   const handleConfigChange = useCallback((partial: Partial<SunlightConfigState>) => {
     setConfig((prev) => ({ ...prev, ...partial }))
@@ -537,44 +555,120 @@ export default function SunlightPipelineTab() {
                 />
               </div>
 
-              {/* 3D 프리뷰 + 측정점 배치 */}
+              {/* 3D 프리뷰 + 측정점 배치 (인터랙션 레이어) */}
               {modelScene && (
                 <div className="border border-gray-200 relative">
-                  <MeasurementToolbar
-                    mode={measurement.mode}
-                    pointCount={measurement.points.length}
-                    onModeChange={measurement.setMode}
-                    onClearAll={measurement.clearPoints}
+                  <InteractionToolbar
+                    analysisType="sunlight"
+                    mode={placement.mode}
+                    pointCount={placement.points.length}
+                    onModeChange={(m) => {
+                      placement.setMode(m)
+                      if (m !== 'place_area') areaPlacement.resetArea()
+                    }}
+                    onClearAll={() => {
+                      placement.clearPoints()
+                      areaPlacement.resetArea()
+                    }}
                   />
-                  <ThreeViewer bbox={modelBbox} height="400px">
+                  <ThreeViewer
+                    bbox={modelBbox}
+                    height="400px"
+                    orbitEnabled={placement.mode === 'navigate'}
+                  >
                     <SceneLighting />
-                    <BuildingModel scene={modelScene} bbox={modelBbox} />
+                    <InteractiveBuildingModel
+                      scene={modelScene}
+                      bbox={modelBbox}
+                      interactionEnabled={placement.mode === 'place_point'}
+                      onSurfaceHover={placement.setHoverHit}
+                      onSurfaceClick={placement.handleSurfaceClick}
+                    />
+                    <InteractiveGround
+                      bbox={modelBbox}
+                      enabled={placement.mode === 'place_point' || placement.mode === 'place_area'}
+                      onGroundHover={(hit) => {
+                        if (placement.mode === 'place_area') areaPlacement.handleAreaHover(hit)
+                        else placement.setHoverHit(hit)
+                      }}
+                      onGroundClick={(hit) => {
+                        if (placement.mode === 'place_area') areaPlacement.handleAreaClick(hit)
+                        else placement.handleSurfaceClick(hit)
+                      }}
+                    />
                     <GroundGrid bbox={modelBbox} />
                     <CompassRose bbox={modelBbox} />
-                    <MeasurementPoints
-                      points={measurement.points}
-                      selectedPointId={measurement.selectedPointId}
-                      mode={measurement.mode}
-                      onPointClick={(id) => {
-                        if (measurement.mode === 'delete') {
-                          measurement.removePoint(id)
-                        } else {
-                          measurement.selectPoint(id)
-                        }
-                      }}
-                      onGroundClick={measurement.addPoint}
+                    {placement.mode !== 'place_area' && (
+                      <SurfaceHighlight hit={placement.hoverHit} />
+                    )}
+                    {/* 영역 격자 프리뷰 */}
+                    <AreaGridPreview
+                      firstCorner={areaPlacement.firstCorner}
+                      previewCorner={areaPlacement.previewCorner}
+                      area={areaPlacement.area}
+                      gridSpacing={areaPlacement.gridSpacing}
+                      gridPointCount={areaPlacement.gridPoints.length}
                     />
+                    {/* 개별 포인트 마커 */}
+                    {placement.points.map((point) => (
+                      <PointMarker3D
+                        key={point.id}
+                        point={point}
+                        visualType={point.surfaceType === 'ground' ? 'sphere' : 'disc'}
+                        isSelected={point.id === placement.selectedPointId}
+                        color={point.surfaceType === 'ground' ? '#ffffff' : '#60a5fa'}
+                        onClick={() => placement.handlePointClick(point.id)}
+                      />
+                    ))}
                   </ThreeViewer>
                   <CameraPresetBar
                     bbox={modelBbox}
                     activePreset={cameraPreset}
                     onPresetChange={setCameraPreset}
                   />
-                  {measurement.points.length > 0 && (
+                  {/* 영역 격자 컨트롤 (영역 확정 후) */}
+                  {areaPlacement.area && (
+                    <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-3">
+                      <span className="text-xs text-gray-500">격자 간격</span>
+                      <input
+                        type="number"
+                        min={0.5}
+                        max={20}
+                        step={0.5}
+                        value={areaPlacement.gridSpacing}
+                        onChange={(e) => areaPlacement.setGridSpacing(Number(e.target.value))}
+                        className="w-16 border border-gray-200 px-2 py-0.5 text-xs text-center"
+                      />
+                      <span className="text-xs text-gray-400">m</span>
+                      <button
+                        onClick={() => {
+                          const pts = areaPlacement.generateGrid()
+                          placement.setPoints([...placement.points, ...pts])
+                          areaPlacement.resetArea()
+                          placement.setMode('navigate')
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 border border-red-200 px-2 py-0.5"
+                      >
+                        격자 생성
+                      </button>
+                      <button
+                        onClick={() => areaPlacement.resetArea()}
+                        className="text-xs text-gray-400 hover:text-gray-600"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  )}
+                  {/* 포인트 수 표시 */}
+                  {placement.points.length > 0 && !areaPlacement.area && (
                     <div className="px-4 py-2 border-t border-gray-100">
                       <p className="text-xs text-gray-500">
-                        {measurement.points.length}개 측정점 배치됨
-                        {measurement.mode === 'add' && ' — 지면을 클릭하여 추가'}
+                        {placement.points.length}개 측정점 배치됨
+                        {placement.mode === 'place_point' && ' — 지면 또는 건물 표면을 클릭하여 추가'}
+                        {placement.mode === 'place_area' && (areaPlacement.firstCorner
+                          ? ' — 두 번째 모서리를 클릭하여 영역 확정'
+                          : ' — 지면을 클릭하여 영역의 첫 모서리 지정'
+                        )}
                       </p>
                     </div>
                   )}
@@ -666,12 +760,13 @@ export default function SunlightPipelineTab() {
                 >
                   {results.points.length > 0 && (
                     <SunlightHeatmapOverlay
-                      points={measurement.points.length > 0 ? measurement.points : results.points.map((p) => ({
-                        id: p.id, x: p.x, y: p.y, z: p.z, name: p.name,
-                      }))}
+                      points={placement.points.length > 0
+                        ? placement.points.map((p) => ({ id: p.id, x: p.position.x, y: p.position.y, z: p.position.z, name: p.name }))
+                        : results.points.map((p) => ({ id: p.id, x: p.x, y: p.y, z: p.z, name: p.name }))
+                      }
                       results={results.points}
-                      selectedPointId={measurement.selectedPointId}
-                      onPointClick={measurement.selectPoint}
+                      selectedPointId={placement.selectedPointId}
+                      onPointClick={placement.selectPoint}
                     />
                   )}
                   {causeResult && causeResult.point_causes.length > 0 && (
@@ -712,8 +807,8 @@ export default function SunlightPipelineTab() {
             {/* 분석 결과 테이블 */}
             <SunlightResults
               results={results}
-              selectedPointId={measurement.selectedPointId}
-              onPointSelect={measurement.selectPoint}
+              selectedPointId={placement.selectedPointId}
+              onPointSelect={placement.selectPoint}
             />
 
             {/* 원인 분석 (Phase 4) */}

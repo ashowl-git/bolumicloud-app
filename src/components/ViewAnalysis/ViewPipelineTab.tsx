@@ -24,10 +24,12 @@ import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
 import type { CameraPresetId, ModelConfig } from '@/components/shared/3d/types'
 
-// Measurement (관찰점 배치 — Phase 3 도구 재사용)
-import { useMeasurementPlacement } from '@/components/SunlightAnalysis/hooks/useMeasurementPlacement'
-import MeasurementToolbar from '@/components/SunlightAnalysis/3d/MeasurementToolbar'
-const MeasurementPoints = dynamic(() => import('@/components/SunlightAnalysis/3d/MeasurementPoints'), { ssr: false })
+// 인터랙션 레이어 (공유 컴포넌트)
+import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
+import InteractionToolbar from '@/components/shared/3d/interaction/InteractionToolbar'
+const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
+const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interaction/SurfaceHighlight'), { ssr: false })
+const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
 
 // ─── 텍스트 ─────────────────────────────────
 
@@ -115,8 +117,8 @@ export default function ViewPipelineTab() {
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
-  // 관찰점 배치 (Phase 3 hook 재사용)
-  const measurement = useMeasurementPlacement()
+  // 관찰점 배치 (인터랙션 레이어)
+  const placement = usePointPlacement({ prefix: 'V' })
 
   // Auto-transition
   useEffect(() => {
@@ -178,12 +180,18 @@ export default function ViewPipelineTab() {
   }, [objFile, uploadFile])
 
   const handleStartAnalysis = useCallback(async () => {
-    const observers: ViewObserverPoint[] = measurement.points.map((p) => ({
+    // BaseAnalysisPoint -> ViewObserverPoint (API 형식)
+    const observers: ViewObserverPoint[] = placement.points.map((p) => ({
       id: p.id,
-      x: p.x,
-      y: p.y,
-      z: p.z,
+      x: p.position.x,
+      y: p.position.y,
+      z: p.position.z,
       name: p.name,
+      ...(p.normal ? {
+        normal_dx: p.normal.dx,
+        normal_dy: p.normal.dy,
+        normal_dz: p.normal.dz,
+      } : {}),
     }))
 
     const analysisConfig: ViewConfig = {
@@ -195,16 +203,16 @@ export default function ViewPipelineTab() {
       landscape_categories: {},
     }
     await runAnalysis(analysisConfig)
-  }, [config, runAnalysis, measurement.points])
+  }, [config, runAnalysis, placement.points])
 
   const handleReset = useCallback(() => {
     reset()
     setCurrentStep(1)
     setObjFile(null)
     setConfig({ ...DEFAULT_CONFIG })
-    measurement.clearPoints()
+    placement.clearPoints()
     setSelectedObserverId(null)
-  }, [reset, measurement])
+  }, [reset, placement])
 
   const handleConfigChange = useCallback((partial: Partial<ViewConfigState>) => {
     setConfig((prev) => ({ ...prev, ...partial }))
@@ -414,37 +422,47 @@ export default function ViewPipelineTab() {
 
               {modelScene && (
                 <div className="border border-gray-200 relative">
-                  <MeasurementToolbar
-                    mode={measurement.mode}
-                    pointCount={measurement.points.length}
-                    onModeChange={measurement.setMode}
-                    onClearAll={measurement.clearPoints}
+                  <InteractionToolbar
+                    analysisType="view"
+                    mode={placement.mode}
+                    pointCount={placement.points.length}
+                    onModeChange={placement.setMode}
+                    onClearAll={placement.clearPoints}
                   />
-                  <ThreeViewer bbox={modelBbox} height="400px">
+                  <ThreeViewer
+                    bbox={modelBbox}
+                    height="400px"
+                    orbitEnabled={placement.mode === 'navigate'}
+                  >
                     <SceneLighting />
-                    <BuildingModel scene={modelScene} bbox={modelBbox} />
+                    <InteractiveBuildingModel
+                      scene={modelScene}
+                      bbox={modelBbox}
+                      interactionEnabled={placement.mode === 'place_point'}
+                      allowedSurfaces={['wall', 'roof']}
+                      onSurfaceHover={placement.setHoverHit}
+                      onSurfaceClick={placement.handleSurfaceClick}
+                    />
                     <GroundGrid bbox={modelBbox} />
                     <CompassRose bbox={modelBbox} />
-                    <MeasurementPoints
-                      points={measurement.points}
-                      selectedPointId={measurement.selectedPointId}
-                      mode={measurement.mode}
-                      onPointClick={(id) => {
-                        if (measurement.mode === 'delete') {
-                          measurement.removePoint(id)
-                        } else {
-                          measurement.selectPoint(id)
-                        }
-                      }}
-                      onGroundClick={measurement.addPoint}
-                    />
+                    <SurfaceHighlight hit={placement.hoverHit} />
+                    {placement.points.map((point) => (
+                      <PointMarker3D
+                        key={point.id}
+                        point={point}
+                        visualType="disc"
+                        isSelected={point.id === placement.selectedPointId}
+                        color="#60a5fa"
+                        onClick={() => placement.handlePointClick(point.id)}
+                      />
+                    ))}
                   </ThreeViewer>
                   <CameraPresetBar bbox={modelBbox} activePreset={cameraPreset} onPresetChange={setCameraPreset} />
-                  {measurement.points.length > 0 && (
+                  {placement.points.length > 0 && (
                     <div className="px-4 py-2 border-t border-gray-100">
                       <p className="text-xs text-gray-500">
-                        {measurement.points.length}개 관찰점 배치됨
-                        {measurement.mode === 'add' && ' — 건물 표면을 클릭하여 추가'}
+                        {placement.points.length}개 관찰점 배치됨
+                        {placement.mode === 'place_point' && ' — 건물 벽면을 클릭하여 추가'}
                       </p>
                     </div>
                   )}

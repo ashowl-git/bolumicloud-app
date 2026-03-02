@@ -29,6 +29,9 @@ export interface ViewObserverPoint {
   y: number
   z: number
   name: string
+  normal_dx?: number
+  normal_dy?: number
+  normal_dz?: number
 }
 
 // ─── 분석 설정 (프론트엔드 상태) ─────────────

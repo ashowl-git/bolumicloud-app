@@ -30,6 +30,8 @@ export interface UsePrivacyPipelineReturn {
   phase: PrivacyPipelinePhase
   sessionId: string | null
   sceneUrl: string | null
+  targetSceneUrl: string | null
+  observerSceneUrl: string | null
   config: PrivacyConfigState
   progress: PrivacyProgress | null
   results: PrivacyAnalysisResult | null
@@ -46,6 +48,8 @@ export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
   const [phase, setPhase] = useState<PrivacyPipelinePhase>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [sceneUrl, setSceneUrl] = useState<string | null>(null)
+  const [targetSceneUrl, setTargetSceneUrl] = useState<string | null>(null)
+  const [observerSceneUrl, setObserverSceneUrl] = useState<string | null>(null)
   const [config, setConfigState] = useState<PrivacyConfigState>(DEFAULT_CONFIG)
   const [progress, setProgress] = useState<PrivacyProgress | null>(null)
   const [results, setResults] = useState<PrivacyAnalysisResult | null>(null)
@@ -107,14 +111,26 @@ export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
       setSessionId(data.session_id)
       saveSession(data.session_id, 'idle')
 
-      // 3D 프리뷰용 모델 업로드
-      const modelForm = new FormData()
-      modelForm.append('file', targetFile)
-      const modelRes = await fetch(`${apiUrl}/models/upload`, { method: 'POST', body: modelForm })
-      if (modelRes.ok) {
-        const modelData = await modelRes.json()
-        if (modelData.scene_url) setSceneUrl(modelData.scene_url)
+      // 3D 프리뷰용: 두 OBJ를 각각 GLB로 변환
+      const uploadModel = async (file: File): Promise<string | null> => {
+        try {
+          const form = new FormData()
+          form.append('file', file)
+          const res = await fetch(`${apiUrl}/models/upload`, { method: 'POST', body: form })
+          if (res.ok) {
+            const d = await res.json()
+            return d.scene_url || null
+          }
+        } catch { /* ignore model conversion failure */ }
+        return null
       }
+
+      const [tUrl, oUrl] = await Promise.all([
+        uploadModel(targetFile),
+        uploadModel(observerFile),
+      ])
+      if (tUrl) { setTargetSceneUrl(tUrl); setSceneUrl(tUrl) }
+      if (oUrl) setObserverSceneUrl(oUrl)
 
       setPhase('idle')
     } catch (e) {
@@ -206,6 +222,8 @@ export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
     setPhase('idle')
     setSessionId(null)
     setSceneUrl(null)
+    setTargetSceneUrl(null)
+    setObserverSceneUrl(null)
     setConfigState(DEFAULT_CONFIG)
     setProgress(null)
     setResults(null)
@@ -222,6 +240,8 @@ export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
     phase,
     sessionId,
     sceneUrl,
+    targetSceneUrl,
+    observerSceneUrl,
     config,
     progress,
     results,

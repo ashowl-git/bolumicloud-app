@@ -9,15 +9,15 @@ const OBSERVER_COLOR = '#2563eb'  // blue
 const TARGET_COLOR = '#ea580c'    // orange
 const SELECTED_COLOR = '#fbbf24'  // amber highlight
 
-// ─── 좌표 변환: 백엔드(X=동, Y=북, Z=위) → Three.js(X=동, Y=위, Z=남) ──
+// ─── 좌표 변환: 백엔드(X=동, Y=북, Z=위) → Three.js(X=동, Y=위, Z=북) ──
 function backendToThree(x: number, y: number, z: number): [number, number, number] {
-  return [x, z, -y]
+  return [x, z, y]
 }
 
 // ─── normal → Three.js 방향 쿼터니언 변환 ────────
 function normalToQuaternion(dx: number, dy: number, dz: number): THREE.Quaternion {
-  // 백엔드 normal (dx, dy, dz) → Three.js normal (dx, dz, -dy)
-  const normal = new THREE.Vector3(dx, dz, -dy).normalize()
+  // 백엔드 normal (dx, dy, dz) → Three.js normal (dx, dz, dy)
+  const normal = new THREE.Vector3(dx, dz, dy).normalize()
   // PlaneGeometry 기본 normal은 (0, 0, 1)
   const defaultNormal = new THREE.Vector3(0, 0, 1)
   const q = new THREE.Quaternion().setFromUnitVectors(defaultNormal, normal)

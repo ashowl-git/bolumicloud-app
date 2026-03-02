@@ -24,6 +24,7 @@ interface ThreeViewerProps {
   height?: string
   className?: string
   enableDamping?: boolean
+  orbitEnabled?: boolean
 }
 
 export default function ThreeViewer({
@@ -32,6 +33,7 @@ export default function ThreeViewer({
   height = '400px',
   className = '',
   enableDamping = true,
+  orbitEnabled = true,
 }: ThreeViewerProps) {
   const [webglAvailable, setWebglAvailable] = useState(true)
 
@@ -59,7 +61,7 @@ export default function ThreeViewer({
   if (!webglAvailable) return <WebGLFallback />
 
   return (
-    <div className={`relative ${className}`} style={{ height }}>
+    <div className={`relative ${className}`} style={{ height, cursor: orbitEnabled ? 'grab' : 'crosshair' }}>
       <Canvas
         camera={{
           position: cameraConfig.position,
@@ -77,6 +79,7 @@ export default function ThreeViewer({
           {children}
         </Suspense>
         <OrbitControls
+          enabled={orbitEnabled}
           enableDamping={enableDamping}
           dampingFactor={0.1}
           minDistance={1}
