@@ -42,6 +42,13 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
     const group = new THREE.Group()
 
     const onLoad = (loaded: THREE.Object3D) => {
+      // Z-up → Y-up 좌표 변환 (Radiance/SketchUp OBJ 기본)
+      // OBJ: X=동, Y=북, Z=위  →  Three.js: X=동, Y=위, Z=남
+      if (config.zUp !== false) {
+        loaded.rotation.x = -Math.PI / 2
+        loaded.updateMatrixWorld(true)
+      }
+
       group.add(loaded)
       const b = computeBBox(group)
 

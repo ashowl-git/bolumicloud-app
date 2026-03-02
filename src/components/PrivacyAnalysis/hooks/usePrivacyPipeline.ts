@@ -129,8 +129,8 @@ export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
         uploadModel(targetFile),
         uploadModel(observerFile),
       ])
-      if (tUrl) { setTargetSceneUrl(tUrl); setSceneUrl(tUrl) }
-      if (oUrl) setObserverSceneUrl(oUrl)
+      if (tUrl) { setTargetSceneUrl(`${apiUrl}${tUrl}`); setSceneUrl(`${apiUrl}${tUrl}`) }
+      if (oUrl) setObserverSceneUrl(`${apiUrl}${oUrl}`)
 
       setPhase('idle')
     } catch (e) {

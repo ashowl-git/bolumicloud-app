@@ -60,8 +60,14 @@ export default function ThreeViewer({
 
   if (!webglAvailable) return <WebGLFallback />
 
+  // height="100%" 지원: wrapper가 부모 크기를 채우도록 설정
+  const isFluid = height === '100%'
+
   return (
-    <div className={`relative ${className}`} style={{ height, cursor: orbitEnabled ? 'grab' : 'crosshair' }}>
+    <div
+      className={`relative ${isFluid ? 'w-full h-full' : ''} ${className}`}
+      style={isFluid ? { cursor: orbitEnabled ? 'grab' : 'crosshair' } : { height, cursor: orbitEnabled ? 'grab' : 'crosshair' }}
+    >
       <Canvas
         camera={{
           position: cameraConfig.position,

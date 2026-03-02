@@ -1,0 +1,443 @@
+'use client'
+
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import dynamic from 'next/dynamic'
+import { useSunlightPipelineContext } from '@/contexts/SunlightPipelineContext'
+import { useApi } from '@/contexts/ApiContext'
+import { useModelLoader } from '@/components/shared/3d/useModelLoader'
+import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
+import { useAreaPlacement } from '@/components/shared/3d/interaction/useAreaPlacement'
+import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
+import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
+import { SUNLIGHT_DATE_PRESETS } from '@/lib/types/sunlight'
+import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult } from '@/lib/types/sunlight'
+import type { ModelConfig } from '@/components/shared/3d/types'
+import type { StatusBarState } from '../WorkspaceStatusBar'
+
+import AnalysisWorkspace from '../AnalysisWorkspace'
+import WorkspaceViewport from '../WorkspaceViewport'
+import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
+import WorkspaceStatusBar from '../WorkspaceStatusBar'
+import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
+import SunlightSidePanel from './SunlightSidePanel'
+import SunlightShadowControls from './SunlightShadowControls'
+import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
+
+// 3D components (dynamic import for SSR safety)
+const SceneLighting = dynamic(() => import('@/components/shared/3d/SceneLighting'), { ssr: false })
+const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
+const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
+const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
+const InteractiveGround = dynamic(() => import('@/components/shared/3d/interaction/InteractiveGround'), { ssr: false })
+const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interaction/SurfaceHighlight'), { ssr: false })
+const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
+const AreaGridPreview = dynamic(() => import('@/components/shared/3d/interaction/AreaGridPreview'), { ssr: false })
+const SunlightHeatmapOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SunlightHeatmapOverlay'), { ssr: false })
+const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
+const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
+const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3d/ViolationHighlight'), { ssr: false })
+
+import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
+
+// ─── 기본 설정 ─────────────────────────────
+const DEFAULT_CONFIG: SunlightConfigState = {
+  latitude: 37.5665,
+  longitude: 126.978,
+  timezone: 135,
+  date: SUNLIGHT_DATE_PRESETS[0],
+  buildingType: 'apartment',
+  resolution: 'legal',
+}
+
+function formatEta(sec: number): string {
+  const minutes = Math.floor(sec / 60)
+  const seconds = sec % 60
+  if (minutes > 0) return `${minutes}분 ${seconds}초`
+  return `${seconds}초`
+}
+
+function formatDuration(sec: number): string {
+  if (sec < 60) return `${sec.toFixed(1)}s`
+  const min = Math.floor(sec / 60)
+  return `${min}m ${(sec % 60).toFixed(0)}s`
+}
+
+// ─── 컴포넌트 ─────────────────────────────
+export default function SunlightWorkspace() {
+  const { apiUrl } = useApi()
+  const pipeline = useSunlightPipelineContext()
+  const {
+    phase,
+    sessionId,
+    sceneUrl,
+    modelMeta,
+    progress,
+    results,
+    error,
+    estimatedRemainingSec,
+    uploadFile,
+    runAnalysis,
+  } = pipeline
+
+  // Config state
+  const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_CONFIG })
+
+  // 3D model
+  const modelConfig: ModelConfig | null = sceneUrl
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true }
+    : null
+  const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
+  const hasModel = modelState === 'loaded' && !!modelScene
+
+  // Layout
+  const layout = useWorkspaceLayout({ hasModel })
+
+  // Placement
+  const placement = usePointPlacement({ prefix: 'P' })
+  const areaPlacement = useAreaPlacement('G')
+
+  // Shadow animation
+  const shadow = useShadowAnimation({ apiUrl })
+
+  // Cause analysis
+  const [causeResult, setCauseResult] = useState<CauseAnalysisResult | null>(null)
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
+
+  // Report state
+  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
+  // ── 자동 그림자 계산 (분석 완료 시) ──
+  useEffect(() => {
+    if (phase === 'completed' && results && sessionId && shadow.frames.length === 0 && !shadow.isComputing) {
+      shadow.computeShadows({
+        sessionId,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        month: config.date.month,
+        day: config.date.day,
+        timezoneOffset: config.timezone / 15,
+        stepMinutes: 10,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, results, sessionId])
+
+  // 분석 완료 시 패널 탭 전환
+  useEffect(() => {
+    if (phase === 'completed' && results) {
+      layout.setActivePanelTab('results')
+      layout.setSidePanelOpen(true)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, results])
+
+  // Browser tab title
+  useEffect(() => {
+    if (phase === 'polling' && progress) {
+      document.title = `[${progress.overall_progress}%] 일조 분석 - BoLumiCloud`
+    } else if (phase === 'completed') {
+      document.title = '[완료] 일조 분석 - BoLumiCloud'
+    } else {
+      document.title = '일조 분석 - BoLumiCloud'
+    }
+    return () => { document.title = 'BoLumiCloud' }
+  }, [phase, progress])
+
+  // ── Handlers ──
+  const handleFileSelect = useCallback(async (file: File) => {
+    await uploadFile(file)
+  }, [uploadFile])
+
+  const handleConfigChange = useCallback((partial: Partial<SunlightConfigState>) => {
+    setConfig((prev) => ({ ...prev, ...partial }))
+  }, [])
+
+  const handleStartAnalysis = useCallback(async () => {
+    const measurementPoints = placement.points.map((p) => ({
+      id: p.id,
+      x: p.position.x,
+      y: p.position.y,
+      z: p.position.z,
+      name: p.name,
+    }))
+
+    const analysisConfig: SunlightConfig = {
+      latitude: config.latitude,
+      longitude: config.longitude,
+      timezone_offset: config.timezone / 15,
+      standard_meridian: config.timezone,
+      month: config.date.month,
+      day: config.date.day,
+      date_label: config.date.label,
+      building_type: config.buildingType,
+      time_start: '08:00',
+      time_end: '16:00',
+      resolution: config.resolution,
+      solar_time_mode: 'true_solar',
+      measurement_points: measurementPoints,
+    }
+    await runAnalysis(analysisConfig)
+  }, [config, runAnalysis, placement.points])
+
+  const handleGenerateReport = useCallback(async () => {
+    if (!sessionId || !results) return
+    setIsGeneratingReport(true)
+    try {
+      const res = await fetch(`${apiUrl}/reports/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          latitude: config.latitude,
+          longitude: config.longitude,
+          timezone_offset: config.timezone / 15,
+          month: config.date.month,
+          day: config.date.day,
+          building_type: config.buildingType,
+          analysis_result: results,
+        }),
+      })
+      if (!res.ok) throw new Error('보고서 생성 실패')
+      const data = await res.json()
+      const rid = data.report_id
+
+      // Poll for completion
+      const poll = setInterval(async () => {
+        const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
+        const status = await statusRes.json()
+        if (status.status === 'completed') {
+          clearInterval(poll)
+          setIsGeneratingReport(false)
+          setReportDownloadUrl(`${apiUrl}${status.download_url}`)
+          if (status.cause_analysis) setCauseResult(status.cause_analysis)
+        } else if (status.status === 'error') {
+          clearInterval(poll)
+          setIsGeneratingReport(false)
+        }
+      }, 2000)
+    } catch {
+      setIsGeneratingReport(false)
+    }
+  }, [apiUrl, sessionId, results, config])
+
+  // ── Status bar state ──
+  const statusBarState = useMemo((): StatusBarState => {
+    if (error) return 'error'
+    if (phase === 'uploading') return 'uploading'
+    if (phase === 'running' || phase === 'polling') return 'running'
+    if (phase === 'completed') return 'completed'
+    return 'idle'
+  }, [phase, error])
+
+  const statusModelInfo = modelMeta
+    ? `${modelMeta.original_name} | V: ${modelMeta.vertices.toLocaleString()} F: ${modelMeta.faces.toLocaleString()}`
+    : undefined
+
+  const statusStageName = progress?.stages.find((s) => s.status === 'processing')?.name
+
+  // ── Sun direction for SceneLighting ──
+  const sunDirection = useMemo((): [number, number, number] => {
+    if (!shadow.currentFrame || shadow.currentFrame.solar_altitude <= 0) {
+      return [50, 80, 30]
+    }
+    const altRad = (shadow.currentFrame.solar_altitude * Math.PI) / 180
+    const aziRad = (shadow.currentFrame.solar_azimuth * Math.PI) / 180
+    return [
+      Math.cos(altRad) * Math.sin(aziRad) * 100,
+      Math.sin(altRad) * 100,
+      Math.cos(altRad) * Math.cos(aziRad) * 100,
+    ]
+  }, [shadow.currentFrame])
+
+  const solarPosition = shadow.currentFrame
+    ? { altitude: shadow.currentFrame.solar_altitude, azimuth: shadow.currentFrame.solar_azimuth }
+    : null
+
+  const isRunning = phase === 'running' || phase === 'polling'
+
+  return (
+    <AnalysisWorkspace
+      toolbar={
+        hasModel ? (
+          <WorkspaceToolbar
+            modes={SUNLIGHT_TOOLBAR_MODES}
+            activeMode={placement.mode}
+            onModeChange={(m) => {
+              placement.setMode(m)
+              if (m !== 'place_area') areaPlacement.resetArea()
+            }}
+            pointCount={placement.points.length}
+            onClearAll={() => {
+              placement.clearPoints()
+              areaPlacement.resetArea()
+            }}
+          />
+        ) : undefined
+      }
+      sidePanel={
+        <SunlightSidePanel
+          open={layout.sidePanelOpen}
+          onClose={layout.closePanel}
+          onOpen={() => layout.openPanel()}
+          config={config}
+          onConfigChange={handleConfigChange}
+          disabled={isRunning}
+          points={placement.points}
+          selectedPointId={placement.selectedPointId}
+          onPointSelect={placement.selectPoint}
+          isRunning={isRunning}
+          onStartAnalysis={handleStartAnalysis}
+          results={results}
+          onGenerateReport={handleGenerateReport}
+          reportDownloadUrl={reportDownloadUrl}
+          isGeneratingReport={isGeneratingReport}
+          causeResult={causeResult}
+          selectedBuildingId={selectedBuildingId}
+          onBuildingSelect={setSelectedBuildingId}
+        />
+      }
+      bottomControls={
+        shadow.frames.length > 0 ? (
+          <SunlightShadowControls
+            playback={shadow.playback}
+            maxMinute={shadow.frames.length > 0 ? shadow.frames[shadow.frames.length - 1].minute : 479}
+            stepSize={shadow.frames.length > 1 ? shadow.frames[1].minute - shadow.frames[0].minute : 10}
+            onMinuteChange={shadow.setCurrentMinute}
+            onPlay={shadow.play}
+            onPause={shadow.pause}
+            onSpeedChange={shadow.setSpeed}
+          />
+        ) : undefined
+      }
+      statusBar={
+        <WorkspaceStatusBar
+          state={statusBarState}
+          modelInfo={statusModelInfo}
+          stageName={statusStageName}
+          analysisProgress={progress?.overall_progress}
+          etaText={estimatedRemainingSec ? formatEta(estimatedRemainingSec) : undefined}
+          completionTime={results ? `${formatDuration(results.metadata.computation_time_sec)}` : undefined}
+          errorMessage={error || undefined}
+        />
+      }
+      uploadOverlay={
+        layout.isUploadOverlayVisible && !hasModel ? (
+          <WorkspaceUploadOverlay
+            onFileSelect={handleFileSelect}
+            isUploading={phase === 'uploading'}
+          />
+        ) : undefined
+      }
+    >
+      {/* ── 3D Viewport ── */}
+      <WorkspaceViewport
+        bbox={modelBbox}
+        orbitEnabled={placement.mode === 'navigate'}
+      >
+        <SceneLighting sunDirection={shadow.frames.length > 0 ? sunDirection : undefined} />
+
+        {/* Building model (interactive when placing points) */}
+        {modelScene && (
+          <InteractiveBuildingModel
+            scene={modelScene}
+            bbox={modelBbox}
+            interactionEnabled={placement.mode === 'place_point'}
+            onSurfaceHover={placement.setHoverHit}
+            onSurfaceClick={placement.handleSurfaceClick}
+          />
+        )}
+
+        {/* Ground interaction */}
+        {modelScene && (
+          <InteractiveGround
+            bbox={modelBbox}
+            enabled={placement.mode === 'place_point' || placement.mode === 'place_area'}
+            onGroundHover={(hit) => {
+              if (placement.mode === 'place_area') areaPlacement.handleAreaHover(hit)
+              else placement.setHoverHit(hit)
+            }}
+            onGroundClick={(hit) => {
+              if (placement.mode === 'place_area') areaPlacement.handleAreaClick(hit)
+              else placement.handleSurfaceClick(hit)
+            }}
+          />
+        )}
+
+        {/* Grid & compass */}
+        <GroundGrid bbox={modelBbox} />
+        <CompassRose bbox={modelBbox} />
+
+        {/* Surface hover highlight */}
+        {placement.mode !== 'place_area' && (
+          <SurfaceHighlight hit={placement.hoverHit} />
+        )}
+
+        {/* Area grid preview */}
+        <AreaGridPreview
+          firstCorner={areaPlacement.firstCorner}
+          previewCorner={areaPlacement.previewCorner}
+          area={areaPlacement.area}
+          gridSpacing={areaPlacement.gridSpacing}
+          gridPointCount={areaPlacement.gridPoints.length}
+        />
+
+        {/* Point markers */}
+        {placement.points.map((point) => (
+          <PointMarker3D
+            key={point.id}
+            point={point}
+            visualType={point.surfaceType === 'ground' ? 'sphere' : 'disc'}
+            isSelected={point.id === placement.selectedPointId}
+            color={point.surfaceType === 'ground' ? '#ffffff' : '#60a5fa'}
+            onClick={() => placement.handlePointClick(point.id)}
+          />
+        ))}
+
+        {/* Shadow overlay */}
+        {shadow.frames.length > 0 && (
+          <>
+            <ShadowOverlay frame={shadow.currentFrame} />
+            <SunPositionIndicator solarPosition={solarPosition} />
+          </>
+        )}
+
+        {/* Heatmap overlay (results) */}
+        {results && results.points.length > 0 && (
+          <SunlightHeatmapOverlay
+            points={placement.points.length > 0
+              ? placement.points.map((p) => ({ id: p.id, x: p.position.x, y: p.position.y, z: p.position.z, name: p.name }))
+              : results.points.map((p) => ({ id: p.id, x: p.x, y: p.y, z: p.z, name: p.name }))
+            }
+            results={results.points}
+            selectedPointId={placement.selectedPointId}
+            onPointClick={placement.selectPoint}
+          />
+        )}
+
+        {/* Violation highlight (cause analysis) */}
+        {causeResult && causeResult.point_causes.length > 0 && (
+          <ViolationHighlight
+            blockers={causeResult.point_causes.flatMap((pc) => pc.blockers)}
+            selectedBuildingId={selectedBuildingId}
+          />
+        )}
+      </WorkspaceViewport>
+
+      {/* Legend overlay */}
+      {results && results.points.length > 0 && (
+        <div className="absolute bottom-16 left-3 z-10">
+          <SunlightLegend />
+        </div>
+      )}
+
+      {/* Keyboard shortcut help overlay */}
+      {layout.isShortcutOverlayVisible && (
+        <KeyboardShortcutOverlay
+          modes={SUNLIGHT_TOOLBAR_MODES}
+          onClose={layout.closeShortcutOverlay}
+        />
+      )}
+    </AnalysisWorkspace>
+  )
+}

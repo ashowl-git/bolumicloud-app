@@ -9,6 +9,8 @@ export interface ModelConfig {
   format: 'obj' | 'gltf' | 'glb'
   autoCenter?: boolean
   autoFitCamera?: boolean
+  /** Z-up 좌표계 모델을 Y-up(Three.js)으로 회전. 기본값 true (Radiance/SketchUp OBJ) */
+  zUp?: boolean
 }
 
 // ─── 바운딩 박스 ─────────────────────────────
