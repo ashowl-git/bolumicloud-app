@@ -51,6 +51,21 @@ export interface MeasurementPoint {
   y: number
   z: number
   name: string
+  group?: string    // 측정점 그룹명 (e.g., "101동")
+  row?: number      // 행 (층 기준, 1부터)
+  column?: number   // 열 (호 기준, 1부터)
+}
+
+// ─── 측정점 그룹 (동별 관리) ──────────────
+
+export interface MeasurementPointGroup {
+  id: string
+  name: string               // e.g., "101동", "기본"
+  points: MeasurementPoint[]
+  /** 자동 정렬 완료 여부 */
+  sorted: boolean
+  /** 열 순서 반전 (Sanalyst "열의 순서를 반대로 바꿈") */
+  reverseColumns: boolean
 }
 
 // ─── 기준시 ─────────────────────────────

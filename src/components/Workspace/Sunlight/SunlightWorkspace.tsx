@@ -10,6 +10,7 @@ import { useAreaPlacement } from '@/components/shared/3d/interaction/useAreaPlac
 import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
 import { SUNLIGHT_DATE_PRESETS, DEFAULT_TOTAL_THRESHOLD, DEFAULT_CONTINUOUS_THRESHOLD } from '@/lib/types/sunlight'
+import { usePointGroups } from './hooks/usePointGroups'
 import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult } from '@/lib/types/sunlight'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import type { StatusBarState } from '../WorkspaceStatusBar'
@@ -100,6 +101,9 @@ export default function SunlightWorkspace() {
   const placement = usePointPlacement({ prefix: 'P' })
   const areaPlacement = useAreaPlacement('G')
 
+  // Point groups
+  const pointGroups = usePointGroups()
+
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
 
@@ -110,6 +114,12 @@ export default function SunlightWorkspace() {
   // Report state
   const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
+  // 포인트 변경 시 활성 그룹에 동기화
+  useEffect(() => {
+    pointGroups.syncPointsToGroup(placement.points)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placement.points])
 
   // ── 자동 그림자 계산 (분석 완료 시) ──
   useEffect(() => {
@@ -158,12 +168,16 @@ export default function SunlightWorkspace() {
   }, [])
 
   const handleStartAnalysis = useCallback(async () => {
-    const measurementPoints = placement.points.map((p) => ({
+    // 그룹의 모든 포인트를 사용 (행/열 정보 포함)
+    const measurementPoints = pointGroups.allMeasurementPoints.map((p) => ({
       id: p.id,
-      x: p.position.x,
-      y: p.position.y,
-      z: p.position.z,
+      x: p.x,
+      y: p.y,
+      z: p.z,
       name: p.name,
+      group: p.group,
+      row: p.row,
+      column: p.column,
     }))
 
     const analysisConfig: SunlightConfig = {
@@ -295,6 +309,14 @@ export default function SunlightWorkspace() {
           points={placement.points}
           selectedPointId={placement.selectedPointId}
           onPointSelect={placement.selectPoint}
+          groups={pointGroups.groups}
+          activeGroupId={pointGroups.activeGroupId}
+          onAddGroup={pointGroups.addGroup}
+          onRemoveGroup={pointGroups.removeGroup}
+          onRenameGroup={pointGroups.renameGroup}
+          onSetActiveGroup={pointGroups.setActiveGroup}
+          onSortGroup={pointGroups.sortGroup}
+          onToggleReverseColumns={pointGroups.toggleReverseColumns}
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
           results={results}
