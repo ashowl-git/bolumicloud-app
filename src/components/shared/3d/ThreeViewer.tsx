@@ -1,8 +1,9 @@
 'use client'
 
-import { Suspense, useMemo, useState, useEffect, type ReactNode } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useRef, useState, useEffect, type ReactNode } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
 import type { BoundingBox } from './types'
 
 // ─── 폴백 UI ─────────────────────────────
@@ -14,6 +15,36 @@ function WebGLFallback() {
       <p className="text-xs text-gray-400 mt-1">Chrome, Firefox, Edge 최신 버전을 사용해주세요.</p>
     </div>
   )
+}
+
+// ─── bbox 기반 카메라 동적 제어 ─────────────────────────────
+
+function CameraController({ bbox }: { bbox?: BoundingBox | null }) {
+  const { camera } = useThree()
+  const appliedRef = useRef<string>('')
+
+  useEffect(() => {
+    if (!bbox) return
+
+    const key = bbox.size.join(',')
+    if (key === appliedRef.current) return
+    appliedRef.current = key
+
+    const maxDim = Math.max(...bbox.size)
+    const dist = maxDim * 1.8
+
+    camera.near = Math.max(0.1, maxDim * 0.001)
+    camera.far = Math.max(10000, maxDim * 10)
+    camera.position.set(
+      bbox.center[0] + dist,
+      bbox.center[1] + dist * 0.7,
+      bbox.center[2] + dist
+    )
+    camera.updateProjectionMatrix()
+    camera.lookAt(bbox.center[0], bbox.center[1], bbox.center[2])
+  }, [bbox, camera])
+
+  return null
 }
 
 // ─── ThreeViewer ─────────────────────────────
@@ -47,23 +78,11 @@ export default function ThreeViewer({
     }
   }, [])
 
-  const cameraConfig = useMemo(() => {
-    if (!bbox) return { position: [20, 15, 20] as [number, number, number], fov: 50, near: 0.1, far: 10000 }
-
-    const maxDim = Math.max(...bbox.size)
-    const dist = maxDim * 1.8
-    return {
-      position: [bbox.center[0] + dist, bbox.center[1] + dist * 0.7, bbox.center[2] + dist] as [number, number, number],
-      fov: 50,
-      near: Math.max(0.1, maxDim * 0.001),
-      far: Math.max(10000, maxDim * 10),
-    }
-  }, [bbox])
-
   if (!webglAvailable) return <WebGLFallback />
 
-  // height="100%" 지원: wrapper가 부모 크기를 채우도록 설정
   const isFluid = height === '100%'
+
+  const maxDim = bbox ? Math.max(...bbox.size) : 0
 
   return (
     <div
@@ -72,10 +91,10 @@ export default function ThreeViewer({
     >
       <Canvas
         camera={{
-          position: cameraConfig.position,
-          fov: cameraConfig.fov,
-          near: cameraConfig.near,
-          far: cameraConfig.far,
+          position: [20, 15, 20],
+          fov: 50,
+          near: 0.1,
+          far: 10000,
         }}
         gl={{ antialias: true, alpha: false }}
         onCreated={({ gl }) => {
@@ -83,6 +102,7 @@ export default function ThreeViewer({
           gl.toneMapping = 0 // NoToneMapping
         }}
       >
+        <CameraController bbox={bbox} />
         <Suspense fallback={null}>
           {children}
         </Suspense>
@@ -90,9 +110,9 @@ export default function ThreeViewer({
           enabled={orbitEnabled}
           enableDamping={enableDamping}
           dampingFactor={0.1}
-          minDistance={bbox ? Math.max(1, Math.max(...bbox.size) * 0.01) : 1}
-          maxDistance={bbox ? Math.max(5000, Math.max(...bbox.size) * 5) : 5000}
-          target={bbox ? [bbox.center[0], bbox.center[1], bbox.center[2]] : [0, 0, 0]}
+          minDistance={maxDim > 0 ? Math.max(1, maxDim * 0.01) : 1}
+          maxDistance={maxDim > 0 ? Math.max(5000, maxDim * 5) : 5000}
+          target={bbox ? new THREE.Vector3(bbox.center[0], bbox.center[1], bbox.center[2]) : new THREE.Vector3(0, 0, 0)}
           maxPolarAngle={Math.PI * 0.85}
         />
       </Canvas>
