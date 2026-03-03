@@ -72,9 +72,9 @@ export default function PrivacyPipelineTab() {
 
   // 3D 모델 로딩
   const targetModelConfig: ModelConfig | null = targetSceneUrl
-    ? { url: targetSceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true } : null
+    ? { url: targetSceneUrl, format: 'glb', autoCenter: true, zUp: false } : null
   const observerModelConfig: ModelConfig | null = observerSceneUrl
-    ? { url: observerSceneUrl, format: 'glb', autoCenter: true, autoFitCamera: false } : null
+    ? { url: observerSceneUrl, format: 'glb', autoCenter: true, zUp: false } : null
 
   const { scene: targetScene, bbox: targetBbox } = useModelLoader(targetModelConfig)
   const { scene: observerScene, bbox: observerBbox } = useModelLoader(observerModelConfig)

@@ -151,7 +151,7 @@ export default function SunlightPipelineTab() {
   // 3D viewer state
   const [cameraPreset, setCameraPreset] = useState<CameraPresetId>('perspective')
   const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true }
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 

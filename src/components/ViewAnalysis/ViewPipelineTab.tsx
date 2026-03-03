@@ -113,7 +113,7 @@ export default function ViewPipelineTab() {
   const [selectedObserverId, setSelectedObserverId] = useState<string | null>(null)
 
   const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, autoFitCamera: true }
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
