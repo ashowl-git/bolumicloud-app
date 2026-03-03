@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { Text } from '@react-three/drei'
 import type { MeasurementPoint, PointSunlightResult } from '@/lib/types/sunlight'
 import type { PlacementMode } from '../hooks/useMeasurementPlacement'
-import { backendToThree } from '../hooks/useMeasurementPlacement'
+import { backendToThree } from '@/components/shared/3d/interaction/types'
 
 // ─── MeasurementPoints ──────────────────────
 

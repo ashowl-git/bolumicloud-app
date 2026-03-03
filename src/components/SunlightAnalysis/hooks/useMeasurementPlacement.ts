@@ -5,13 +5,7 @@ import type { MeasurementPoint } from '@/lib/types/sunlight'
 
 export type PlacementMode = 'view' | 'add' | 'delete'
 
-// ─── 좌표 변환: Three.js ↔ 백엔드 ──────────
-// Three.js: X=동, Y=위, Z=북
-// 백엔드:   X=동, Y=북, Z=위
-
-export function backendToThree(bx: number, by: number, bz: number): [number, number, number] {
-  return [bx, bz, by]
-}
+// 좌표 변환은 @/components/shared/3d/interaction/types 에서 import
 
 // ─── useMeasurementPlacement ────────────────
 
@@ -33,13 +27,14 @@ export function useMeasurementPlacement(): UseMeasurementPlacementReturn {
   const [mode, setMode] = useState<PlacementMode>('view')
   const nextIdRef = useRef(1)
 
-  const addPoint = useCallback((threeX: number, _threeY: number, threeZ: number) => {
+  const addPoint = useCallback((threeX: number, threeY: number, threeZ: number) => {
     const id = `P${nextIdRef.current++}`
+    // Three.js(X=동, Y=위, Z=북) → Backend(X=동, Y=북, Z=위)
     const point: MeasurementPoint = {
       id,
       x: threeX,    // Backend x (East) = Three.js x
       y: threeZ,    // Backend y (North) = Three.js z
-      z: 0,         // 지면 (z_up = 0)
+      z: threeY,    // Backend z (Up) = Three.js y
       name: id,
     }
     setPointsState((prev) => [...prev, point])

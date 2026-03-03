@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { BlockerInfo } from '@/lib/types/sunlight'
-import { backendToThree } from '../hooks/useMeasurementPlacement'
+import { backendToThree } from '@/components/shared/3d/interaction/types'
 
 // ─── ViolationHighlight ─────────────────────
 // 위반 원인 건물에 빨간 와이어프레임 박스를 렌더링한다.

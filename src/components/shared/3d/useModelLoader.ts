@@ -42,12 +42,19 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
     const group = new THREE.Group()
 
     const onLoad = (loaded: THREE.Object3D) => {
-      // Z-up → Y-up 좌표 변환 (Radiance/SketchUp OBJ 기본)
-      // OBJ: X=동, Y=북, Z=위  →  Three.js: X=동, Y=위, Z=남
+      // Z-up → Y-up 좌표 변환
+      // OBJ 원본 및 trimesh 경유 GLB 모두 Z-up 좌표계를 유지하므로 회전 필요
       if (config.zUp !== false) {
         loaded.rotation.x = -Math.PI / 2
         loaded.updateMatrixWorld(true)
       }
+
+      // 법선 재계산: trimesh GLB 변환 시 법선 소실/뒤집힘 방지
+      loaded.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.geometry) {
+          child.geometry.computeVertexNormals()
+        }
+      })
 
       group.add(loaded)
       const b = computeBBox(group)
@@ -136,6 +143,12 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
           loaded.rotation.x = -Math.PI / 2
           loaded.updateMatrixWorld(true)
         }
+        // 법선 재계산
+        loaded.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.geometry) {
+            child.geometry.computeVertexNormals()
+          }
+        })
         group.add(loaded)
         const b = computeBBox(group)
         if (entry.config.autoCenter !== false) {

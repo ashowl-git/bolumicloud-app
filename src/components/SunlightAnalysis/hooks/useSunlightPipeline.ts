@@ -150,11 +150,18 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
 
           const resultsRes = await fetch(`${apiUrl}/sunlight/${sid}/result`)
           if (resultsRes.ok) {
-            const resultsData: SunlightAnalysisResult = await resultsRes.json()
-            setResults(resultsData)
-            setPhase('completed')
-            setEstimatedRemainingSec(null)
-            clearSession()
+            const resultsData = await resultsRes.json()
+            // 결과 데이터 기본 검증
+            if (!resultsData || !resultsData.points || !Array.isArray(resultsData.points)) {
+              setError('분석 결과 형식이 올바르지 않습니다')
+              setPhase('error')
+              clearSession()
+            } else {
+              setResults(resultsData as SunlightAnalysisResult)
+              setPhase('completed')
+              setEstimatedRemainingSec(null)
+              clearSession()
+            }
           } else {
             setError('결과를 가져올 수 없습니다')
             setPhase('error')
@@ -228,7 +235,8 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
           '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
         ]
 
-        const groups: BuildingGroupInfo[] = (data.groups as string[]).map((name: string, i: number) => ({
+        const rawGroups = Array.isArray(data.groups) ? data.groups : []
+        const groups: BuildingGroupInfo[] = (rawGroups as string[]).map((name: string, i: number) => ({
           name,
           vertexCount: 0,
           faceCount: 0,

@@ -3,17 +3,13 @@
 import { useMemo, useState } from 'react'
 import { Line, Html } from '@react-three/drei'
 import type { PairResult } from '@/lib/types/privacy'
+import { backendToThree } from '@/components/shared/3d/interaction/types'
 
 // ─── 상수 ──────────────────────────────────────
 const GRADE_COLORS: Record<number, string> = {
   1: '#dc2626', // red
   2: '#d97706', // yellow/amber
   3: '#16a34a', // green
-}
-
-// ─── 좌표 변환: 백엔드(X=동, Y=북, Z=위) → Three.js(X=동, Y=위, Z=북) ──
-function backendToThree(x: number, y: number, z: number): [number, number, number] {
-  return [x, z, y]
 }
 
 // ─── PII → opacity 변환 (0.3 ~ 0.9) ────────────

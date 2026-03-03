@@ -3,23 +3,24 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { PointSunlightResult } from '@/lib/types/sunlight'
-import { backendToThree } from '../hooks/useMeasurementPlacement'
+import { backendToThree } from '@/components/shared/3d/interaction/types'
 
 // ─── 색상 보간: 일조시간 → 색상 ──────────────
 
 function hoursToColor(hours: number, maxHours: number): string {
   const t = Math.min(Math.max(hours / maxHours, 0), 1)
+  const clamp = (v: number) => Math.round(Math.max(0, Math.min(255, v)))
 
   // red(0h) → amber(2h) → yellow(4h) → lime(6h) → green(8h)
   if (t < 0.5) {
     const r = 239
-    const g = Math.round(68 + t * 2 * (163 - 68))
+    const g = clamp(68 + t * 2 * (163 - 68))
     const b = 68
     return `rgb(${r},${g},${b})`
   }
-  const r = Math.round(239 - (t - 0.5) * 2 * (239 - 34))
-  const g = Math.round(163 + (t - 0.5) * 2 * (197 - 163))
-  const b = Math.round(34 + (t - 0.5) * 2 * (94 - 34))
+  const r = clamp(239 - (t - 0.5) * 2 * (239 - 34))
+  const g = clamp(163 + (t - 0.5) * 2 * (197 - 163))
+  const b = clamp(34 + (t - 0.5) * 2 * (94 - 34))
   return `rgb(${r},${g},${b})`
 }
 
@@ -40,10 +41,10 @@ export default function MeasurementAreaGrid({
 }: MeasurementAreaGridProps) {
   const cells = useMemo(() => {
     return results.map((r) => {
-      const [tx, , tz] = backendToThree(r.x, r.y, r.z)
+      const [tx, ty, tz] = backendToThree(r.x, r.y, r.z)
       return {
         id: r.id,
-        position: [tx, 0.03, tz] as [number, number, number],
+        position: [tx, ty + 0.03, tz] as [number, number, number],
         color: hoursToColor(r.total_hours, maxHours),
         isSelected: r.id === selectedPointId,
       }
