@@ -39,7 +39,6 @@ export default function CompassRose({ bbox, offset = 5 }: CompassRoseProps) {
             color={color}
             anchorX="center"
             anchorY="middle"
-            font="/fonts/NotoSansKR-Medium.woff"
             characters="NESW"
           >
             {label}
