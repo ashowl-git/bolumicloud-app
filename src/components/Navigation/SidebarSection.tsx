@@ -9,19 +9,39 @@ import type { SectionConfig } from '@/lib/types/navigation'
 
 interface SidebarSectionProps {
   section: SectionConfig
+  collapsed?: boolean
   onNavigate?: () => void
 }
 
-export default function SidebarSection({ section, onNavigate }: SidebarSectionProps) {
+export default function SidebarSection({ section, collapsed, onNavigate }: SidebarSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const { t } = useLocalizedText()
   const Icon = section.icon
+
+  if (collapsed) {
+    return (
+      <div className="mb-2 px-2">
+        <div className="flex items-center justify-center py-2 mb-0.5">
+          <div className="w-5 h-px bg-gray-200" />
+        </div>
+        {section.modules.map((mod) => (
+          <SidebarLink
+            key={mod.id}
+            module={mod}
+            basePath={section.basePath}
+            collapsed
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="mb-1">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors duration-150"
       >
         <Icon size={14} strokeWidth={1.5} />
         <span className="flex-1 text-left">{t(section.name)}</span>

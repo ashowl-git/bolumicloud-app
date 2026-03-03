@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useRef, useCallback, ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export interface GenericFileUploadProps {
   /** Accepted file extensions (e.g., ['.pic', '.hdr']) */
@@ -10,7 +10,7 @@ export interface GenericFileUploadProps {
   multiple?: boolean
   /** File type label for display (e.g., 'Radiance HDR') */
   fileTypeLabel: string
-  /** File type description (e.g., '이미지 파일') */
+  /** File type description (e.g., 'image files') */
   fileTypeDescription?: string
   /** Callback when files are selected and validated */
   onFilesSelected: (files: FileList) => void
@@ -26,8 +26,20 @@ export interface GenericFileUploadProps {
   showFileList?: boolean
   /** Custom error message */
   externalError?: string | null
+  /** Maximum file size in bytes (default: no limit) */
+  maxFileSize?: number
+  /** Upload progress percentage (0-100). Show progress bar when set. */
+  uploadProgress?: number | null
   /** Additional content below the drop zone */
   children?: ReactNode
+}
+
+type DropFeedback = 'none' | 'accepted' | 'rejected'
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
 export default function GenericFileUpload({
@@ -38,18 +50,28 @@ export default function GenericFileUpload({
   onFilesSelected,
   disabled = false,
   isProcessing = false,
-  processingMessage = '파일 처리 중...',
+  processingMessage = 'Processing files...',
   maxDisplayFiles = 5,
   showFileList = true,
   externalError,
+  maxFileSize,
+  uploadProgress = null,
   children,
 }: GenericFileUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
+  const [dropFeedback, setDropFeedback] = useState<DropFeedback>('none')
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isDisabled = disabled || isProcessing
+
+  const showDropFeedback = useCallback((type: DropFeedback) => {
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current)
+    setDropFeedback(type)
+    feedbackTimerRef.current = setTimeout(() => setDropFeedback('none'), 600)
+  }, [])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -90,7 +112,19 @@ export default function GenericFileUpload({
     if (validFiles.length === 0) {
       const extList = acceptedExtensions.join(', ')
       setError(`${extList} 파일을 선택해주세요.`)
+      showDropFeedback('rejected')
       return
+    }
+
+    // Check file size if maxFileSize is set
+    if (maxFileSize) {
+      const oversizedFiles = validFiles.filter(f => f.size > maxFileSize)
+      if (oversizedFiles.length > 0) {
+        const names = oversizedFiles.map(f => f.name).join(', ')
+        setError(`파일 크기 초과 (최대 ${formatFileSize(maxFileSize)}): ${names}`)
+        showDropFeedback('rejected')
+        return
+      }
     }
 
     if (validFiles.length !== files.length) {
@@ -102,6 +136,7 @@ export default function GenericFileUpload({
     validFiles.forEach(file => dataTransfer.items.add(file))
 
     setSelectedFiles(dataTransfer.files)
+    showDropFeedback('accepted')
     onFilesSelected(dataTransfer.files)
   }
 
@@ -120,6 +155,14 @@ export default function GenericFileUpload({
   const acceptString = acceptedExtensions.join(',')
   const displayError = externalError || error
 
+  const borderClasses = dropFeedback === 'accepted'
+    ? 'border-green-500 bg-green-50'
+    : dropFeedback === 'rejected'
+    ? 'border-red-500 bg-red-50'
+    : isDragging
+    ? 'border-blue-500 bg-blue-50'
+    : 'border-gray-300 hover:border-gray-400'
+
   return (
     <div className="space-y-4">
       {/* Drop Zone */}
@@ -130,10 +173,7 @@ export default function GenericFileUpload({
         className={`
           border-2 border-dashed rounded-lg p-8
           transition-all duration-300
-          ${isDragging
-            ? 'border-red-600 bg-red-50'
-            : 'border-gray-300 hover:border-gray-400'
-          }
+          ${borderClasses}
           ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
         onClick={() => !isDisabled && fileInputRef.current?.click()}
@@ -148,12 +188,18 @@ export default function GenericFileUpload({
           onChange={handleFileSelect}
           className="hidden"
           disabled={isDisabled}
+          aria-label={`${fileTypeLabel} file upload`}
         />
 
         <div className="text-center">
           {/* Upload Icon */}
           <svg
-            className="mx-auto h-12 w-12 text-gray-500 mb-4"
+            className={`mx-auto h-12 w-12 mb-4 transition-colors duration-300 ${
+              isDragging ? 'text-blue-500' :
+              dropFeedback === 'accepted' ? 'text-green-500' :
+              dropFeedback === 'rejected' ? 'text-red-500' :
+              'text-gray-500'
+            }`}
             stroke="currentColor"
             fill="none"
             viewBox="0 0 48 48"
@@ -183,6 +229,11 @@ export default function GenericFileUpload({
             {fileTypeDescription && ` - ${fileTypeDescription}`}
             {multiple && ' (다중 선택 가능)'}
           </p>
+          {maxFileSize && (
+            <p className="text-xs text-gray-400 mt-1">
+              최대 {formatFileSize(maxFileSize)}
+            </p>
+          )}
 
           {/* Processing Spinner */}
           {isProcessing && (
@@ -192,6 +243,36 @@ export default function GenericFileUpload({
           )}
         </div>
       </motion.div>
+
+      {/* Upload Progress Bar */}
+      <AnimatePresence>
+        {uploadProgress !== null && uploadProgress >= 0 && uploadProgress < 100 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border border-gray-200 p-4"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">업로드 중...</span>
+              <span className="text-sm text-gray-600 tabular-nums">{Math.round(uploadProgress)}%</span>
+            </div>
+            <div
+              className="w-full h-2 bg-gray-100 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.round(uploadProgress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="File upload progress"
+            >
+              <div
+                className="h-full bg-red-600 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Selected Files Info */}
       {showFileList && selectedFiles && selectedFiles.length > 0 && !isProcessing && (
@@ -206,7 +287,7 @@ export default function GenericFileUpload({
                 {selectedFiles.length}개 파일 선택됨
               </p>
               <p className="text-sm text-gray-800 mt-1">
-                총 용량: {(totalSize / 1024 / 1024).toFixed(2)} MB
+                총 용량: {formatFileSize(totalSize)}
               </p>
             </div>
 
@@ -225,7 +306,7 @@ export default function GenericFileUpload({
               .slice(0, maxDisplayFiles)
               .map((file, i) => (
                 <p key={i} className="text-xs text-gray-800 font-mono">
-                  {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                  {file.name} ({formatFileSize(file.size)})
                 </p>
               ))}
 
@@ -239,15 +320,19 @@ export default function GenericFileUpload({
       )}
 
       {/* Error Message */}
-      {displayError && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="border border-red-200 p-4 bg-red-50"
-        >
-          <p className="text-sm text-red-600">{displayError}</p>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {displayError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="border border-red-200 p-4 bg-red-50"
+            role="alert"
+          >
+            <p className="text-sm text-red-600">{displayError}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Additional Content */}
       {children}

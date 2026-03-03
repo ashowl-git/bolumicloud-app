@@ -33,9 +33,21 @@ export default function ModuleCard({ module, basePath }: ModuleCardProps) {
   }
 
   return (
-    <Link href={href} className="group">
-      <div className="border border-gray-200 p-6 transition-all duration-200 hover:border-red-600/30 hover:shadow-sm">
-        <Icon size={28} strokeWidth={1} className="text-gray-600 group-hover:text-red-600 transition-colors mb-3" />
+    <Link href={href} className="group block">
+      <div
+        className="border border-gray-200 p-6 transition-all duration-200
+          hover:border-red-600/30 hover:shadow-[0_4px_12px_-2px_rgb(0_0_0/0.06)]
+          hover:-translate-y-0.5
+          active:translate-y-0 active:shadow-none"
+      >
+        <div className="flex items-start justify-between mb-3">
+          <Icon
+            size={28}
+            strokeWidth={1}
+            className="text-gray-600 group-hover:text-red-600 transition-colors duration-200"
+          />
+          <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        </div>
         <h3 className="text-sm font-medium text-gray-900 mb-1">{t(module.name)}</h3>
         <p className="text-xs text-gray-500 leading-relaxed">{t(module.description)}</p>
       </div>

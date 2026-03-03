@@ -13,6 +13,7 @@ import type { LocalizedText } from '@/lib/types/i18n'
 
 import SunlightConfigPanel from './SunlightConfigPanel'
 import SunlightResults from './SunlightResults'
+import ModelLoadingSkeleton from '@/components/common/ModelLoadingSkeleton'
 
 // 3D 뷰어 (dynamic import for SSR safety)
 import dynamic from 'next/dynamic'
@@ -522,10 +523,7 @@ export default function SunlightPipelineTab() {
               </div>
             )}
             {sessionId && modelState === 'loading' && (
-              <div className="border border-gray-200 p-8 text-center">
-                <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-xs text-gray-400">3D 모델 변환 중...</p>
-              </div>
+              <ModelLoadingSkeleton height="360px" message="3D 모델 변환 중..." />
             )}
 
             {/* Continue to Settings */}
@@ -789,12 +787,19 @@ export default function SunlightPipelineTab() {
               </div>
             )}
             {shadow.isComputing && (
-              <div className="border border-gray-200 p-6 text-center">
+              <div className="border border-gray-200 p-6 text-center" aria-live="polite">
                 <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 <p className="text-xs text-gray-500">
                   그림자 계산 중... {shadow.computeProgress.toFixed(0)}%
                 </p>
-                <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden mx-auto mt-2">
+                <div
+                  className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden mx-auto mt-2"
+                  role="progressbar"
+                  aria-valuenow={Math.round(shadow.computeProgress)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Shadow computation progress"
+                >
                   <div
                     className="h-full bg-blue-500 rounded-full transition-all duration-500"
                     style={{ width: `${shadow.computeProgress}%` }}
@@ -869,6 +874,7 @@ function SunlightProgressView({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="border border-gray-200 p-6"
+      aria-live="polite"
     >
       {/* Stage Checklist */}
       <div className="space-y-3 mb-6">
@@ -912,7 +918,14 @@ function SunlightProgressView({
                 {stage.status === 'processing' && progress.stage_progress.total > 0 && (
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+                        role="progressbar"
+                        aria-valuenow={progress.stage_progress.completed}
+                        aria-valuemin={0}
+                        aria-valuemax={progress.stage_progress.total}
+                        aria-label={`${stageLabel} progress`}
+                      >
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all duration-500"
                           style={{
@@ -946,7 +959,14 @@ function SunlightProgressView({
             )}
           </span>
         </div>
-        <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress.overall_progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t(txt.overall)}
+        >
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700"
             style={{ width: `${progress.overall_progress}%` }}

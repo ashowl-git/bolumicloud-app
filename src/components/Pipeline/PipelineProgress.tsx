@@ -50,6 +50,7 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="border border-gray-200 p-6"
+      aria-live="polite"
     >
       {/* Stage Checklist */}
       <div className="space-y-3 mb-6">
@@ -93,7 +94,14 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
                 {stage.status === 'processing' && progress.stage_progress.total > 0 && (
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+                        role="progressbar"
+                        aria-valuenow={progress.stage_progress.completed}
+                        aria-valuemin={0}
+                        aria-valuemax={progress.stage_progress.total}
+                        aria-label={`${stageLabel} progress`}
+                      >
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all duration-500"
                           style={{
@@ -132,7 +140,14 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
             )}
           </span>
         </div>
-        <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress.overall_progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t(txt.overall)}
+        >
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700"
             style={{ width: `${progress.overall_progress}%` }}

@@ -4,6 +4,8 @@ import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { useApi } from '@/contexts/ApiContext'
 import { NAVIGATION } from '@/lib/navigationConfig'
 import ModuleCard from './ModuleCard'
+import QuickStartCard from './QuickStartCard'
+import StatsSummary from './StatsSummary'
 import BoLumiCloudMark from '@/components/BoLumiCloud/BoLumiCloudMark'
 
 export default function DashboardGrid() {
@@ -13,7 +15,7 @@ export default function DashboardGrid() {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
       {/* Branding + Status */}
-      <div className="mb-10">
+      <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <BoLumiCloudMark size={32} className="text-slate-900" />
           <h1 className="text-2xl font-light text-slate-900">
@@ -39,6 +41,12 @@ export default function DashboardGrid() {
           </div>
         </div>
       </div>
+
+      {/* Quick Start */}
+      <QuickStartCard />
+
+      {/* Stats Summary */}
+      <StatsSummary />
 
       {/* Module Grid by Section */}
       {NAVIGATION.map((section) => {

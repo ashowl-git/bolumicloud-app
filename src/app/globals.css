@@ -2,16 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-/* BoLumiCloud Design System - Clean White */
+/* ─── BoLumiCloud Design Tokens ────────────────── */
+:root {
+  /* Colors */
+  --color-accent: 220 38 38;        /* red-600 */
+  --color-accent-hover: 185 28 28;  /* red-700 */
+  --color-surface: 255 255 255;
+  --color-border: 229 231 235;      /* gray-200 */
+  --color-border-hover: 209 213 219; /* gray-300 */
+  --color-text-primary: 15 23 42;   /* slate-900 */
+  --color-text-secondary: 107 114 128; /* gray-500 */
+  --color-text-muted: 156 163 175;  /* gray-400 */
+
+  /* Spacing */
+  --space-xs: 0.25rem;   /* 4px  */
+  --space-sm: 0.5rem;    /* 8px  */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 2px 8px -2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 4px 16px -4px rgb(0 0 0 / 0.1);
+  --shadow-card-hover: 0 4px 12px -2px rgb(0 0 0 / 0.06);
+
+  /* Radii */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Sidebar */
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 64px;
+}
+
+/* ─── Component Classes ──────────────────────── */
 @layer components {
   .line-card {
-    @apply bg-transparent border border-gray-200 rounded-lg p-4
-           hover:border-red-600 hover:shadow-[0_0_0_1px_rgba(220,38,38,0.2)]
-           transition-all duration-300;
+    @apply bg-transparent border border-gray-200 p-4
+           transition-all duration-200;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .line-card:hover {
+    border-color: rgb(var(--color-accent) / 0.3);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2
+           text-sm font-medium transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    border-radius: var(--radius-md);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    @apply btn border border-red-600 bg-red-600 text-white
+           hover:bg-red-700 hover:border-red-700
+           px-6 py-2.5;
+  }
+
+  .btn-secondary {
+    @apply btn border border-gray-200 text-gray-900
+           hover:border-gray-400 hover:text-gray-900
+           px-6 py-2.5;
+  }
+
+  .btn-ghost {
+    @apply btn border border-transparent text-gray-600
+           hover:text-gray-900 hover:bg-gray-50
+           px-4 py-2;
+  }
+
+  /* Input styles */
+  .input-base {
+    @apply w-full border border-gray-200 bg-white px-3 py-2
+           text-sm text-gray-900 placeholder-gray-400
+           transition-all duration-200
+           hover:border-gray-300
+           focus:outline-none focus:border-red-600/40 focus:ring-1 focus:ring-red-600/20;
+    border-radius: var(--radius-md);
+  }
+
+  .select-base {
+    @apply input-base appearance-none cursor-pointer
+           bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')]
+           bg-[position:right_0.5rem_center] bg-no-repeat bg-[length:1rem] pr-8;
   }
 }
 
-/* Custom Scrollbar */
+/* ─── Custom Scrollbar ───────────────────────── */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -32,6 +124,7 @@
   background: rgba(220, 38, 38, 0.8);
 }
 
+/* ─── Base ───────────────────────────────────── */
 html {
   scroll-behavior: smooth;
 }
@@ -51,6 +144,7 @@ body {
   @apply bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent;
 }
 
+/* ─── Animations ─────────────────────────────── */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -62,6 +156,7 @@ body {
   animation: spin 1s linear infinite;
 }
 
+/* ─── Focus ──────────────────────────────────── */
 *:focus-visible {
   @apply outline-2 outline-offset-2 outline-red-600;
 }
@@ -72,6 +167,7 @@ textarea:focus-visible {
   @apply border-red-600/30;
 }
 
+/* ─── Reduced Motion ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

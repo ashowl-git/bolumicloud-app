@@ -7,38 +7,19 @@ import { useApi } from '@/contexts/ApiContext'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { QUALITY_DETAILS, MAX_RENDERS, DATE_PRESETS } from '@/lib/types/pipeline'
 import type { PipelineConfig, MaterialOverride, QualityPreset, QualityLevel, RenderParams } from '@/lib/types/pipeline'
-import type { GlareResult } from '@/lib/types/glare'
+import type { LocationTimeConfigState } from '@/components/Pipeline/LocationTimeConfig'
 import type { LocalizedText } from '@/lib/types/i18n'
 
-import { Images, AlertTriangle, Gauge, Sun } from 'lucide-react'
 import StepIndicator from '@/components/Pipeline/StepIndicator'
-import MaterialEditor from '@/components/Pipeline/MaterialEditor'
-import UnifiedFileDropZone from '@/components/Pipeline/UnifiedFileDropZone'
-import FileTypeChecklist from '@/components/Pipeline/FileTypeChecklist'
-import LocationTimeConfig from '@/components/Pipeline/LocationTimeConfig'
-import type { LocationTimeConfigState } from '@/components/Pipeline/LocationTimeConfig'
-import QualityCards from '@/components/Pipeline/QualityCards'
-import ReviewSummary from '@/components/Pipeline/ReviewSummary'
-import PipelineProgress from '@/components/Pipeline/PipelineProgress'
-import PipelineImageGallery from '@/components/Pipeline/PipelineImageGallery'
-import PipelineImageViewer from '@/components/Pipeline/PipelineImageViewer'
-import PipelineDownloads from '@/components/Pipeline/PipelineDownloads'
-import ResultsChart from '@/components/GlareAnalysis/ResultsChart'
-import ResultsTable from '@/components/GlareAnalysis/ResultsTable'
+import UploadStep from './steps/UploadStep'
+import ConfigurationStep from './steps/ConfigurationStep'
+import ReviewStep from './steps/ReviewStep'
+import ProgressStep from './steps/ProgressStep'
+import ResultsStep from './steps/ResultsStep'
 
 const txt = {
-  title: { ko: 'SketchUp -> Radiance 파이프라인', en: 'SketchUp -> Radiance Pipeline' } as LocalizedText,
-  uploadBtn: { ko: '파일 업로드', en: 'Upload Files' } as LocalizedText,
-  uploading: { ko: '업로드 중...', en: 'Uploading...' } as LocalizedText,
-  continue: { ko: '다음', en: 'Continue' } as LocalizedText,
-  back: { ko: '이전', en: 'Back' } as LocalizedText,
-  startPipeline: { ko: '파이프라인 시작', en: 'Start Pipeline' } as LocalizedText,
-  running: { ko: '실행 중...', en: 'Running...' } as LocalizedText,
   reset: { ko: '새로 시작', en: 'Reset' } as LocalizedText,
-  quality: { ko: '렌더 품질', en: 'Render Quality' } as LocalizedText,
-  hoursRequired: { ko: '시간을 1개 이상 선택해주세요', en: 'Select at least 1 hour' } as LocalizedText,
-  datesRequired: { ko: '날짜를 1개 이상 선택해주세요', en: 'Select at least 1 date' } as LocalizedText,
-  renderExceeds: { ko: '렌더 수가 최대값을 초과합니다', en: 'Render count exceeds maximum' } as LocalizedText,
+  backToSettings: { ko: '설정으로', en: 'Back to Settings' } as LocalizedText,
 }
 
 const DEFAULT_PIPELINE_CONFIG: {
@@ -63,12 +44,6 @@ const DEFAULT_PIPELINE_CONFIG: {
     as: QUALITY_DETAILS.low.as,
     ar: QUALITY_DETAILS.low.ar,
   },
-}
-
-const fadeVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
 }
 
 export default function SketchUpPipelineTab() {
@@ -103,12 +78,6 @@ export default function SketchUpPipelineTab() {
   const [resolution, setResolution] = useState(DEFAULT_PIPELINE_CONFIG.resolution)
   const [renderParams, setRenderParams] = useState<RenderParams>({ ...DEFAULT_PIPELINE_CONFIG.renderParams })
   const [materialOverrides, setMaterialOverrides] = useState<Record<string, MaterialOverride>>({})
-
-  // Image viewer state
-  const [viewerResult, setViewerResult] = useState<GlareResult | null>(null)
-
-  // Results tab state
-  const [resultsTab, setResultsTab] = useState<'summary' | 'chart' | 'gallery' | 'data' | 'download'>('summary')
 
   // Render count
   const renderCount = vfFiles.length * config.dates.length * config.selectedHours.length
@@ -227,12 +196,10 @@ export default function SketchUpPipelineTab() {
     setResolution(DEFAULT_PIPELINE_CONFIG.resolution)
     setRenderParams({ ...DEFAULT_PIPELINE_CONFIG.renderParams })
     setMaterialOverrides({})
-    setViewerResult(null)
   }, [reset])
 
   const handleBackToSettings = useCallback(() => {
     resetForRerun()
-    setViewerResult(null)
     setCurrentStep(2)
   }, [resetForRerun])
 
@@ -243,14 +210,6 @@ export default function SketchUpPipelineTab() {
   const isUploading = phase === 'uploading'
   const isRunning = phase === 'running' || phase === 'polling'
   const canUpload = vfFiles.length > 0 && !!objFile && !isUploading
-
-  // Check if results have multiple viewpoints/dates (for showing new charts)
-  const hasMultipleViewpoints = results
-    ? new Set(results.results.map(r => r.viewp).filter(Boolean)).size > 1
-    : false
-  const hasMultipleDates = results
-    ? new Set(results.results.map(r => r.date_label).filter(Boolean)).size > 1
-    : false
 
   return (
     <div className="space-y-8">
@@ -264,7 +223,7 @@ export default function SketchUpPipelineTab() {
               className="border border-gray-200 hover:border-gray-400 px-4 py-3
                 text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
             >
-              {t({ ko: '설정으로', en: 'Back to Settings' })}
+              {t(txt.backToSettings)}
             </button>
           )}
           {currentStep > 1 && (
@@ -329,375 +288,73 @@ export default function SketchUpPipelineTab() {
       )}
 
       <AnimatePresence mode="wait">
-        {/* ========== Step 1: Files ========== */}
         {currentStep === 1 && (
-          <motion.div
-            key="step-1"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-6"
-          >
-            <UnifiedFileDropZone
-              onFilesClassified={handleFilesClassified}
-              currentFiles={{ vfFiles, obj: objFile, mtl: mtlFile }}
-              disabled={isUploading || !!sessionId}
-              isProcessing={isUploading}
-            />
-
-            <FileTypeChecklist
-              vfFiles={vfFiles}
-              objFile={objFile}
-              mtlFile={mtlFile}
-              onRemoveVf={!sessionId ? handleRemoveVf : undefined}
-            />
-
-            {canUpload && !sessionId && (
-              <div className="pt-2">
-                <button
-                  onClick={handleUpload}
-                  disabled={isUploading}
-                  className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                    text-gray-900 hover:text-red-600 transition-all duration-300
-                    disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUploading ? t(txt.uploading) : t(txt.uploadBtn)}
-                </button>
-              </div>
-            )}
-          </motion.div>
+          <UploadStep
+            vfFiles={vfFiles}
+            objFile={objFile}
+            mtlFile={mtlFile}
+            isUploading={isUploading}
+            sessionId={sessionId}
+            canUpload={canUpload}
+            onFilesClassified={handleFilesClassified}
+            onRemoveVf={handleRemoveVf}
+            onUpload={handleUpload}
+          />
         )}
 
-        {/* ========== Step 2: Settings ========== */}
         {currentStep === 2 && (
-          <motion.div
-            key="step-2"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-8"
-          >
-            {/* Material Editor */}
-            {sessionId && (
-              <MaterialEditor
-                apiUrl={apiUrl}
-                sessionId={sessionId}
-                overrides={materialOverrides}
-                onChange={setMaterialOverrides}
-                disabled={isRunning}
-              />
-            )}
-
-            <LocationTimeConfig
-              config={config}
-              onChange={handleConfigChange}
-              vfCount={vfCount || vfFiles.length}
-              disabled={isRunning}
-            />
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-4">{t(txt.quality)}</h3>
-              <QualityCards
-                selected={quality}
-                resolution={resolution}
-                renderParams={renderParams}
-                onPresetChange={handlePresetChange}
-                onParamsChange={handleParamsChange}
-                disabled={isRunning}
-              />
-            </div>
-
-            {/* Continue button */}
-            <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="border border-gray-200 hover:border-gray-400 px-6 py-3
-                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
-              >
-                {t(txt.back)}
-              </button>
-              <button
-                onClick={handleContinueToReview}
-                disabled={config.selectedHours.length === 0 || config.dates.length === 0 || renderExceeds}
-                className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                  text-gray-900 hover:text-red-600 transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t(txt.continue)}
-              </button>
-              {config.selectedHours.length === 0 && (
-                <span className="text-xs text-red-400">{t(txt.hoursRequired)}</span>
-              )}
-              {config.dates.length === 0 && (
-                <span className="text-xs text-red-400">{t(txt.datesRequired)}</span>
-              )}
-              {renderExceeds && (
-                <span className="text-xs text-red-400">{t(txt.renderExceeds)}</span>
-              )}
-            </div>
-          </motion.div>
+          <ConfigurationStep
+            apiUrl={apiUrl}
+            sessionId={sessionId}
+            config={config}
+            quality={quality}
+            resolution={resolution}
+            renderParams={renderParams}
+            materialOverrides={materialOverrides}
+            vfCount={vfCount || vfFiles.length}
+            isRunning={isRunning}
+            renderExceeds={renderExceeds}
+            onConfigChange={handleConfigChange}
+            onPresetChange={handlePresetChange}
+            onParamsChange={handleParamsChange}
+            onMaterialOverridesChange={setMaterialOverrides}
+            onContinue={handleContinueToReview}
+            onBack={() => setCurrentStep(1)}
+          />
         )}
 
-        {/* ========== Step 3: Review ========== */}
         {currentStep === 3 && (
-          <motion.div
-            key="step-3"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-6"
-          >
-            <ReviewSummary
-              config={config}
-              vfNames={vfFiles.map(f => f.name.replace('.vf', ''))}
-              hasMtl={!!mtlFile}
-              quality={quality}
-              resolution={resolution}
-              renderParams={renderParams}
-            />
-
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="border border-gray-200 hover:border-gray-400 px-6 py-3
-                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
-              >
-                {t(txt.back)}
-              </button>
-              <button
-                onClick={handleStartPipeline}
-                disabled={isRunning}
-                className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                  text-gray-900 hover:text-red-600 transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isRunning ? t(txt.running) : t(txt.startPipeline)}
-              </button>
-            </div>
-          </motion.div>
+          <ReviewStep
+            config={config}
+            vfNames={vfFiles.map(f => f.name.replace('.vf', ''))}
+            hasMtl={!!mtlFile}
+            quality={quality}
+            resolution={resolution}
+            renderParams={renderParams}
+            isRunning={isRunning}
+            onBack={() => setCurrentStep(2)}
+            onStart={handleStartPipeline}
+          />
         )}
 
-        {/* ========== Step 4: Progress ========== */}
         {currentStep === 4 && (
-          <motion.div
-            key="step-4"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-          >
-            {progress && <PipelineProgress progress={progress} />}
-            {!progress && isRunning && (
-              <div className="border border-gray-200 p-8 text-center">
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t(txt.running)}</p>
-              </div>
-            )}
-            {isRunning && (
-              <div className="pt-4">
-                <button
-                  onClick={cancelPipeline}
-                  className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-                    text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
-                >
-                  {t({ ko: '파이프라인 취소', en: 'Cancel Pipeline' })}
-                </button>
-              </div>
-            )}
-          </motion.div>
+          <ProgressStep
+            progress={progress}
+            isRunning={isRunning}
+            onCancel={cancelPipeline}
+          />
         )}
 
-        {/* ========== Step 5: Results ========== */}
-        {currentStep === 5 && results && (
-          <motion.div
-            key="step-5"
-            id="pipeline-results-section"
-            variants={fadeVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25 }}
-            className="space-y-6"
-          >
-            {/* Pipeline Info */}
-            {(() => {
-              const info = (results as unknown as Record<string, unknown>).pipeline_info as
-                | { total_duration_sec: number; quality: string; resolution: string; renders: number; vf_count?: number; date_count?: number }
-                | undefined
-              if (!info) return null
-              return (
-                <div className="border border-gray-200 p-4">
-                  <p className="text-sm text-gray-700">
-                    총 소요 시간 {(info.total_duration_sec / 60).toFixed(1)}min |{' '}
-                    {info.quality} | {info.resolution} |{' '}
-                    {info.vf_count && info.vf_count > 1 ? `${info.vf_count} VFs | ` : ''}
-                    {info.date_count && info.date_count > 1 ? `${info.date_count} dates | ` : ''}
-                    렌더 수 {info.renders}
-                  </p>
-                </div>
-              )
-            })()}
-
-            {/* Results Tab Navigation */}
-            <div className="border-b border-gray-200">
-              <div className="flex gap-1">
-                {([
-                  { id: 'summary', label: '요약' },
-                  { id: 'chart', label: '차트' },
-                  { id: 'gallery', label: '갤러리' },
-                  { id: 'data', label: '데이터' },
-                  { id: 'download', label: '다운로드' },
-                ] as const).map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setResultsTab(tab.id)}
-                    className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-300 ${
-                      resultsTab === tab.id
-                        ? 'border-red-600 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Results Tab Content */}
-            {resultsTab === 'summary' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Images size={16} strokeWidth={1.5} className="text-gray-400" />
-                      <p className="text-sm text-gray-800">총 렌더</p>
-                    </div>
-                    <p className="text-4xl font-light text-gray-900">
-                      {results.summary.total}
-                    </p>
-                  </div>
-
-                  <div className={`border p-6 ${
-                    results.summary.disability_count > 0
-                      ? 'border-red-200 bg-red-50'
-                      : 'border-gray-200'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertTriangle size={16} strokeWidth={1.5} className={
-                        results.summary.disability_count > 0 ? 'text-red-500' : 'text-gray-400'
-                      } />
-                      <p className="text-sm text-gray-800">불능현휘</p>
-                    </div>
-                    <p className="text-4xl font-light text-red-600">
-                      {results.summary.disability_count}
-                    </p>
-                    <p className="text-xs text-gray-800 mt-2">
-                      {results.summary.total > 0
-                        ? ((results.summary.disability_count / results.summary.total) * 100).toFixed(1)
-                        : 0}
-                      %
-                    </p>
-                  </div>
-
-                  <div className="border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gauge size={16} strokeWidth={1.5} className="text-gray-400" />
-                      <p className="text-sm text-gray-800">평균 DGP</p>
-                    </div>
-                    <p className="text-4xl font-light text-gray-900">
-                      {Number(results.summary.average_dgp).toFixed(3)}
-                    </p>
-                    <p className="text-xs text-gray-800 mt-2">
-                      최대: {Number(results.summary.max_dgp).toFixed(3)}
-                    </p>
-                  </div>
-
-                  <div className="border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sun size={16} strokeWidth={1.5} className="text-gray-400" />
-                      <p className="text-sm text-gray-800">평균 휘도</p>
-                    </div>
-                    <p className="text-4xl font-light text-gray-900">
-                      {Number(results.summary.average_luminance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                    </p>
-                    <p className="text-xs text-gray-800 mt-2">cd/m2</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {resultsTab === 'chart' && results.results.length > 0 && (
-              <div className="space-y-6">
-                {hasMultipleViewpoints && (
-                  <ResultsChart results={results.results} chartType="heatmap" />
-                )}
-                {hasMultipleDates && (
-                  <ResultsChart results={results.results} chartType="date_comparison" />
-                )}
-                <ResultsChart results={results.results} chartType="dgp_distribution" />
-                <div className="grid md:grid-cols-2 gap-6">
-                  <ResultsChart results={results.results} chartType="time" />
-                  {hasMultipleViewpoints && (
-                    <ResultsChart results={results.results} chartType="viewpoint" />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {resultsTab === 'gallery' && results.results.length > 0 && sessionId && (
-              <PipelineImageGallery
-                results={results.results}
-                apiUrl={apiUrl}
-                sessionId={sessionId}
-                onImageClick={(r) => setViewerResult(r)}
-              />
-            )}
-
-            {resultsTab === 'data' && results.results.length > 0 && (
-              <ResultsTable results={results.results} />
-            )}
-
-            {resultsTab === 'download' && sessionId && (
-              <PipelineDownloads apiUrl={apiUrl} sessionId={sessionId} />
-            )}
-
-            {/* Bottom Navigation */}
-            <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
-              <button
-                onClick={handleBackToSettings}
-                className="border border-gray-200 hover:border-gray-400 px-6 py-3
-                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
-              >
-                {t({ ko: '설정 변경', en: 'Change Settings' })}
-              </button>
-              <button
-                onClick={handleReset}
-                className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-                  text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
-              >
-                {t(txt.reset)}
-              </button>
-            </div>
-          </motion.div>
+        {currentStep === 5 && results && sessionId && (
+          <ResultsStep
+            results={results}
+            apiUrl={apiUrl}
+            sessionId={sessionId}
+            onBackToSettings={handleBackToSettings}
+            onReset={handleReset}
+          />
         )}
       </AnimatePresence>
-
-      {/* Image Viewer Modal */}
-      {viewerResult && sessionId && (
-        <PipelineImageViewer
-          result={viewerResult}
-          apiUrl={apiUrl}
-          sessionId={sessionId}
-          onClose={() => setViewerResult(null)}
-        />
-      )}
     </div>
   )
 }
