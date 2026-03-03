@@ -278,9 +278,14 @@ export default function SunlightSidePanel({
           disabled:hover:border-gray-200 disabled:hover:text-gray-900"
       >
         {isRunning && <Loader2 size={14} className="animate-spin" />}
-        {isRunning ? '분석 중...' : '분석 시작'}
+        {isRunning ? '분석 중...' : results ? '재분석' : '분석 시작'}
       </button>
-      {noPoints && !isRunning && (
+      {results && !isRunning && (
+        <p className="text-[10px] text-gray-400 text-center">
+          측정점을 수정한 후 재분석할 수 있습니다
+        </p>
+      )}
+      {noPoints && !isRunning && !results && (
         <p className="text-[10px] text-gray-400 text-center">
           측정점을 먼저 배치하세요
         </p>
@@ -297,7 +302,7 @@ export default function SunlightSidePanel({
       open={open}
       onClose={onClose}
       onOpen={onOpen}
-      footer={!results ? footer : undefined}
+      footer={footer}
     >
       {/* ── 위치 설정 ── */}
       <WorkspacePanelSection title="위치" icon={<MapPin size={14} />}>

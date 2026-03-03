@@ -838,6 +838,13 @@ export default function SunlightPipelineTab() {
             <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
               <button
                 onClick={() => setCurrentStep(2)}
+                className="border border-red-600/30 hover:bg-red-50 px-6 py-3
+                  text-sm text-red-600 hover:text-red-700 transition-all duration-300"
+              >
+                측정점 수정 후 재분석
+              </button>
+              <button
+                onClick={() => setCurrentStep(2)}
                 className="border border-gray-200 hover:border-gray-400 px-6 py-3
                   text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
               >
