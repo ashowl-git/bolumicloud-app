@@ -250,6 +250,105 @@ export const SUNLIGHT_STAGE_LABELS: Record<string, { ko: string; en: string }> =
   compliance: { ko: '법규 판정', en: 'Compliance Check' },
 }
 
+// ─── SN5F 임포트 데이터 ─────────────────────────
+
+export interface BuildingGroupInfo {
+  name: string                    // 그룹/레이어명 (e.g., "101동")
+  vertexCount: number
+  faceCount: number
+  color?: string                  // Hex color assigned by frontend
+  visible: boolean
+}
+
+export interface Sn5fConditions {
+  azimuth: number
+  month: number
+  day: number
+  latitude: number
+  longitude: number
+  standardMeridian: number
+  solarTimeMode: SolarTimeMode
+  continuousStart?: number
+  continuousEnd?: number
+  continuousThresholdHour?: number
+  continuousThresholdMin?: number
+  totalStart?: number
+  totalEnd?: number
+  totalThresholdHour?: number
+  totalThresholdMin?: number
+}
+
+export interface Sn5fMeasurementGroup {
+  groupName: string
+  points: {
+    id: string
+    x: number
+    y: number
+    z: number
+    name: string
+    lightTimes?: { intervals: [number, number][] }[]
+  }[]
+}
+
+export interface Sn5fImportData {
+  sessionId: string
+  modelId: string
+  sceneUrl: string
+  groups: BuildingGroupInfo[]
+  conditions: Sn5fConditions | null
+  measurementGroups: Sn5fMeasurementGroup[]
+  layers: { name: string; layerType: number; visible: boolean; parentName: string }[]
+}
+
+// ─── 지반일조 분석 결과 ─────────────────────────
+
+export interface GridCell {
+  x: number
+  y: number
+  total_hours: number
+  continuous_hours: number
+}
+
+export interface GroundAnalysisResult {
+  grid_data: GridCell[]
+  grid_size: number
+  bounds: {
+    min: [number, number]
+    max: [number, number]
+  }
+  metadata: {
+    point_count: number
+    resolution: string
+  }
+}
+
+// ─── 등시간선 / 일영곡선 ─────────────────────────
+
+export type ContourLineType = 'total' | 'continuous' | 'shadow'
+
+export interface IsochroneLine {
+  level: number
+  type: ContourLineType
+  coordinates: [number, number][]
+}
+
+export interface ShadowContourLine extends IsochroneLine {
+  type: 'shadow'
+  time: string   // e.g. "10:30"
+}
+
+// ─── 레이어 관리 ─────────────────────────
+
+export interface LayerConfig {
+  id: string
+  name: string           // e.g., "101동", "기존건물"
+  visible: boolean
+  isAnalysisTarget: boolean  // 분석 대상 여부
+  color: string          // Hex color
+  vertexCount?: number
+  faceCount?: number
+}
+
 // ─── 날짜 프리셋 (일조 분석용) ────────────────
 
 export const SUNLIGHT_DATE_PRESETS: AnalysisDate[] = [

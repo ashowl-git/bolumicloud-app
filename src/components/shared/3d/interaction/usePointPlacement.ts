@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { useUndoHistory } from '@/hooks/useUndoHistory'
 import type { InteractionMode, SurfaceHit, BaseAnalysisPoint } from './types'
 import { threeToBackend, threeNormalToBackend } from './types'
 
@@ -19,6 +20,10 @@ interface UsePointPlacementReturn {
   setHoverHit: (hit: SurfaceHit | null) => void
   handleSurfaceClick: (hit: SurfaceHit) => void
   handlePointClick: (id: string) => void
+  undo: () => void
+  redo: () => void
+  canUndo: boolean
+  canRedo: boolean
 }
 
 interface UsePointPlacementOptions {
@@ -29,7 +34,10 @@ interface UsePointPlacementOptions {
 export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePointPlacementReturn {
   const { prefix = 'P', maxPoints } = options
 
-  const [points, setPointsState] = useState<BaseAnalysisPoint[]>([])
+  // Undo history is the single source of truth for points
+  const undoHistory = useUndoHistory<BaseAnalysisPoint[]>([], 50)
+  const points = undoHistory.current
+
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null)
   const [mode, setModeState] = useState<InteractionMode>('navigate')
   const [hoverHit, setHoverHit] = useState<SurfaceHit | null>(null)
@@ -56,27 +64,27 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
       normal: backendNormal,
     }
 
-    setPointsState((prev) => [...prev, point])
+    undoHistory.push([...points, point])
     setSelectedPointId(id)
-  }, [prefix, maxPoints, points.length])
+  }, [prefix, maxPoints, points, undoHistory])
 
   const removePoint = useCallback((id: string) => {
-    setPointsState((prev) => prev.filter((p) => p.id !== id))
+    undoHistory.push(points.filter((p) => p.id !== id))
     setSelectedPointId((prev) => (prev === id ? null : prev))
-  }, [])
+  }, [points, undoHistory])
 
   const selectPoint = useCallback((id: string | null) => {
     setSelectedPointId(id)
   }, [])
 
   const clearPoints = useCallback(() => {
-    setPointsState([])
+    undoHistory.push([])
     setSelectedPointId(null)
     nextIdRef.current = 1
-  }, [])
+  }, [undoHistory])
 
   const setPoints = useCallback((pts: BaseAnalysisPoint[]) => {
-    setPointsState(pts)
+    undoHistory.reset(pts)
     if (pts.length > 0) {
       const maxNum = Math.max(
         ...pts.map((p) => {
@@ -86,7 +94,7 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
       )
       nextIdRef.current = maxNum + 1
     }
-  }, [])
+  }, [undoHistory])
 
   // 통합 클릭 핸들러: 모드에 따라 포인트 추가/선택/삭제
   const handleSurfaceClick = useCallback((hit: SurfaceHit) => {
@@ -117,5 +125,9 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
     setHoverHit,
     handleSurfaceClick,
     handlePointClick,
+    undo: undoHistory.undo,
+    redo: undoHistory.redo,
+    canUndo: undoHistory.canUndo,
+    canRedo: undoHistory.canRedo,
   }
 }

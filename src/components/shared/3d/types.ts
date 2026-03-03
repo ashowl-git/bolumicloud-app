@@ -64,3 +64,25 @@ export interface ModelMetadata {
   bounds_min: [number, number, number]
   bounds_max: [number, number, number]
 }
+
+// ─── 복수 모델 지원 ─────────────────────────
+
+export interface ModelEntry {
+  id: string
+  config: ModelConfig
+  label?: string
+}
+
+export interface LoadedModel {
+  id: string
+  state: ModelLoadState
+  scene: THREE.Group | null
+  bbox: BoundingBox | null
+  error: string | null
+}
+
+export interface MultiModelLoadResult {
+  models: LoadedModel[]
+  combinedBbox: BoundingBox | null
+  isAllLoaded: boolean
+}

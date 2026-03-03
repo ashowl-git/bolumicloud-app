@@ -10,7 +10,7 @@
 
 // ─── 인터랙션 모드 ─────────────────────────────
 
-export type InteractionMode = 'navigate' | 'place_point' | 'place_area' | 'delete' | 'select'
+export type InteractionMode = 'navigate' | 'place_point' | 'place_area' | 'delete' | 'select' | 'transform'
 
 // ─── 표면 유형 ─────────────────────────────
 
@@ -25,6 +25,7 @@ export interface SurfaceHit {
   objectName: string
   surfaceType: SurfaceType
   distance: number
+  groupName?: string                    // 건물 그룹명 (e.g., "101동")
 }
 
 // ─── 분석 포인트 기본 타입 ─────────────────────────

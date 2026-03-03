@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import type { ModelConfig, BoundingBox, ModelLoadResult, ModelLoadState } from './types'
+import type { ModelConfig, BoundingBox, ModelLoadResult, ModelLoadState, ModelEntry, LoadedModel, MultiModelLoadResult } from './types'
 
 function computeBBox(object: THREE.Object3D): BoundingBox {
   const box = new THREE.Box3().setFromObject(object)
@@ -95,4 +95,129 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
   }, [config])
 
   return { state, scene, bbox, error }
+}
+
+export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult {
+  const [models, setModels] = useState<LoadedModel[]>([])
+  const [combinedBbox, setCombinedBbox] = useState<BoundingBox | null>(null)
+  const prevEntriesRef = useRef<string>('')
+
+  useEffect(() => {
+    const key = JSON.stringify(entries.map(e => e.config.url))
+    if (key === prevEntriesRef.current) return
+    prevEntriesRef.current = key
+
+    if (entries.length === 0) {
+      setModels([])
+      setCombinedBbox(null)
+      return
+    }
+
+    // Initialize loading states
+    const initial: LoadedModel[] = entries.map(e => ({
+      id: e.id,
+      state: 'loading' as ModelLoadState,
+      scene: null,
+      bbox: null,
+      error: null,
+    }))
+    setModels(initial)
+
+    // Track groups for cleanup
+    const groups: THREE.Group[] = []
+
+    // Load each model
+    entries.forEach((entry, idx) => {
+      const group = new THREE.Group()
+      groups.push(group)
+
+      const onLoad = (loaded: THREE.Object3D) => {
+        if (entry.config.zUp !== false) {
+          loaded.rotation.x = -Math.PI / 2
+          loaded.updateMatrixWorld(true)
+        }
+        group.add(loaded)
+        const b = computeBBox(group)
+        if (entry.config.autoCenter !== false) {
+          centerModel(group, b)
+        }
+
+        setModels(prev => {
+          const updated = [...prev]
+          updated[idx] = { id: entry.id, state: 'loaded', scene: group, bbox: b, error: null }
+          return updated
+        })
+      }
+
+      const onError = (err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Load failed'
+        setModels(prev => {
+          const updated = [...prev]
+          updated[idx] = { id: entry.id, state: 'error', scene: null, bbox: null, error: msg }
+          return updated
+        })
+      }
+
+      if (entry.config.format === 'obj') {
+        const loader = new OBJLoader()
+        loader.load(entry.config.url, onLoad, undefined, onError)
+      } else {
+        const loader = new GLTFLoader()
+        loader.load(entry.config.url, (gltf) => onLoad(gltf.scene), undefined, onError)
+      }
+    })
+
+    return () => {
+      // Dispose geometries and materials to prevent GPU memory leaks
+      groups.forEach(group => {
+        group.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry?.dispose()
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => mat.dispose())
+            } else {
+              child.material?.dispose()
+            }
+          }
+        })
+      })
+    }
+  }, [entries])
+
+  // Compute combined bbox when all loaded
+  useEffect(() => {
+    const loaded = models.filter(m => m.state === 'loaded' && m.bbox)
+    if (loaded.length === 0) {
+      setCombinedBbox(null)
+      return
+    }
+
+    const allMin = [Infinity, Infinity, Infinity] as [number, number, number]
+    const allMax = [-Infinity, -Infinity, -Infinity] as [number, number, number]
+
+    for (const m of loaded) {
+      if (!m.bbox) continue
+      for (let i = 0; i < 3; i++) {
+        allMin[i] = Math.min(allMin[i], m.bbox.min[i])
+        allMax[i] = Math.max(allMax[i], m.bbox.max[i])
+      }
+    }
+
+    const center: [number, number, number] = [
+      (allMin[0] + allMax[0]) / 2,
+      (allMin[1] + allMax[1]) / 2,
+      (allMin[2] + allMax[2]) / 2,
+    ]
+    const size: [number, number, number] = [
+      allMax[0] - allMin[0],
+      allMax[1] - allMin[1],
+      allMax[2] - allMin[2],
+    ]
+
+    setCombinedBbox({ min: allMin, max: allMax, center, size })
+  }, [models])
+
+  const isAllLoaded = models.length > 0 && models.every(m => m.state === 'loaded')
+
+  return { models, combinedBbox, isAllLoaded }
 }

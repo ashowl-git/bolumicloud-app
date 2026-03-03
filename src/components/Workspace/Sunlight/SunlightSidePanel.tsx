@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   MapPin, Calendar, Clock, List, BarChart3, FileSpreadsheet, Search,
   Crosshair, Loader2, X, ArrowUpDown, ArrowRightLeft, FolderPlus,
+  Save, RotateCcw, Grid3X3, Sparkles,
 } from 'lucide-react'
 import { CITY_PRESETS } from '@/lib/types/pipeline'
 import {
@@ -19,6 +20,7 @@ import type {
   BuildingType,
   AnalysisResolution,
   SolarTimeMode,
+  LayerConfig,
 } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
 import type { MeasurementPointGroup } from '@/lib/types/sunlight'
@@ -29,6 +31,24 @@ import SunlightResultsTable from '@/components/SunlightAnalysis/SunlightResultsT
 import SunlightComplianceSummary from '@/components/SunlightAnalysis/SunlightComplianceSummary'
 import SunlightHourlyChart from '@/components/SunlightAnalysis/SunlightHourlyChart'
 import CauseAnalysisView from '@/components/SunlightAnalysis/CauseAnalysisView'
+import OptimizationPanel from '@/components/SunlightAnalysis/OptimizationPanel'
+import LayerPanel from './LayerPanel'
+
+// ─── DMS 변환 유틸리티 ─────────────────────
+function decimalToDMS(decimal: number): { degrees: number; minutes: number; seconds: number } {
+  const d = Math.floor(Math.abs(decimal))
+  const m = Math.floor((Math.abs(decimal) - d) * 60)
+  const s = ((Math.abs(decimal) - d) * 60 - m) * 60
+  return { degrees: decimal >= 0 ? d : -d, minutes: m, seconds: Math.round(s * 100) / 100 }
+}
+
+function dmsToDecimal(d: number, m: number, s: number): number {
+  const sign = d >= 0 ? 1 : -1
+  return sign * (Math.abs(d) + m / 60 + s / 3600)
+}
+
+// ─── localStorage 키 ─────────────────────
+const DEFAULTS_STORAGE_KEY = 'bolumicloud-sunlight-defaults'
 
 // ─── Address search types ─────────────────────
 interface NominatimResult {
@@ -76,6 +96,19 @@ interface SunlightSidePanelProps {
   causeResult: CauseAnalysisResult | null
   selectedBuildingId: string | null
   onBuildingSelect: (id: string | null) => void
+  // Ground analysis
+  gridInterval?: number
+  onGridIntervalChange?: (interval: number) => void
+  onStartGroundAnalysis?: () => void
+  isGroundAnalysisRunning?: boolean
+  // Optimization
+  apiUrl?: string
+  sessionId?: string | null
+  // Layer management
+  layers?: LayerConfig[]
+  onToggleLayerVisibility?: (layerId: string) => void
+  onToggleAnalysisTarget?: (layerId: string) => void
+  onToggleAllLayers?: (visible: boolean) => void
 }
 
 export default function SunlightSidePanel({
@@ -105,11 +138,91 @@ export default function SunlightSidePanel({
   causeResult,
   selectedBuildingId,
   onBuildingSelect,
+  gridInterval = 2.0,
+  onGridIntervalChange,
+  onStartGroundAnalysis,
+  isGroundAnalysisRunning = false,
+  apiUrl = '',
+  sessionId = null,
+  layers = [],
+  onToggleLayerVisibility,
+  onToggleAnalysisTarget,
+  onToggleAllLayers,
 }: SunlightSidePanelProps) {
   // Address search state
   const [addressQuery, setAddressQuery] = useState('')
   const [addressResults, setAddressResults] = useState<NominatimResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
+
+  // DMS 모드 토글
+  const [dmsMode, setDmsMode] = useState(false)
+  const [latDMS, setLatDMS] = useState(() => decimalToDMS(config.latitude))
+  const [lonDMS, setLonDMS] = useState(() => decimalToDMS(config.longitude))
+
+  // 기본값 저장 상태
+  const [hasSavedDefaults, setHasSavedDefaults] = useState(false)
+
+  // 초기 로드: localStorage에서 저장된 기본값 확인
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DEFAULTS_STORAGE_KEY)
+      if (saved) {
+        setHasSavedDefaults(true)
+        const defaults = JSON.parse(saved) as Partial<SunlightConfigState>
+        onConfigChange(defaults)
+      }
+    } catch {
+      // localStorage 접근 실패 무시
+    }
+    // 마운트 시 1회만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // config의 lat/lon이 외부에서 변경되면 DMS도 동기화
+  useEffect(() => {
+    if (!dmsMode) {
+      setLatDMS(decimalToDMS(config.latitude))
+      setLonDMS(decimalToDMS(config.longitude))
+    }
+  }, [config.latitude, config.longitude, dmsMode])
+
+  const handleLatDMSChange = useCallback((field: 'd' | 'm' | 's', value: number) => {
+    const updated = { ...latDMS }
+    if (field === 'd') updated.degrees = value
+    else if (field === 'm') updated.minutes = value
+    else updated.seconds = value
+    setLatDMS(updated)
+    const decimal = dmsToDecimal(updated.degrees, updated.minutes, updated.seconds)
+    onConfigChange({ latitude: Math.round(decimal * 10000) / 10000 })
+  }, [latDMS, onConfigChange])
+
+  const handleLonDMSChange = useCallback((field: 'd' | 'm' | 's', value: number) => {
+    const updated = { ...lonDMS }
+    if (field === 'd') updated.degrees = value
+    else if (field === 'm') updated.minutes = value
+    else updated.seconds = value
+    setLonDMS(updated)
+    const decimal = dmsToDecimal(updated.degrees, updated.minutes, updated.seconds)
+    onConfigChange({ longitude: Math.round(decimal * 10000) / 10000 })
+  }, [lonDMS, onConfigChange])
+
+  const saveDefaults = useCallback(() => {
+    try {
+      localStorage.setItem(DEFAULTS_STORAGE_KEY, JSON.stringify(config))
+      setHasSavedDefaults(true)
+    } catch {
+      // localStorage 접근 실패 무시
+    }
+  }, [config])
+
+  const clearDefaults = useCallback(() => {
+    try {
+      localStorage.removeItem(DEFAULTS_STORAGE_KEY)
+      setHasSavedDefaults(false)
+    } catch {
+      // localStorage 접근 실패 무시
+    }
+  }, [])
 
   const searchAddress = useCallback((query: string) => {
     setAddressQuery(query)
@@ -174,6 +287,9 @@ export default function SunlightSidePanel({
       )}
     </div>
   )
+
+  const dmsInputClass = `w-full border border-gray-200 px-1.5 py-1.5 text-xs tabular-nums
+    focus:outline-none focus:border-red-600/30 disabled:opacity-50`
 
   return (
     <WorkspaceSidePanel
@@ -249,33 +365,144 @@ export default function SunlightSidePanel({
           })}
         </div>
 
-        {/* Lat/Lon/TZ/Azimuth inputs */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div>
-            <label className="text-[10px] font-medium text-gray-500 block mb-1">위도</label>
-            <input
-              type="number"
-              step="0.001"
-              value={config.latitude}
-              onChange={(e) => onConfigChange({ latitude: Number(e.target.value) })}
-              disabled={disabled}
-              className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
-                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-medium text-gray-500 block mb-1">경도</label>
-            <input
-              type="number"
-              step="0.001"
-              value={config.longitude}
-              onChange={(e) => onConfigChange({ longitude: Number(e.target.value) })}
-              disabled={disabled}
-              className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
-                focus:outline-none focus:border-red-600/30 disabled:opacity-50"
-            />
-          </div>
+        {/* DMS 토글 */}
+        <div className="flex items-center justify-end mb-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setDmsMode(!dmsMode)
+              if (!dmsMode) {
+                setLatDMS(decimalToDMS(config.latitude))
+                setLonDMS(decimalToDMS(config.longitude))
+              }
+            }}
+            disabled={disabled}
+            className={`px-2 py-0.5 text-[10px] border rounded transition-all ${
+              dmsMode
+                ? 'border-red-600 text-red-600 bg-red-50'
+                : 'border-gray-200 text-gray-500 hover:border-red-600/30'
+            }`}
+          >
+            {dmsMode ? '10진수' : 'DMS'}
+          </button>
         </div>
+
+        {/* Lat/Lon inputs */}
+        {dmsMode ? (
+          /* DMS 모드 */
+          <div className="space-y-2 mb-2">
+            <div>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">위도 (DMS)</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">도</label>
+                  <input
+                    type="number"
+                    value={latDMS.degrees}
+                    onChange={(e) => handleLatDMSChange('d', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">분</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={latDMS.minutes}
+                    onChange={(e) => handleLatDMSChange('m', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">초</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={59.99}
+                    step={0.01}
+                    value={latDMS.seconds}
+                    onChange={(e) => handleLatDMSChange('s', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">경도 (DMS)</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">도</label>
+                  <input
+                    type="number"
+                    value={lonDMS.degrees}
+                    onChange={(e) => handleLonDMSChange('d', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">분</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={lonDMS.minutes}
+                    onChange={(e) => handleLonDMSChange('m', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">초</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={59.99}
+                    step={0.01}
+                    value={lonDMS.seconds}
+                    onChange={(e) => handleLonDMSChange('s', Number(e.target.value))}
+                    disabled={disabled}
+                    className={dmsInputClass}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* 10진수 모드 (기존) */
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">위도</label>
+              <input
+                type="number"
+                step="0.001"
+                value={config.latitude}
+                onChange={(e) => onConfigChange({ latitude: Number(e.target.value) })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">경도</label>
+              <input
+                type="number"
+                step="0.001"
+                value={config.longitude}
+                onChange={(e) => onConfigChange({ longitude: Number(e.target.value) })}
+                disabled={disabled}
+                className="w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
+                  focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* TZ / Azimuth */}
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[10px] font-medium text-gray-500 block mb-1">자오선 (E)</label>
@@ -466,7 +693,7 @@ export default function SunlightSidePanel({
         </div>
 
         {/* Continuous sunlight threshold */}
-        <div className="border border-gray-200 rounded p-2.5">
+        <div className="mb-3 border border-gray-200 rounded p-2.5">
           <label className="text-[10px] font-semibold text-gray-600 block mb-2">연속일조시간 계산</label>
           <div className="grid grid-cols-3 gap-2">
             <div>
@@ -519,7 +746,52 @@ export default function SunlightSidePanel({
             </div>
           </div>
         </div>
+
+        {/* 기본값 지정 / 복원 */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={saveDefaults}
+            disabled={disabled}
+            className="flex items-center gap-1 px-2.5 py-1 text-[10px] border border-gray-200
+              text-gray-600 hover:border-red-600/30 hover:text-red-600 transition-all
+              disabled:opacity-50"
+            title="현재 설정을 기본값으로 저장"
+          >
+            <Save size={10} />
+            기본값 지정
+          </button>
+          {hasSavedDefaults && (
+            <button
+              type="button"
+              onClick={clearDefaults}
+              className="flex items-center gap-1 text-[10px] text-gray-400
+                hover:text-red-500 transition-colors"
+              title="저장된 기본값 삭제"
+            >
+              <RotateCcw size={10} />
+              초기화
+            </button>
+          )}
+        </div>
       </WorkspacePanelSection>
+
+      {/* ── 레이어 관리 ── */}
+      {layers.length > 0 && (
+        <WorkspacePanelSection
+          title="레이어"
+          icon={<Grid3X3 size={14} />}
+          badge={layers.length}
+          defaultOpen={false}
+        >
+          <LayerPanel
+            layers={layers}
+            onToggleVisibility={onToggleLayerVisibility || (() => {})}
+            onToggleAnalysisTarget={onToggleAnalysisTarget || (() => {})}
+            onToggleAll={onToggleAllLayers}
+          />
+        </WorkspacePanelSection>
+      )}
 
       {/* ── 측정점 그룹 ── */}
       <WorkspacePanelSection
@@ -734,6 +1006,81 @@ export default function SunlightSidePanel({
               />
             </WorkspacePanelSection>
           )}
+
+          {/* Optimization */}
+          {causeResult && causeResult.total_non_compliant > 0 && (
+            <WorkspacePanelSection title="최적안 검토" icon={<Sparkles size={14} />} defaultOpen={false}>
+              <OptimizationPanel
+                apiUrl={apiUrl}
+                sessionId={sessionId}
+                causeResult={causeResult}
+                analysisResult={results}
+                measurementPoints={points.map(p => ({ x: p.position.x, y: p.position.y, z: p.position.z }))}
+                config={{
+                  latitude: config.latitude,
+                  longitude: config.longitude,
+                  timezone: config.timezone,
+                  date: config.date,
+                }}
+              />
+            </WorkspacePanelSection>
+          )}
+
+          {/* Ground analysis */}
+          <WorkspacePanelSection title="지반일조 분석" icon={<Grid3X3 size={14} />} defaultOpen={false}>
+            <div className="space-y-3">
+              {/* Grid interval */}
+              <div>
+                <label className="text-[10px] font-medium text-gray-500 block mb-1.5">
+                  격자 간격 (m)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={10}
+                    step={0.5}
+                    value={gridInterval}
+                    onChange={(e) => onGridIntervalChange?.(Number(e.target.value))}
+                    disabled={disabled}
+                    className="flex-1 accent-red-600 h-1.5"
+                  />
+                  <input
+                    type="number"
+                    min={0.5}
+                    max={10}
+                    step={0.5}
+                    value={gridInterval}
+                    onChange={(e) => onGridIntervalChange?.(Number(e.target.value))}
+                    disabled={disabled}
+                    className="w-16 border border-gray-200 px-1.5 py-1 text-xs tabular-nums
+                      text-center focus:outline-none focus:border-red-600/30 disabled:opacity-50"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  간격이 작을수록 정밀하지만 분석 시간이 증가합니다
+                </p>
+              </div>
+
+              {/* Run button */}
+              <button
+                onClick={onStartGroundAnalysis}
+                disabled={disabled || isGroundAnalysisRunning || !results}
+                className="w-full flex items-center justify-center gap-2 border border-gray-200
+                  hover:border-red-600/30 py-2 text-xs text-gray-900 hover:text-red-600
+                  transition-all disabled:opacity-40 disabled:cursor-not-allowed
+                  disabled:hover:border-gray-200 disabled:hover:text-gray-900"
+              >
+                {isGroundAnalysisRunning && <Loader2 size={12} className="animate-spin" />}
+                {isGroundAnalysisRunning ? '지반 분석 중...' : '지반일조 분석'}
+              </button>
+              {!results && (
+                <p className="text-[10px] text-gray-400 text-center">
+                  일조 분석 완료 후 사용 가능
+                </p>
+              )}
+            </div>
+          </WorkspacePanelSection>
         </>
       )}
     </WorkspaceSidePanel>

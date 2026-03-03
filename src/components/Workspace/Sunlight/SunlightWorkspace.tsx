@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSunlightPipelineContext } from '@/contexts/SunlightPipelineContext'
 import { useApi } from '@/contexts/ApiContext'
@@ -11,7 +11,7 @@ import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShado
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
 import { SUNLIGHT_DATE_PRESETS, DEFAULT_TOTAL_THRESHOLD, DEFAULT_CONTINUOUS_THRESHOLD } from '@/lib/types/sunlight'
 import { usePointGroups } from './hooks/usePointGroups'
-import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult } from '@/lib/types/sunlight'
+import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult, GroundAnalysisResult, IsochroneLine, LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import type { StatusBarState } from '../WorkspaceStatusBar'
 
@@ -37,8 +37,12 @@ const SunlightHeatmapOverlay = dynamic(() => import('@/components/SunlightAnalys
 const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
 const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
 const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3d/ViolationHighlight'), { ssr: false })
+const ModelTransformControls = dynamic(() => import('@/components/shared/3d/interaction/ModelTransformControls'), { ssr: false })
+const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
+const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
 
 import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
+import { Undo2, Redo2 } from 'lucide-react'
 
 // ─── 기본 설정 ─────────────────────────────
 const DEFAULT_CONFIG: SunlightConfigState = {
@@ -80,6 +84,7 @@ export default function SunlightWorkspace() {
     results,
     error,
     estimatedRemainingSec,
+    importData,
     uploadFile,
     runAnalysis,
   } = pipeline
@@ -94,6 +99,9 @@ export default function SunlightWorkspace() {
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
 
+  // Transform controls
+  const [transformMode] = useState<'translate' | 'rotate'>('translate')
+
   // Layout
   const layout = useWorkspaceLayout({ hasModel })
 
@@ -104,6 +112,54 @@ export default function SunlightWorkspace() {
   // Point groups
   const pointGroups = usePointGroups()
 
+  // SN5F 임포트 데이터 자동 적용
+  useEffect(() => {
+    if (!importData) return
+
+    // 분석 조건 자동 채우기
+    if (importData.conditions) {
+      const c = importData.conditions
+      setConfig(prev => ({
+        ...prev,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        azimuth: c.azimuth,
+        date: { month: c.month, day: c.day, label: `${c.month}/${c.day}` },
+        solarTimeMode: c.solarTimeMode,
+        ...(c.continuousStart != null && c.continuousEnd != null ? {
+          continuousThreshold: {
+            startHour: c.continuousStart,
+            endHour: c.continuousEnd,
+            requiredHours: c.continuousThresholdHour || 2,
+          }
+        } : {}),
+        ...(c.totalStart != null && c.totalEnd != null ? {
+          totalThreshold: {
+            startHour: c.totalStart,
+            endHour: c.totalEnd,
+            requiredHours: c.totalThresholdHour || 4,
+          }
+        } : {}),
+      }))
+    }
+
+    // 측정점 그룹 임포트
+    if (importData.measurementGroups.length > 0) {
+      const groupsData = importData.measurementGroups.map(g => ({
+        groupName: g.groupName,
+        points: g.points.map(p => ({
+          id: p.id,
+          x: p.x,
+          y: p.y,
+          z: p.z,
+          name: p.name,
+        })),
+      }))
+      pointGroups.importGroups(groupsData)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importData])
+
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
 
@@ -111,9 +167,57 @@ export default function SunlightWorkspace() {
   const [causeResult, setCauseResult] = useState<CauseAnalysisResult | null>(null)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
 
+  // Ground analysis state
+  const [groundResult, setGroundResult] = useState<GroundAnalysisResult | null>(null)
+  const [groundIsochrones, setGroundIsochrones] = useState<IsochroneLine[]>([])
+  const [showGroundHeatmap, setShowGroundHeatmap] = useState(false)
+  const [isGroundAnalyzing, setIsGroundAnalyzing] = useState(false)
+
+  // Layer management
+  const [layers, setLayers] = useState<LayerConfig[]>([])
+
+  // Initialize layers from importData groups
+  useEffect(() => {
+    if (!importData?.groups || importData.groups.length === 0) return
+    const LAYER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316']
+    setLayers(importData.groups.map((g, i) => ({
+      id: g.name,
+      name: g.name,
+      visible: g.visible ?? true,
+      isAnalysisTarget: true,
+      color: g.color || LAYER_COLORS[i % LAYER_COLORS.length],
+      vertexCount: g.vertexCount,
+      faceCount: g.faceCount,
+    })))
+  }, [importData?.groups])
+
+  const handleToggleLayerVisibility = useCallback((layerId: string) => {
+    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible: !l.visible } : l))
+  }, [])
+
+  const handleToggleAnalysisTarget = useCallback((layerId: string) => {
+    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isAnalysisTarget: !l.isAnalysisTarget } : l))
+  }, [])
+
+  const handleToggleAllLayers = useCallback((visible: boolean) => {
+    setLayers(prev => prev.map(l => ({ ...l, visible })))
+  }, [])
+
   // Report state
   const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
+  // Polling interval refs for cleanup
+  const reportPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const groundPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Cleanup polling intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (reportPollRef.current) clearInterval(reportPollRef.current)
+      if (groundPollRef.current) clearInterval(groundPollRef.current)
+    }
+  }, [])
 
   // 포인트 변경 시 활성 그룹에 동기화
   useEffect(() => {
@@ -201,7 +305,7 @@ export default function SunlightWorkspace() {
       measurement_points: measurementPoints,
     }
     await runAnalysis(analysisConfig)
-  }, [config, runAnalysis, placement.points])
+  }, [config, runAnalysis, pointGroups.allMeasurementPoints])
 
   const handleGenerateReport = useCallback(async () => {
     if (!sessionId || !results) return
@@ -226,16 +330,19 @@ export default function SunlightWorkspace() {
       const rid = data.report_id
 
       // Poll for completion
-      const poll = setInterval(async () => {
+      if (reportPollRef.current) clearInterval(reportPollRef.current)
+      reportPollRef.current = setInterval(async () => {
         const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
         const status = await statusRes.json()
         if (status.status === 'completed') {
-          clearInterval(poll)
+          clearInterval(reportPollRef.current!)
+          reportPollRef.current = null
           setIsGeneratingReport(false)
           setReportDownloadUrl(`${apiUrl}${status.download_url}`)
           if (status.cause_analysis) setCauseResult(status.cause_analysis)
         } else if (status.status === 'error') {
-          clearInterval(poll)
+          clearInterval(reportPollRef.current!)
+          reportPollRef.current = null
           setIsGeneratingReport(false)
         }
       }, 2000)
@@ -243,6 +350,65 @@ export default function SunlightWorkspace() {
       setIsGeneratingReport(false)
     }
   }, [apiUrl, sessionId, results, config])
+
+  // ── Ground analysis handler ──
+  const handleGroundAnalysis = useCallback(async () => {
+    if (!sessionId) return
+    setIsGroundAnalyzing(true)
+    setShowGroundHeatmap(true)
+    try {
+      const res = await fetch(`${apiUrl}/sunlight/ground-analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          grid_size: 2.0,
+          altitude: 0.0,
+          latitude: config.latitude,
+          longitude: config.longitude,
+          timezone_offset: config.timezone / 15,
+          month: config.date.month,
+          day: config.date.day,
+          resolution: 'preview',
+        }),
+      })
+      if (!res.ok) throw new Error('지반일조 분석 요청 실패')
+      const data = await res.json()
+      const groundId = data.ground_id
+
+      // Poll for completion
+      if (groundPollRef.current) clearInterval(groundPollRef.current)
+      groundPollRef.current = setInterval(async () => {
+        try {
+          const statusRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/status`)
+          const status = await statusRes.json()
+          if (status.status === 'completed') {
+            clearInterval(groundPollRef.current!)
+            groundPollRef.current = null
+            // Fetch result
+            const resultRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/result`)
+            const result = await resultRes.json()
+            setGroundResult(result)
+            // Fetch isochrones
+            const isoRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/isochrones`)
+            const isoData = await isoRes.json()
+            setGroundIsochrones(isoData.isochrones || [])
+            setIsGroundAnalyzing(false)
+          } else if (status.status === 'error') {
+            clearInterval(groundPollRef.current!)
+            groundPollRef.current = null
+            setIsGroundAnalyzing(false)
+          }
+        } catch {
+          clearInterval(groundPollRef.current!)
+          groundPollRef.current = null
+          setIsGroundAnalyzing(false)
+        }
+      }, 2000)
+    } catch {
+      setIsGroundAnalyzing(false)
+    }
+  }, [apiUrl, sessionId, config])
 
   // ── Status bar state ──
   const statusBarState = useMemo((): StatusBarState => {
@@ -279,6 +445,25 @@ export default function SunlightWorkspace() {
 
   const isRunning = phase === 'running' || phase === 'polling'
 
+  // Undo/Redo keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          placement.redo()
+        } else {
+          placement.undo()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [placement])
+
   return (
     <AnalysisWorkspace
       toolbar={
@@ -295,6 +480,27 @@ export default function SunlightWorkspace() {
               placement.clearPoints()
               areaPlacement.resetArea()
             }}
+            extraControls={
+              <div className="flex items-center gap-0.5 ml-1">
+                <div className="w-px h-5 bg-gray-200" />
+                <button
+                  onClick={placement.undo}
+                  disabled={!placement.canUndo}
+                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  title="실행 취소 (Ctrl+Z)"
+                >
+                  <Undo2 size={14} />
+                </button>
+                <button
+                  onClick={placement.redo}
+                  disabled={!placement.canRedo}
+                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  title="다시 실행 (Ctrl+Shift+Z)"
+                >
+                  <Redo2 size={14} />
+                </button>
+              </div>
+            }
           />
         ) : undefined
       }
@@ -326,6 +532,14 @@ export default function SunlightWorkspace() {
           causeResult={causeResult}
           selectedBuildingId={selectedBuildingId}
           onBuildingSelect={setSelectedBuildingId}
+          onStartGroundAnalysis={handleGroundAnalysis}
+          isGroundAnalysisRunning={isGroundAnalyzing}
+          apiUrl={apiUrl}
+          sessionId={sessionId}
+          layers={layers}
+          onToggleLayerVisibility={handleToggleLayerVisibility}
+          onToggleAnalysisTarget={handleToggleAnalysisTarget}
+          onToggleAllLayers={handleToggleAllLayers}
         />
       }
       bottomControls={
@@ -376,6 +590,18 @@ export default function SunlightWorkspace() {
             interactionEnabled={placement.mode === 'place_point'}
             onSurfaceHover={placement.setHoverHit}
             onSurfaceClick={placement.handleSurfaceClick}
+            groups={importData?.groups}
+          />
+        )}
+
+        {/* Transform controls */}
+        {placement.mode === 'transform' && modelScene && (
+          <ModelTransformControls
+            target={modelScene}
+            mode={transformMode}
+            onTransformEnd={() => {
+              // Transform applied client-side only
+            }}
           />
         )}
 
@@ -431,6 +657,19 @@ export default function SunlightWorkspace() {
             <ShadowOverlay frame={shadow.currentFrame} />
             <SunPositionIndicator solarPosition={solarPosition} />
           </>
+        )}
+
+        {/* Ground heatmap overlay */}
+        {showGroundHeatmap && groundResult && groundResult.grid_data.length > 0 && (
+          <GroundHeatmap
+            gridData={groundResult.grid_data}
+            gridSize={groundResult.grid_size}
+          />
+        )}
+
+        {/* Isochrone / contour lines */}
+        {showGroundHeatmap && groundIsochrones.length > 0 && (
+          <ContourLines lines={groundIsochrones} />
         )}
 
         {/* Heatmap overlay (results) */}

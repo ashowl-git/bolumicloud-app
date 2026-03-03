@@ -28,6 +28,7 @@ const MODE_CURSORS: Record<InteractionMode, string> = {
   place_area: 'crosshair',
   delete: 'not-allowed',
   select: 'pointer',
+  transform: 'move',
 }
 
 export default function WorkspaceToolbar({
