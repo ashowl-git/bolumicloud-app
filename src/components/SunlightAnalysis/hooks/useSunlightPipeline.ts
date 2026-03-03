@@ -5,6 +5,10 @@ import type {
   SunlightAnalysisResult,
   SunlightUploadResponse,
   ModelMetadata,
+  Sn5fImportData,
+  BuildingGroupInfo,
+  Sn5fConditions,
+  Sn5fMeasurementGroup,
 } from '@/lib/types/sunlight'
 import { logger } from '@/lib/logger'
 
@@ -25,6 +29,7 @@ export interface UseSunlightPipelineReturn {
   error: string | null
   isCancelled: boolean
   estimatedRemainingSec: number | null
+  importData: Sn5fImportData | null
 
   uploadFile: (objFile: File) => Promise<void>
   runAnalysis: (config: SunlightConfig) => Promise<void>
@@ -65,6 +70,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
   const [error, setError] = useState<string | null>(null)
   const [isCancelled, setIsCancelled] = useState(false)
   const [estimatedRemainingSec, setEstimatedRemainingSec] = useState<number | null>(null)
+  const [importData, setImportData] = useState<Sn5fImportData | null>(null)
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const errorCountRef = useRef(0)
@@ -107,6 +113,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     setError(null)
     setIsCancelled(false)
     setEstimatedRemainingSec(null)
+    setImportData(null)
     errorCountRef.current = 0
     startTimeRef.current = null
     clearSession()
@@ -193,8 +200,140 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
   const uploadFile = useCallback(async (objFile: File) => {
     setPhase('uploading')
     setError(null)
+    setImportData(null)
+
+    const ext = objFile.name.split('.').pop()?.toLowerCase()
 
     try {
+      // ── SN5F 경로: POST /import/sn5f ──
+      if (ext === 'sn5f') {
+        const formData = new FormData()
+        formData.append('file', objFile)
+
+        const res = await fetch(`${apiUrl}/import/sn5f`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ detail: 'SN5F 업로드 실패' }))
+          throw new Error(errData.detail || 'SN5F 파일 업로드 실패')
+        }
+
+        const data = await res.json()
+
+        // 그룹 변환 (string[] -> BuildingGroupInfo[])
+        const GROUP_COLORS = [
+          '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
+          '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
+        ]
+
+        const groups: BuildingGroupInfo[] = (data.groups as string[]).map((name: string, i: number) => ({
+          name,
+          vertexCount: 0,
+          faceCount: 0,
+          color: GROUP_COLORS[i % GROUP_COLORS.length],
+          visible: true,
+        }))
+
+        // 조건 변환 (snake_case -> camelCase)
+        const cond = data.conditions
+        const conditions: Sn5fConditions | null = cond && Object.keys(cond).length > 0 ? {
+          azimuth: cond.azimuth,
+          month: cond.month,
+          day: cond.day,
+          latitude: cond.latitude,
+          longitude: cond.longitude,
+          standardMeridian: cond.standard_meridian,
+          solarTimeMode: cond.solar_time_mode,
+          continuousStart: cond.continuous_sun_start,
+          continuousEnd: cond.continuous_sun_end,
+          continuousThresholdHour: cond.continuous_sun_threshold != null ? Math.floor(cond.continuous_sun_threshold / 60) : undefined,
+          continuousThresholdMin: cond.continuous_sun_threshold != null ? cond.continuous_sun_threshold % 60 : undefined,
+          totalStart: cond.total_sun_start,
+          totalEnd: cond.total_sun_end,
+          totalThresholdHour: cond.total_sun_threshold != null ? Math.floor(cond.total_sun_threshold / 60) : undefined,
+          totalThresholdMin: cond.total_sun_threshold != null ? cond.total_sun_threshold % 60 : undefined,
+        } : null
+
+        // 측정점 그룹 변환
+        const measurementGroups: Sn5fMeasurementGroup[] = (data.measurement_points || []).map((g: Record<string, unknown>) => ({
+          groupName: g.group_name as string,
+          points: (g.points as Record<string, unknown>[]).map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            x: p.x as number, y: p.y as number, z: p.z as number,
+            name: p.name as string,
+            lightTimes: p.light_times as { intervals: [number, number][] }[],
+          })),
+        }))
+
+        const sn5fData: Sn5fImportData = {
+          sessionId: data.session_id,
+          modelId: data.model_id,
+          sceneUrl: data.scene_url,
+          groups,
+          conditions,
+          measurementGroups,
+          layers: (data.layers || []).map((l: Record<string, unknown>) => ({
+            name: l.name as string,
+            layerType: l.layer_type as number,
+            visible: l.visible as boolean,
+            parentName: l.parent_name as string,
+          })),
+        }
+
+        setImportData(sn5fData)
+        setSessionId(sn5fData.sessionId)
+        setModelId(sn5fData.modelId)
+        setSceneUrl(`${apiUrl}${sn5fData.sceneUrl}`)
+        setPhase('idle')
+        logger.info('SN5F import success', { sessionId: sn5fData.sessionId, groups: groups.length })
+        return
+      }
+
+      // ── OBJ 경로 (import API 사용): POST /import/obj ──
+      if (ext === 'obj') {
+        const formData = new FormData()
+        formData.append('file', objFile)
+
+        // 1) 그룹 보존 임포트
+        const importRes = await fetch(`${apiUrl}/import/obj`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!importRes.ok) {
+          const errData = await importRes.json().catch(() => ({ detail: 'OBJ 임포트 실패' }))
+          throw new Error(errData.detail || 'OBJ 파일 임포트 실패')
+        }
+
+        const importData = await importRes.json()
+        setModelId(importData.model_id)
+        setSceneUrl(`${apiUrl}${importData.scene_url}`)
+
+        // 2) 기존 sunlight 업로드 (분석 엔진용)
+        const analysisFormData = new FormData()
+        analysisFormData.append('obj_file', objFile)
+
+        const analysisRes = await fetch(`${apiUrl}/sunlight/upload`, {
+          method: 'POST',
+          body: analysisFormData,
+        })
+
+        if (!analysisRes.ok) {
+          const errData = await analysisRes.json().catch(() => ({ detail: '업로드 실패' }))
+          throw new Error(errData.detail || '분석용 업로드 실패')
+        }
+
+        const analysisData: SunlightUploadResponse = await analysisRes.json()
+        setSessionId(analysisData.session_id)
+
+        setPhase('idle')
+        logger.info('OBJ import success', { sessionId: analysisData.session_id, modelId: importData.model_id })
+        return
+      }
+
+      // ── 기존 폴백 경로 (확장자 불명) ──
       // 1) 기존 sunlight 업로드 (분석 엔진용)
       const formData = new FormData()
       formData.append('obj_file', objFile)
@@ -307,6 +446,7 @@ export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): Use
     error,
     isCancelled,
     estimatedRemainingSec,
+    importData,
     uploadFile,
     runAnalysis,
     cancelAnalysis,

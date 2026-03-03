@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { BoundingBox } from '../types'
 import type { SurfaceHit, SurfaceType } from './types'
+import type { BuildingGroupInfo } from '@/lib/types/sunlight'
 
 // ─── 기본 재질 ─────────────────────────────
 
@@ -31,6 +32,20 @@ function classifySurface(worldNormal: THREE.Vector3): SurfaceType {
   return 'wall'
 }
 
+// ─── 메시에서 그룹명 추출 ─────────────────────────
+
+function findGroupNameForMesh(mesh: THREE.Object3D, groupNames: string[]): string | undefined {
+  let current: THREE.Object3D | null = mesh
+  while (current) {
+    if (current.name) {
+      const matched = groupNames.find((g) => current!.name === g || current!.name.startsWith(g))
+      if (matched) return matched
+    }
+    current = current.parent
+  }
+  return undefined
+}
+
 // ─── InteractiveBuildingModel ─────────────────────
 
 interface InteractiveBuildingModelProps {
@@ -45,6 +60,7 @@ interface InteractiveBuildingModelProps {
   color?: string
   allowedSurfaces?: SurfaceType[]
   opacity?: number
+  groups?: BuildingGroupInfo[]
 }
 
 export default function InteractiveBuildingModel({
@@ -59,6 +75,7 @@ export default function InteractiveBuildingModel({
   color,
   allowedSurfaces,
   opacity,
+  groups,
 }: InteractiveBuildingModelProps) {
   const groupRef = useRef<THREE.Group>(null)
   const hoveredMeshRef = useRef<THREE.Mesh | null>(null)
@@ -120,6 +137,9 @@ export default function InteractiveBuildingModel({
     originalMaterialRef.current = null
   }, [])
 
+  // 그룹명 목록 (groups prop 기반)
+  const groupNames = useMemo(() => groups?.map((g) => g.name) ?? [], [groups])
+
   // ThreeEvent에서 SurfaceHit 추출
   const extractHit = useCallback((e: ThreeEvent<PointerEvent | MouseEvent>): SurfaceHit | null => {
     if (!e.face) return null
@@ -136,6 +156,11 @@ export default function InteractiveBuildingModel({
       return null
     }
 
+    // 그룹명 추출
+    const groupName = groupNames.length > 0
+      ? findGroupNameForMesh(e.object, groupNames)
+      : undefined
+
     return {
       point: [e.point.x, e.point.y, e.point.z],
       normal: [worldNormal.x, worldNormal.y, worldNormal.z],
@@ -143,8 +168,9 @@ export default function InteractiveBuildingModel({
       objectName: e.object.name || e.object.uuid,
       surfaceType,
       distance: e.distance,
+      groupName,
     }
-  }, [allowedSurfaces])
+  }, [allowedSurfaces, groupNames])
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!interactionEnabled) return

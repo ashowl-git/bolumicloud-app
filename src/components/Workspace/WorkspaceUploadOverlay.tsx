@@ -12,9 +12,9 @@ interface WorkspaceUploadOverlayProps {
 
 export default function WorkspaceUploadOverlay({
   onFileSelect,
-  accept = '.obj',
+  accept = '.obj,.sn5f',
   isUploading = false,
-  hint = '.obj 파일 (최대 100MB)',
+  hint = 'OBJ 또는 Sanalyst SN5F 파일을 드래그하세요 (최대 100MB)',
 }: WorkspaceUploadOverlayProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [fadePhase, setFadePhase] = useState<'visible' | 'fading' | 'hidden'>('visible')
@@ -102,7 +102,7 @@ export default function WorkspaceUploadOverlay({
               <CloudUpload size={32} strokeWidth={1.3} className="text-gray-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">OBJ 파일을 드래그하거나 클릭하세요</p>
+              <p className="text-sm font-medium text-gray-700">OBJ / SN5F 파일을 드래그하거나 클릭하세요</p>
               <p className="text-xs text-gray-400 mt-1.5">{hint}</p>
             </div>
           </div>
