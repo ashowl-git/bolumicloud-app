@@ -48,13 +48,15 @@ export default function ThreeViewer({
   }, [])
 
   const cameraConfig = useMemo(() => {
-    if (!bbox) return { position: [20, 15, 20] as [number, number, number], fov: 50 }
+    if (!bbox) return { position: [20, 15, 20] as [number, number, number], fov: 50, near: 0.1, far: 10000 }
 
     const maxDim = Math.max(...bbox.size)
     const dist = maxDim * 1.8
     return {
-      position: [dist, dist * 0.7, dist] as [number, number, number],
+      position: [bbox.center[0] + dist, bbox.center[1] + dist * 0.7, bbox.center[2] + dist] as [number, number, number],
       fov: 50,
+      near: Math.max(0.1, maxDim * 0.001),
+      far: Math.max(10000, maxDim * 10),
     }
   }, [bbox])
 
@@ -72,8 +74,8 @@ export default function ThreeViewer({
         camera={{
           position: cameraConfig.position,
           fov: cameraConfig.fov,
-          near: 0.1,
-          far: 10000,
+          near: cameraConfig.near,
+          far: cameraConfig.far,
         }}
         gl={{ antialias: true, alpha: false }}
         onCreated={({ gl }) => {
@@ -88,8 +90,9 @@ export default function ThreeViewer({
           enabled={orbitEnabled}
           enableDamping={enableDamping}
           dampingFactor={0.1}
-          minDistance={1}
-          maxDistance={5000}
+          minDistance={bbox ? Math.max(1, Math.max(...bbox.size) * 0.01) : 1}
+          maxDistance={bbox ? Math.max(5000, Math.max(...bbox.size) * 5) : 5000}
+          target={bbox ? [bbox.center[0], bbox.center[1], bbox.center[2]] : [0, 0, 0]}
           maxPolarAngle={Math.PI * 0.85}
         />
       </Canvas>

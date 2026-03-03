@@ -57,10 +57,12 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
       })
 
       group.add(loaded)
-      const b = computeBBox(group)
+      let b = computeBBox(group)
 
       if (config.autoCenter !== false) {
         centerModel(group, b)
+        group.updateMatrixWorld(true)
+        b = computeBBox(group)
       }
 
       setBbox(b)
@@ -150,9 +152,11 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
           }
         })
         group.add(loaded)
-        const b = computeBBox(group)
+        let b = computeBBox(group)
         if (entry.config.autoCenter !== false) {
           centerModel(group, b)
+          group.updateMatrixWorld(true)
+          b = computeBBox(group)
         }
 
         setModels(prev => {
