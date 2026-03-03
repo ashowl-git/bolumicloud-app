@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Building2, FileText } from 'lucide-react'
+import { useCallback } from 'react'
+import { Building2 } from 'lucide-react'
 import type { SanalystProjectInfo } from '@/lib/types/sunlight'
 
 interface SanalystProjectInfoFormProps {

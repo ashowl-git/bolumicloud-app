@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { FileSpreadsheet, Download, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { FileSpreadsheet, Download, Loader2 } from 'lucide-react'
 import { useApi } from '@/contexts/ApiContext'
 import type {
   SunlightAnalysisResult,
