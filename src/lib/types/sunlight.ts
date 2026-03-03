@@ -307,6 +307,7 @@ export interface GridCell {
   y: number
   total_hours: number
   continuous_hours: number
+  compliant: boolean | null
 }
 
 export interface GroundAnalysisResult {
@@ -347,6 +348,62 @@ export interface LayerConfig {
   color: string          // Hex color
   vertexCount?: number
   faceCount?: number
+}
+
+// ─── 보고서 양식 ─────────────────────────────
+
+export type ReportFormat = 'bolumicloud' | 'sanalyst'
+
+export const REPORT_FORMAT_LABELS: Record<ReportFormat, { ko: string; en: string; description: string }> = {
+  bolumicloud: {
+    ko: '분석 모드',
+    en: 'Analysis Mode',
+    description: 'BoLumiCloud 자체 보고서 (3D 히트맵, 원인 분석 포함)',
+  },
+  sanalyst: {
+    ko: '인허가 모드',
+    en: 'Permit Mode',
+    description: 'Sanalyst 산출계산서 양식 (인허가 제출용)',
+  },
+}
+
+export interface SanalystProjectInfo {
+  project_name: string
+  address: string
+  applicant: string
+  company_name: string
+  analyst: string
+  analysis_date: string
+  analysis_tool: string
+  notes: string
+}
+
+export interface SanalystUnitData {
+  unit_id: string
+  building_name: string
+  floor: number
+  unit_type: string
+  direction: string
+  window_area: number
+  floor_area: number
+  separation_distance: number
+  facing_building_height: number
+  separation_ratio: number
+  daylight_factor: number
+  total_hours: number
+  continuous_hours: number
+  compliant: boolean
+  housing_grade: number | null
+}
+
+export interface SanalystBuildingData {
+  building_id: string
+  building_name: string
+  stories: number
+  height: number
+  unit_count: number
+  avg_daylight_factor: number
+  units: SanalystUnitData[]
 }
 
 // ─── 날짜 프리셋 (일조 분석용) ────────────────

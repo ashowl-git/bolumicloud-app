@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { FileSpreadsheet, Download, Loader2 } from 'lucide-react'
+import { FileSpreadsheet, Download, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useApi } from '@/contexts/ApiContext'
 import type {
   SunlightAnalysisResult,
   CauseAnalysisResult,
   SunlightConfigState,
+  ReportFormat,
+  SanalystProjectInfo,
 } from '@/lib/types/sunlight'
+import { REPORT_FORMAT_LABELS } from '@/lib/types/sunlight'
+import SanalystProjectInfoForm, { EMPTY_INFO } from './SanalystProjectInfoForm'
 
 // ─── ReportDownloadPanel ────────────────────
 
@@ -30,6 +34,8 @@ export default function ReportDownloadPanel({
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
+  const [reportFormat, setReportFormat] = useState<ReportFormat>('bolumicloud')
+  const [projectInfo, setProjectInfo] = useState<SanalystProjectInfo>({ ...EMPTY_INFO })
 
   // Cleanup on unmount
   useEffect(() => {
@@ -45,19 +51,26 @@ export default function ReportDownloadPanel({
     setDownloadUrl(null)
 
     try {
+      const body: Record<string, unknown> = {
+        session_id: sessionId,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        timezone_offset: config.timezone / 15,
+        month: config.date.month,
+        day: config.date.day,
+        building_type: config.buildingType,
+        analysis_result: results,
+        report_format: reportFormat,
+      }
+
+      if (reportFormat === 'sanalyst') {
+        body.project_info = projectInfo
+      }
+
       const res = await fetch(`${apiUrl}/reports/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          latitude: config.latitude,
-          longitude: config.longitude,
-          timezone_offset: config.timezone / 15,
-          month: config.date.month,
-          day: config.date.day,
-          building_type: config.buildingType,
-          analysis_result: results,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!res.ok) {
@@ -97,7 +110,7 @@ export default function ReportDownloadPanel({
       setIsGenerating(false)
       setError(err instanceof Error ? err.message : '보고서 생성 중 오류')
     }
-  }, [apiUrl, sessionId, results, config, onCauseAnalysis])
+  }, [apiUrl, sessionId, results, config, onCauseAnalysis, reportFormat, projectInfo])
 
   const handleDownload = useCallback(() => {
     if (!downloadUrl) return
@@ -105,13 +118,40 @@ export default function ReportDownloadPanel({
   }, [downloadUrl])
 
   return (
-    <div className="border border-gray-200 p-4">
+    <div className="border border-gray-200 p-4 space-y-3">
+      {/* 모드 선택 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileSpreadsheet size={18} className="text-gray-500" />
           <span className="text-sm font-medium text-gray-900">분석 보고서</span>
         </div>
+        <div className="flex items-center gap-1">
+          {(['bolumicloud', 'sanalyst'] as ReportFormat[]).map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => { setReportFormat(fmt); setDownloadUrl(null) }}
+              className={`px-3 py-1 text-xs transition-colors ${
+                reportFormat === fmt
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {REPORT_FORMAT_LABELS[fmt].ko}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      <p className="text-xs text-gray-400">
+        {REPORT_FORMAT_LABELS[reportFormat].description}
+      </p>
+
+      {/* Sanalyst 프로젝트 정보 폼 */}
+      {reportFormat === 'sanalyst' && (
+        <SanalystProjectInfoForm value={projectInfo} onChange={setProjectInfo} />
+      )}
+
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           {/* 생성 버튼 */}
           {!isGenerating && !downloadUrl && (
@@ -157,7 +197,7 @@ export default function ReportDownloadPanel({
 
       {/* Error */}
       {error && (
-        <p className="mt-2 text-xs text-red-500">{error}</p>
+        <p className="text-xs text-red-500">{error}</p>
       )}
     </div>
   )
