@@ -4,7 +4,7 @@ import React, { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text, Line } from '@react-three/drei'
 import { backendToThree } from '@/components/shared/3d/interaction/types'
-import type { SolarChart3DData, SolarChartRay } from '@/hooks/useSolarChart3D'
+import type { SolarChart3DData } from '@/hooks/useSolarChart3D'
 
 // 색상 상수
 const COLOR_SUNLIT = new THREE.Color(0.95, 0.85, 0.2)   // 밝은 노란색
