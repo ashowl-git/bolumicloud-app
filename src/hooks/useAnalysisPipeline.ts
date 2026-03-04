@@ -227,7 +227,10 @@ export function useAnalysisPipeline<
         errorCountRef.current += 1
         logger.error(`${module} progress fetch error`, { error: e, count: errorCountRef.current })
 
-        if (errorCountRef.current >= maxErrors) {
+        // 404/410: 세션 미존재/만료 — 재시도 무의미, 즉시 중단
+        const isUnrecoverable = e instanceof ApiError && (e.status === 404 || e.status === 410)
+
+        if (isUnrecoverable || errorCountRef.current >= maxErrors) {
           stopPolling()
           const msg = (e instanceof ApiError || e instanceof TypeError)
             ? buildUserMessage(e)
