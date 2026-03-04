@@ -398,6 +398,7 @@ export default function SunlightWorkspace() {
           onSetActiveGroup={pointGroups.setActiveGroup}
           onSortGroup={pointGroups.sortGroup}
           onToggleReverseColumns={pointGroups.toggleReverseColumns}
+          onBatchCreate={pointGroups.batchCreatePoints}
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
           results={results}

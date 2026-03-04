@@ -1,7 +1,7 @@
 'use client'
 
 import { BarChart3, List, Clock, Crosshair } from 'lucide-react'
-import type { SunlightAnalysisResult } from '@/lib/types/sunlight'
+import type { SunlightAnalysisResult, MeasurementPointGroup } from '@/lib/types/sunlight'
 
 import WorkspacePanelSection from '../Workspace/WorkspacePanelSection'
 import SunlightResultsTable from './SunlightResultsTable'
@@ -12,12 +12,14 @@ interface AnalysisResultsSectionProps {
   results: SunlightAnalysisResult
   selectedPointId?: string | null
   onPointSelect?: (id: string) => void
+  groups?: MeasurementPointGroup[]
 }
 
 export default function AnalysisResultsSection({
   results,
   selectedPointId,
   onPointSelect,
+  groups,
 }: AnalysisResultsSectionProps) {
   const selectedPoint = selectedPointId
     ? results.points.find((p) => p.id === selectedPointId) ?? null
@@ -35,6 +37,7 @@ export default function AnalysisResultsSection({
             points={results.points}
             selectedPointId={selectedPointId}
             onPointSelect={onPointSelect}
+            groups={groups}
           />
         </div>
       </WorkspacePanelSection>

@@ -1,8 +1,11 @@
 'use client'
 
-import { List, FolderPlus, ArrowUpDown, ArrowRightLeft, X, Crosshair } from 'lucide-react'
+import { useState } from 'react'
+import { List, FolderPlus, Grid3X3, ArrowUpDown, ArrowRightLeft, X, Crosshair } from 'lucide-react'
 import type { MeasurementPointGroup } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
+import type { BatchPointParams } from '@/components/Workspace/Sunlight/hooks/usePointGroups'
+import BatchPointCreationDialog from './BatchPointCreationDialog'
 
 import WorkspacePanelSection from '../Workspace/WorkspacePanelSection'
 
@@ -18,6 +21,7 @@ interface PointGroupManagerProps {
   onSetActiveGroup: (groupId: string) => void
   onSortGroup: (groupId: string) => void
   onToggleReverseColumns: (groupId: string) => void
+  onBatchCreate?: (params: BatchPointParams) => void
   disabled?: boolean
 }
 
@@ -33,9 +37,18 @@ export default function PointGroupManager({
   onSetActiveGroup,
   onSortGroup,
   onToggleReverseColumns,
+  onBatchCreate,
   disabled,
 }: PointGroupManagerProps) {
+  const [showBatchDialog, setShowBatchDialog] = useState(false)
+
   return (
+    <>
+    <BatchPointCreationDialog
+      open={showBatchDialog}
+      onClose={() => setShowBatchDialog(false)}
+      onConfirm={(params) => onBatchCreate?.(params)}
+    />
     <WorkspacePanelSection
       title="측정점 그룹"
       icon={<List size={14} />}
@@ -69,6 +82,16 @@ export default function PointGroupManager({
         >
           <FolderPlus size={14} />
         </button>
+        {onBatchCreate && (
+          <button
+            onClick={() => setShowBatchDialog(true)}
+            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+            title="측정점 일괄 생성"
+            disabled={disabled}
+          >
+            <Grid3X3 size={14} />
+          </button>
+        )}
       </div>
 
       {/* 활성 그룹 컨트롤 */}
@@ -176,5 +199,6 @@ export default function PointGroupManager({
         )
       })()}
     </WorkspacePanelSection>
+    </>
   )
 }

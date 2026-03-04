@@ -6,9 +6,10 @@ import type {
   SunlightAnalysisResult,
   CauseAnalysisResult,
   LayerConfig,
+  MeasurementPointGroup,
 } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
-import type { MeasurementPointGroup } from '@/lib/types/sunlight'
+import type { BatchPointParams } from './hooks/usePointGroups'
 
 import WorkspaceSidePanel from '../WorkspaceSidePanel'
 import WorkspacePanelSection from '../WorkspacePanelSection'
@@ -22,6 +23,7 @@ import AnalysisResultsSection from '@/components/SunlightAnalysis/AnalysisResult
 import ReportSection from '@/components/SunlightAnalysis/ReportSection'
 import CauseAnalysisSection from '@/components/SunlightAnalysis/CauseAnalysisSection'
 import GroundAnalysisSection from '@/components/SunlightAnalysis/GroundAnalysisSection'
+import SolarDiagram3DSection from '@/components/SunlightAnalysis/SolarDiagram3DSection'
 
 // ─── Props ─────────────────────────────────────
 interface SunlightSidePanelProps {
@@ -45,6 +47,7 @@ interface SunlightSidePanelProps {
   onSetActiveGroup: (groupId: string) => void
   onSortGroup: (groupId: string) => void
   onToggleReverseColumns: (groupId: string) => void
+  onBatchCreate?: (params: BatchPointParams) => void
   // Analysis
   isRunning: boolean
   onStartAnalysis: () => void
@@ -90,6 +93,7 @@ export default function SunlightSidePanel({
   onSetActiveGroup,
   onSortGroup,
   onToggleReverseColumns,
+  onBatchCreate,
   isRunning,
   onStartAnalysis,
   results,
@@ -173,6 +177,7 @@ export default function SunlightSidePanel({
         onSetActiveGroup={onSetActiveGroup}
         onSortGroup={onSortGroup}
         onToggleReverseColumns={onToggleReverseColumns}
+        onBatchCreate={onBatchCreate}
         disabled={disabled}
       />
 
@@ -183,6 +188,7 @@ export default function SunlightSidePanel({
             results={results}
             selectedPointId={selectedPointId}
             onPointSelect={onPointSelect}
+            groups={groups}
           />
 
           <ReportSection
@@ -207,6 +213,12 @@ export default function SunlightSidePanel({
             isGroundAnalysisRunning={isGroundAnalysisRunning}
             results={results}
             disabled={disabled}
+          />
+
+          <SolarDiagram3DSection
+            latitude={config.latitude}
+            longitude={config.longitude}
+            selectedPointId={selectedPointId}
           />
         </>
       )}
