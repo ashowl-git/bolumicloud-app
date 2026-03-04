@@ -17,7 +17,7 @@ export default function WaldramGrid({
   margin,
   plotW,
   plotH,
-  svgWidth,
+  svgWidth: _svgWidth,
   svgHeight,
   toSvgX,
   toSvgY,

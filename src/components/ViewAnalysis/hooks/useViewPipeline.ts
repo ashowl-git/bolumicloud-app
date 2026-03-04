@@ -34,7 +34,7 @@ export interface UseViewPipelineReturn {
   reset: () => void
 }
 
-export function useViewPipeline({ apiUrl }: UseViewPipelineOptions): UseViewPipelineReturn {
+export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): UseViewPipelineReturn {
   const api = useApiClient()
   const { apiUrl: contextApiUrl } = useApi()
   const base = useAnalysisPipeline<ViewProgress, ViewAnalysisResult>({

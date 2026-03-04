@@ -4,12 +4,14 @@ import React from 'react'
 import { useLocalizedText, LocaleContext } from '../useLocalizedText'
 
 function createWrapper(locale: 'ko' | 'en') {
-  return ({ children }: { children: React.ReactNode }) =>
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       LocaleContext.Provider,
       { value: { locale, setLocale: () => {} } },
       children
     )
+  Wrapper.displayName = 'LocaleWrapper'
+  return Wrapper
 }
 
 describe('useLocalizedText', () => {

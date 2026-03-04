@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import React from 'react'
+// React is used implicitly by testing-library
 
 // Mock useApi before importing the hook
 vi.mock('@/contexts/ApiContext', () => ({

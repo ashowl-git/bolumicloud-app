@@ -28,7 +28,7 @@ interface UsePipelineReturn {
   resetForRerun: () => void
 }
 
-export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
+export function usePipeline({ apiUrl: _apiUrl }: UsePipelineOptions): UsePipelineReturn {
   const api = useApiClient()
   const [phase, setPhase] = useState<PipelinePhase>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)

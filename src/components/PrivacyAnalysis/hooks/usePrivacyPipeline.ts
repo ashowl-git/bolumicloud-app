@@ -45,7 +45,7 @@ export interface UsePrivacyPipelineReturn {
   reset: () => void
 }
 
-export function usePrivacyPipeline(apiUrl: string): UsePrivacyPipelineReturn {
+export function usePrivacyPipeline(_apiUrl: string): UsePrivacyPipelineReturn {
   const api = useApiClient()
   const { apiUrl: contextApiUrl } = useApi()
   const base = useAnalysisPipeline<PrivacyProgress, PrivacyAnalysisResult>({

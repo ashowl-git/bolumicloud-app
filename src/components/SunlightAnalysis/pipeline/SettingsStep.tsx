@@ -41,10 +41,13 @@ export interface SettingsStepProps {
   placement: {
     mode: InteractionMode
     points: BaseAnalysisPoint[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hoverHit: any
     selectedPointId: string | null
     setMode: (mode: InteractionMode) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setHoverHit: (hit: any) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSurfaceClick: (hit: any) => void
     handlePointClick: (id: string) => void
     clearPoints: () => void
@@ -58,7 +61,9 @@ export interface SettingsStepProps {
     gridSpacing: number
     gridPoints: BaseAnalysisPoint[]
     setGridSpacing: (spacing: number) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleAreaClick: (hit: any) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleAreaHover: (hit: any) => void
     generateGrid: () => BaseAnalysisPoint[]
     resetArea: () => void
@@ -82,6 +87,7 @@ export default function SettingsStep({
 }: SettingsStepProps) {
   const { t } = useLocalizedText()
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleModeChange = useCallback((m: any) => {
     placement.setMode(m)
     if (m !== 'place_area') areaPlacement.resetArea()

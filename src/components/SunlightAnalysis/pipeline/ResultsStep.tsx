@@ -28,6 +28,7 @@ const txt = {
 
 export interface ResultsStepProps {
   sessionId: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: any
   config: SunlightConfigState
   modelScene: Group | null
@@ -96,6 +97,7 @@ export default function ResultsStep({
               <SunlightHeatmapOverlay
                 points={placementPoints.length > 0
                   ? placementPoints.map((p) => ({ id: p.id, x: p.position.x, y: p.position.y, z: p.position.z, name: p.name }))
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   : results.points.map((p: any) => ({ id: p.id, x: p.x, y: p.y, z: p.z, name: p.name }))
                 }
                 results={results.points}

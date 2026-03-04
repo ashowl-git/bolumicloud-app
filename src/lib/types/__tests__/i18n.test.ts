@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getLocalizedText, getLocalizedArray } from '../i18n'
-import type { LocalizedText, LocalizedArray, Locale } from '../i18n'
+import type { LocalizedText, LocalizedArray } from '../i18n'
 
 describe('getLocalizedText', () => {
   const text: LocalizedText = { ko: '안녕하세요', en: 'Hello' }

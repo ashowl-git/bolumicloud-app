@@ -53,7 +53,7 @@ function validateSunlightResult(data: unknown): string | null {
   return null
 }
 
-export function useSunlightPipeline({ apiUrl }: UseSunlightPipelineOptions): UseSunlightPipelineReturn {
+export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOptions): UseSunlightPipelineReturn {
   const api = useApiClient()
   const { apiUrl: contextApiUrl } = useApi()
   const base = useAnalysisPipeline<SunlightProgress, SunlightAnalysisResult>({

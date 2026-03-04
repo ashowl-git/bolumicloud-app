@@ -60,7 +60,7 @@ export interface UsePerformanceGradeReturn {
   reset: () => void
 }
 
-export function usePerformanceGrade(apiUrl: string): UsePerformanceGradeReturn {
+export function usePerformanceGrade(_apiUrl: string): UsePerformanceGradeReturn {
   const api = useApiClient()
   const [phase, setPhase] = useState<PerformancePhase>('editing')
   const [projectId, setProjectId] = useState<string | null>(null)

@@ -38,7 +38,7 @@ interface ShadowComputeParams {
   stepMinutes?: number
 }
 
-export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseShadowAnimationReturn {
+export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOptions): UseShadowAnimationReturn {
   const api = useApiClient()
   const [shadowId, setShadowId] = useState<string | null>(null)
   const [frames, setFrames] = useState<ShadowFrame[]>([])

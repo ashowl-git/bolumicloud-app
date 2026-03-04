@@ -11,16 +11,6 @@ interface ResultsTableProps {
 }
 
 export default function ResultsTable({ results }: ResultsTableProps) {
-  if (!results || results.length === 0) {
-    return (
-      <EmptyState
-        icon={FileSearch}
-        title="눈부심 분석 결과가 없습니다"
-        description="분석이 완료되면 결과가 표시됩니다."
-      />
-    )
-  }
-
   const [filter, setFilter] = useState<'all' | 'disability' | 'normal'>('all')
   const [filterDate, setFilterDate] = useState<string>('all')
   const [sortBy, setSortBy] = useState<keyof GlareResult>('file')
@@ -31,6 +21,16 @@ export default function ResultsTable({ results }: ResultsTableProps) {
     [results]
   )
   const hasDateLabels = dateLabels.length > 0
+
+  if (!results || results.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="눈부심 분석 결과가 없습니다"
+        description="분석이 완료되면 결과가 표시됩니다."
+      />
+    )
+  }
 
   // 필터링
   const filteredResults = results.filter(r => {
