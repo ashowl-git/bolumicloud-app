@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import { useViewPipeline } from '@/components/ViewAnalysis/hooks/useViewPipeline'
 import type { ViewPipelinePhase, UseViewPipelineReturn } from '@/components/ViewAnalysis/hooks/useViewPipeline'
 
@@ -14,10 +14,8 @@ interface ViewPipelineProviderProps {
 export function ViewPipelineProvider({ children, apiUrl }: ViewPipelineProviderProps) {
   const pipeline = useViewPipeline({ apiUrl })
 
-  const value = useMemo(() => pipeline, [pipeline])
-
   return (
-    <ViewPipelineContext.Provider value={value}>
+    <ViewPipelineContext.Provider value={pipeline}>
       {children}
     </ViewPipelineContext.Provider>
   )

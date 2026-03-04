@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text } from '@react-three/drei'
 import type { BaseAnalysisPoint } from './types'
@@ -28,7 +28,7 @@ interface PointMarker3DProps {
   windowHeight?: number
 }
 
-export default function PointMarker3D({
+function PointMarker3DInner({
   point,
   visualType = 'sphere',
   isSelected = false,
@@ -118,6 +118,19 @@ export default function PointMarker3D({
     </group>
   )
 }
+
+const PointMarker3D = React.memo(PointMarker3DInner, (prev, next) => {
+  return (
+    prev.point.id === next.point.id &&
+    prev.isSelected === next.isSelected &&
+    prev.color === next.color &&
+    prev.visualType === next.visualType &&
+    prev.label === next.label &&
+    prev.sublabel === next.sublabel
+  )
+})
+
+export default PointMarker3D
 
 // ─── Sphere (지면 측정점) ─────────────────────────
 

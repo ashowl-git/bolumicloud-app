@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { ImageOff } from 'lucide-react'
+import EmptyState from '@/components/common/EmptyState'
 import type { GlareResult } from '@/lib/types/glare'
 
 interface PipelineImageGalleryProps {
@@ -56,6 +58,16 @@ export default function PipelineImageGallery({
       case '견딜수없음': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  if (!results || results.length === 0) {
+    return (
+      <EmptyState
+        icon={ImageOff}
+        title="이미지가 없습니다"
+        description="분석이 완료되면 이미지가 표시됩니다."
+      />
+    )
   }
 
   return (

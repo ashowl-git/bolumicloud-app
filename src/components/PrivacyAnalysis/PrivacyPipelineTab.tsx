@@ -11,6 +11,7 @@ import type { LocalizedText } from '@/lib/types/i18n'
 
 import PrivacyConfigPanel from './PrivacyConfigPanel'
 import PrivacyResults from './PrivacyResults'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 
 // 3D 뷰어 + 인터랙션
 import dynamic from 'next/dynamic'
@@ -65,6 +66,8 @@ export default function PrivacyPipelineTab() {
   const [selectedPairId, setSelectedPairId] = useState<number | null>(null)
   const [activeRole, setActiveRole] = useState<'target' | 'observer'>('target')
   const [selectedWindowId, setSelectedWindowId] = useState<string | null>(null)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [dismissedError, setDismissedError] = useState<string | null>(null)
 
   const targetInputRef = useRef<HTMLInputElement>(null)
   const observerInputRef = useRef<HTMLInputElement>(null)
@@ -172,11 +175,22 @@ export default function PrivacyPipelineTab() {
           </div>
         </div>
         {(phase !== 'idle' || step > 1) && (
-          <button onClick={handleReset} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition-colors">
+          <button onClick={() => setShowResetConfirm(true)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition-colors">
             <RotateCcw size={14} /> {t(txt.reset)}
           </button>
         )}
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="분석 초기화"
+        message="현재 분석 결과와 설정이 모두 초기화됩니다. 계속하시겠습니까?"
+        confirmLabel="초기화"
+        cancelLabel="취소"
+        onConfirm={() => { setShowResetConfirm(false); handleReset() }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
 
       {/* Step Indicator */}
       <div className="flex items-center gap-2">
@@ -201,13 +215,13 @@ export default function PrivacyPipelineTab() {
       </div>
 
       {/* Error */}
-      {error && (
+      {error && error !== dismissedError && (
         <div className="border border-red-200 bg-red-50 p-4 flex items-start gap-3">
           <AlertCircle size={18} className="text-red-500 mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="text-sm text-red-700">{error}</p>
           </div>
-          <button onClick={() => {}} className="text-red-400 hover:text-red-600">
+          <button onClick={() => setDismissedError(error)} className="text-red-400 hover:text-red-600">
             <X size={16} />
           </button>
         </div>

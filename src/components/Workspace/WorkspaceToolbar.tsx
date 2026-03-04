@@ -56,14 +56,16 @@ export default function WorkspaceToolbar({
     }
   }, [activeMode, modes])
 
-  // Cursor feedback on canvas
+  // Cursor feedback on canvas (find canvas via parent container ref)
+  const toolbarRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const canvas = document.querySelector('canvas')
+    const container = toolbarRef.current?.closest('.relative')
+    const canvas = container?.querySelector('canvas') ?? null
     if (canvas) {
-      canvas.style.cursor = MODE_CURSORS[activeMode] ?? 'default'
+      ;(canvas as HTMLCanvasElement).style.cursor = MODE_CURSORS[activeMode] ?? 'default'
     }
     return () => {
-      if (canvas) canvas.style.cursor = 'default'
+      if (canvas) (canvas as HTMLCanvasElement).style.cursor = 'default'
     }
   }, [activeMode])
 
@@ -89,7 +91,9 @@ export default function WorkspaceToolbar({
 
   return (
     <>
-      <div className="flex items-center gap-0.5 bg-white/95 backdrop-blur-sm
+      <div
+        ref={toolbarRef}
+        className="flex items-center gap-0.5 bg-white/95 backdrop-blur-sm
         border border-gray-200 rounded-lg p-0.5 shadow-md"
       >
         {/* Mode buttons */}

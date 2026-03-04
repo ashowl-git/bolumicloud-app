@@ -3,11 +3,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { usePrivacyPipelineContext } from '@/contexts/PrivacyPipelineContext'
-import { useApi } from '@/contexts/ApiContext'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
 import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
 import { usePrivacySingleUpload } from './hooks/usePrivacySingleUpload'
+import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { WindowSpec } from '@/lib/types/privacy'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import type { StatusBarState } from '../WorkspaceStatusBar'
@@ -30,7 +30,6 @@ const SightlineVisualization = dynamic(() => import('@/components/PrivacyAnalysi
 const WindowMarkers = dynamic(() => import('@/components/PrivacyAnalysis/3d/WindowMarkers'), { ssr: false })
 
 export default function PrivacyWorkspace() {
-  const { apiUrl } = useApi()
   const pipeline = usePrivacyPipelineContext()
   const { uploadSingle } = usePrivacySingleUpload(pipeline)
   const {
@@ -52,9 +51,12 @@ export default function PrivacyWorkspace() {
   const layout = useWorkspaceLayout({ hasModel })
   const placement = usePointPlacement({ prefix: activeRole === 'target' ? 'TW' : 'OW' })
 
-  // Report state
-  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+  // Report generation (replaces inline fetch + unclean setInterval)
+  const { reportDownloadUrl, isGeneratingReport, generateReport: handleGenerateReport } = useReportGeneration({
+    sessionId,
+    analysisType: 'privacy',
+    results,
+  })
 
   // 분석 완료 시 패널 전환
   useEffect(() => {
@@ -96,40 +98,6 @@ export default function PrivacyWorkspace() {
   const handleStartAnalysis = useCallback(async () => {
     await run()
   }, [run])
-
-  const handleGenerateReport = useCallback(async () => {
-    if (!sessionId || !results) return
-    setIsGeneratingReport(true)
-    try {
-      const res = await fetch(`${apiUrl}/reports/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          analysis_type: 'privacy',
-          session_id: sessionId,
-          analysis_result: results,
-        }),
-      })
-      if (!res.ok) throw new Error('보고서 생성 실패')
-      const data = await res.json()
-      const rid = data.report_id
-
-      const poll = setInterval(async () => {
-        const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
-        const status = await statusRes.json()
-        if (status.status === 'completed') {
-          clearInterval(poll)
-          setIsGeneratingReport(false)
-          setReportDownloadUrl(`${apiUrl}${status.download_url}`)
-        } else if (status.status === 'error') {
-          clearInterval(poll)
-          setIsGeneratingReport(false)
-        }
-      }, 2000)
-    } catch {
-      setIsGeneratingReport(false)
-    }
-  }, [apiUrl, sessionId, results])
 
   const statusBarState = useMemo((): StatusBarState => {
     if (error) return 'error'

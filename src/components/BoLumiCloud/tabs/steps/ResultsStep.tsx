@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { Images, AlertTriangle, Gauge, Sun } from 'lucide-react'
@@ -33,13 +33,13 @@ interface ResultsStepProps {
 
 type ResultsTab = 'summary' | 'chart' | 'gallery' | 'data' | 'download'
 
-export default function ResultsStep({
+const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function ResultsStep({
   results,
   apiUrl,
   sessionId,
   onBackToSettings,
   onReset,
-}: ResultsStepProps) {
+}, ref) {
   const { t } = useLocalizedText()
   const [resultsTab, setResultsTab] = useState<ResultsTab>('summary')
   const [viewerResult, setViewerResult] = useState<GlareResult | null>(null)
@@ -58,7 +58,7 @@ export default function ResultsStep({
   return (
     <motion.div
       key="step-5"
-      id="pipeline-results-section"
+      ref={ref}
       variants={fadeVariants}
       initial="initial"
       animate="animate"
@@ -231,4 +231,6 @@ export default function ResultsStep({
       )}
     </motion.div>
   )
-}
+})
+
+export default ResultsStep

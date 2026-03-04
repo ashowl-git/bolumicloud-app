@@ -24,6 +24,8 @@ export default function CameraPresetBar({
         <button
           key={preset.id}
           onClick={() => onPresetChange?.(preset.id)}
+          aria-label={`${t(preset.label)} 카메라 프리셋`}
+          aria-pressed={activePreset === preset.id}
           className={`px-3 py-1.5 text-xs transition-all duration-200 ${
             activePreset === preset.id
               ? 'text-red-600 font-medium border-b-2 border-red-600'

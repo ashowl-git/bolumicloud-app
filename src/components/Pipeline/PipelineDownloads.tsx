@@ -78,6 +78,7 @@ export default function PipelineDownloads({ sessionId }: PipelineDownloadsProps)
               type="button"
               onClick={() => handleDownload(item)}
               disabled={isDownloading}
+              aria-label={`${item.description} 다운로드`}
               className="border border-gray-200 hover:border-red-600/30 p-4
                 text-center transition-all duration-300 group hover:-translate-y-0.5
                 disabled:opacity-50 disabled:cursor-wait"
@@ -95,6 +96,9 @@ export default function PipelineDownloads({ sessionId }: PipelineDownloadsProps)
           )
         })}
       </div>
+      <p className="text-xs text-gray-400 mt-3">
+        세션 종료 후 2시간 내 다운로드하세요.
+      </p>
     </div>
   )
 }

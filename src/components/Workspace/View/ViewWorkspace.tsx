@@ -3,12 +3,14 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useViewPipelineContext } from '@/contexts/ViewPipelineContext'
-import { useApi } from '@/contexts/ApiContext'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
 import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPlacement'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
+import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { ViewConfig, ViewConfigState } from '@/lib/types/view'
 import type { ModelConfig } from '@/components/shared/3d/types'
+import { DEFAULT_VIEW_CONFIG } from '@/lib/defaults/view'
+import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
 
 import AnalysisWorkspace from '../AnalysisWorkspace'
@@ -26,29 +28,7 @@ const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/in
 const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interaction/SurfaceHighlight'), { ssr: false })
 const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
 
-// ─── 기본 설정 ─────────────────────────────
-const DEFAULT_CONFIG: ViewConfigState = {
-  latitude: 37.5665,
-  longitude: 126.978,
-  timezone: 135,
-  hemisphereResolution: 180,
-  projectionType: 'equidistant',
-}
-
-function formatEta(sec: number): string {
-  const minutes = Math.floor(sec / 60)
-  const seconds = sec % 60
-  if (minutes > 0) return `${minutes}분 ${seconds}초`
-  return `${seconds}초`
-}
-
-function formatDuration(sec: number): string {
-  if (sec < 60) return `${sec.toFixed(1)}s`
-  return `${Math.floor(sec / 60)}m ${(sec % 60).toFixed(0)}s`
-}
-
 export default function ViewWorkspace() {
-  const { apiUrl } = useApi()
   const pipeline = useViewPipelineContext()
   const {
     phase, sessionId, sceneUrl, modelMeta,
@@ -56,7 +36,7 @@ export default function ViewWorkspace() {
     uploadFile, runAnalysis,
   } = pipeline
 
-  const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_CONFIG })
+  const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_VIEW_CONFIG })
 
   // 3D model
   const modelConfig: ModelConfig | null = sceneUrl
@@ -68,9 +48,12 @@ export default function ViewWorkspace() {
   const layout = useWorkspaceLayout({ hasModel })
   const placement = usePointPlacement({ prefix: 'V' })
 
-  // Report state
-  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+  // Report generation (replaces inline fetch + unclean setInterval)
+  const { reportDownloadUrl, isGeneratingReport, generateReport: handleGenerateReport } = useReportGeneration({
+    sessionId,
+    analysisType: 'view',
+    results,
+  })
 
   // 분석 완료 시 패널 전환
   useEffect(() => {
@@ -123,40 +106,6 @@ export default function ViewWorkspace() {
     }
     await runAnalysis(analysisConfig)
   }, [config, runAnalysis, placement.points])
-
-  const handleGenerateReport = useCallback(async () => {
-    if (!sessionId || !results) return
-    setIsGeneratingReport(true)
-    try {
-      const res = await fetch(`${apiUrl}/reports/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          analysis_type: 'view',
-          session_id: sessionId,
-          analysis_result: results,
-        }),
-      })
-      if (!res.ok) throw new Error('보고서 생성 실패')
-      const data = await res.json()
-      const rid = data.report_id
-
-      const poll = setInterval(async () => {
-        const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
-        const status = await statusRes.json()
-        if (status.status === 'completed') {
-          clearInterval(poll)
-          setIsGeneratingReport(false)
-          setReportDownloadUrl(`${apiUrl}${status.download_url}`)
-        } else if (status.status === 'error') {
-          clearInterval(poll)
-          setIsGeneratingReport(false)
-        }
-      }, 2000)
-    } catch {
-      setIsGeneratingReport(false)
-    }
-  }, [apiUrl, sessionId, results])
 
   const statusBarState = useMemo((): StatusBarState => {
     if (error) return 'error'

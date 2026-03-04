@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from 'react'
+import { type ApiError } from '@/lib/api'
 
 export interface ToastAction {
   label: string
@@ -24,6 +25,7 @@ interface ShowToastOptions {
 interface ToastContextType {
   toasts: Toast[]
   showToast: (options: ShowToastOptions) => void
+  showApiError: (error: ApiError) => void
   dismissToast: (id: string) => void
 }
 
@@ -42,8 +44,23 @@ let toastCounter = 0
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const timerMap = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    const map = timerMap.current
+    return () => {
+      map.forEach((timerId) => clearTimeout(timerId))
+      map.clear()
+    }
+  }, [])
 
   const dismissToast = useCallback((id: string) => {
+    const timerId = timerMap.current.get(id)
+    if (timerId) {
+      clearTimeout(timerId)
+      timerMap.current.delete(id)
+    }
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
@@ -57,13 +74,34 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     })
 
     const timeout = duration ?? DURATION_MAP[type]
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
+      timerMap.current.delete(id)
       setToasts(prev => prev.filter(t => t.id !== id))
     }, timeout)
+    timerMap.current.set(id, timerId)
   }, [])
 
+  const showApiError = useCallback((error: ApiError) => {
+    showToast({
+      type: 'error',
+      message: error.userMessage,
+      ...(error.recoveryHint && {
+        action: {
+          label: error.recoveryHint,
+          onClick: () => {
+            if (error.status === 401 || error.status === 403) {
+              window.location.reload()
+            }
+          },
+        },
+      }),
+    })
+  }, [showToast])
+
+  const value = useMemo(() => ({ toasts, showToast, showApiError, dismissToast }), [toasts, showToast, showApiError, dismissToast])
+
   return (
-    <ToastContext.Provider value={{ toasts, showToast, dismissToast }}>
+    <ToastContext.Provider value={value}>
       {children}
     </ToastContext.Provider>
   )

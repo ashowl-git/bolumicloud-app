@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useApiClient } from '@/lib/api'
 import type {
   ComplexInfo,
   PerformanceBuilding,
@@ -60,6 +61,7 @@ export interface UsePerformanceGradeReturn {
 }
 
 export function usePerformanceGrade(apiUrl: string): UsePerformanceGradeReturn {
+  const api = useApiClient()
   const [phase, setPhase] = useState<PerformancePhase>('editing')
   const [projectId, setProjectId] = useState<string | null>(null)
   const [complexInfo, setComplexInfoState] = useState<ComplexInfo>({
@@ -94,34 +96,25 @@ export function usePerformanceGrade(apiUrl: string): UsePerformanceGradeReturn {
 
   const createProject = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/performance/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          complex_info: {
-            name: complexInfo.name,
-            address: complexInfo.address,
-            total_units: complexInfo.totalUnits,
-            construction_company: complexInfo.constructionCompany,
-            design_firm: complexInfo.designFirm,
-            site_area: complexInfo.siteArea,
-            building_coverage: complexInfo.buildingCoverage,
-            floor_area_ratio: complexInfo.floorAreaRatio,
-            latitude: complexInfo.latitude,
-            longitude: complexInfo.longitude,
-          },
-        }),
+      const data = await api.post('/performance/projects', {
+        complex_info: {
+          name: complexInfo.name,
+          address: complexInfo.address,
+          total_units: complexInfo.totalUnits,
+          construction_company: complexInfo.constructionCompany,
+          design_firm: complexInfo.designFirm,
+          site_area: complexInfo.siteArea,
+          building_coverage: complexInfo.buildingCoverage,
+          floor_area_ratio: complexInfo.floorAreaRatio,
+          latitude: complexInfo.latitude,
+          longitude: complexInfo.longitude,
+        },
       })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || '프로젝트 생성 실패')
-      }
-      const data = await res.json()
       setProjectId(data.project_id)
     } catch (e) {
       setError(e instanceof Error ? e.message : '프로젝트 생성 오류')
     }
-  }, [apiUrl, complexInfo])
+  }, [api, complexInfo])
 
   const calculate = useCallback(async () => {
     if (!projectId) {
@@ -172,20 +165,14 @@ export function usePerformanceGrade(apiUrl: string): UsePerformanceGradeReturn {
 
     try {
       const pid = projectId || `hp-temp-${Date.now()}`
-      const res = await fetch(`${apiUrl}/performance/projects/${pid}/calculate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error(`산출 실패: ${res.status}`)
-      const data: PerformanceResult = await res.json()
+      const data: PerformanceResult = await api.post(`/performance/projects/${pid}/calculate`, payload)
       setResults(data)
       setPhase('completed')
     } catch (e) {
       setError(e instanceof Error ? e.message : '산출 오류')
       setPhase('error')
     }
-  }, [apiUrl, projectId, buildings, units, grades, buildingPairs, createProject])
+  }, [api, projectId, buildings, units, grades, buildingPairs, createProject])
 
   const reset = useCallback(() => {
     setPhase('editing')

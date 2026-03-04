@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import * as THREE from 'three'
 import type { WindowSpec } from '@/lib/types/privacy'
 import { backendToThree, backendNormalToThree } from '@/components/shared/3d/interaction/types'
@@ -29,7 +29,7 @@ interface WindowMarkersProps {
   onWindowClick: (id: string) => void
 }
 
-export default function WindowMarkers({
+function WindowMarkersInner({
   observerWindows,
   targetWindows,
   selectedWindowId,
@@ -68,6 +68,16 @@ export default function WindowMarkers({
     </group>
   )
 }
+
+const WindowMarkers = React.memo(WindowMarkersInner, (prev, next) => {
+  return (
+    prev.observerWindows === next.observerWindows &&
+    prev.targetWindows === next.targetWindows &&
+    prev.selectedWindowId === next.selectedWindowId
+  )
+})
+
+export default WindowMarkers
 
 // ─── 마커 데이터 빌더 ───────────────────────────
 

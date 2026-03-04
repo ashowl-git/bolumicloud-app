@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { Text } from '@react-three/drei'
 import type { MeasurementPoint, PointSunlightResult } from '@/lib/types/sunlight'
@@ -20,7 +20,7 @@ interface MeasurementPointsProps {
 
 const RADIUS = 0.4
 
-export default function MeasurementPoints({
+function MeasurementPointsInner({
   points,
   results,
   selectedPointId,
@@ -118,3 +118,14 @@ export default function MeasurementPoints({
     </group>
   )
 }
+
+const MeasurementPoints = React.memo(MeasurementPointsInner, (prev, next) => {
+  return (
+    prev.points === next.points &&
+    prev.results === next.results &&
+    prev.selectedPointId === next.selectedPointId &&
+    prev.mode === next.mode
+  )
+})
+
+export default MeasurementPoints

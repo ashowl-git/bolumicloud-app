@@ -37,11 +37,14 @@ export default function ToastContainer() {
   const { toasts, dismissToast } = useToast()
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm" role="alert" aria-live="assertive" aria-atomic="true">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
       <AnimatePresence mode="popLayout">
         {toasts.map(toast => (
           <motion.div
             key={toast.id}
+            role={toast.type === 'error' || toast.type === 'warning' ? 'alert' : 'status'}
+            aria-live={toast.type === 'error' || toast.type === 'warning' ? 'assertive' : 'polite'}
+            aria-atomic="true"
             initial={{ opacity: 0, x: 80, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.95 }}

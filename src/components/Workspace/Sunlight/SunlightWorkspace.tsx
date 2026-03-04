@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useSunlightPipelineContext } from '@/contexts/SunlightPipelineContext'
 import { useApi } from '@/contexts/ApiContext'
@@ -9,10 +9,13 @@ import { usePointPlacement } from '@/components/shared/3d/interaction/usePointPl
 import { useAreaPlacement } from '@/components/shared/3d/interaction/useAreaPlacement'
 import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
-import { SUNLIGHT_DATE_PRESETS, DEFAULT_TOTAL_THRESHOLD, DEFAULT_CONTINUOUS_THRESHOLD } from '@/lib/types/sunlight'
 import { usePointGroups } from './hooks/usePointGroups'
-import type { SunlightConfig, SunlightConfigState, CauseAnalysisResult, GroundAnalysisResult, IsochroneLine, LayerConfig } from '@/lib/types/sunlight'
+import { useReportGeneration } from '@/hooks/useReportGeneration'
+import { useGroundAnalysis } from '@/hooks/useGroundAnalysis'
+import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig } from '@/components/shared/3d/types'
+import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
+import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
 
 import AnalysisWorkspace from '../AnalysisWorkspace'
@@ -44,32 +47,6 @@ const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/Cont
 import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
 import { Undo2, Redo2 } from 'lucide-react'
 
-// ─── 기본 설정 ─────────────────────────────
-const DEFAULT_CONFIG: SunlightConfigState = {
-  latitude: 37.5665,
-  longitude: 126.978,
-  timezone: 135,
-  azimuth: 0,
-  date: SUNLIGHT_DATE_PRESETS[0],
-  buildingType: 'apartment',
-  resolution: 'legal',
-  solarTimeMode: 'true_solar',
-  totalThreshold: { ...DEFAULT_TOTAL_THRESHOLD },
-  continuousThreshold: { ...DEFAULT_CONTINUOUS_THRESHOLD },
-}
-
-function formatEta(sec: number): string {
-  const minutes = Math.floor(sec / 60)
-  const seconds = sec % 60
-  if (minutes > 0) return `${minutes}분 ${seconds}초`
-  return `${seconds}초`
-}
-
-function formatDuration(sec: number): string {
-  if (sec < 60) return `${sec.toFixed(1)}s`
-  const min = Math.floor(sec / 60)
-  return `${min}m ${(sec % 60).toFixed(0)}s`
-}
 
 // ─── 컴포넌트 ─────────────────────────────
 export default function SunlightWorkspace() {
@@ -90,7 +67,7 @@ export default function SunlightWorkspace() {
   } = pipeline
 
   // Config state
-  const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_CONFIG })
+  const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_SUNLIGHT_CONFIG })
 
   // 3D model
   const modelConfig: ModelConfig | null = sceneUrl
@@ -163,15 +140,31 @@ export default function SunlightWorkspace() {
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
 
-  // Cause analysis
-  const [causeResult, setCauseResult] = useState<CauseAnalysisResult | null>(null)
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
+  // Report generation (extracted hook)
+  const report = useReportGeneration({
+    sessionId,
+    config: {
+      latitude: config.latitude,
+      longitude: config.longitude,
+      timezone: config.timezone,
+      date: config.date,
+      buildingType: config.buildingType,
+    },
+    results,
+  })
 
-  // Ground analysis state
-  const [groundResult, setGroundResult] = useState<GroundAnalysisResult | null>(null)
-  const [groundIsochrones, setGroundIsochrones] = useState<IsochroneLine[]>([])
-  const [showGroundHeatmap, setShowGroundHeatmap] = useState(false)
-  const [isGroundAnalyzing, setIsGroundAnalyzing] = useState(false)
+  // Ground analysis (extracted hook)
+  const ground = useGroundAnalysis({
+    sessionId,
+    config: {
+      latitude: config.latitude,
+      longitude: config.longitude,
+      timezone: config.timezone,
+      date: config.date,
+    },
+  })
+
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
 
   // Layer management
   const [layers, setLayers] = useState<LayerConfig[]>([])
@@ -201,22 +194,6 @@ export default function SunlightWorkspace() {
 
   const handleToggleAllLayers = useCallback((visible: boolean) => {
     setLayers(prev => prev.map(l => ({ ...l, visible })))
-  }, [])
-
-  // Report state
-  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
-
-  // Polling interval refs for cleanup
-  const reportPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const groundPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // Cleanup polling intervals on unmount
-  useEffect(() => {
-    return () => {
-      if (reportPollRef.current) clearInterval(reportPollRef.current)
-      if (groundPollRef.current) clearInterval(groundPollRef.current)
-    }
   }, [])
 
   // 포인트 변경 시 활성 그룹에 동기화
@@ -306,109 +283,6 @@ export default function SunlightWorkspace() {
     }
     await runAnalysis(analysisConfig)
   }, [config, runAnalysis, pointGroups.allMeasurementPoints])
-
-  const handleGenerateReport = useCallback(async () => {
-    if (!sessionId || !results) return
-    setIsGeneratingReport(true)
-    try {
-      const res = await fetch(`${apiUrl}/reports/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          latitude: config.latitude,
-          longitude: config.longitude,
-          timezone_offset: config.timezone / 15,
-          month: config.date.month,
-          day: config.date.day,
-          building_type: config.buildingType,
-          analysis_result: results,
-        }),
-      })
-      if (!res.ok) throw new Error('보고서 생성 실패')
-      const data = await res.json()
-      const rid = data.report_id
-
-      // Poll for completion
-      if (reportPollRef.current) clearInterval(reportPollRef.current)
-      reportPollRef.current = setInterval(async () => {
-        const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
-        const status = await statusRes.json()
-        if (status.status === 'completed') {
-          clearInterval(reportPollRef.current!)
-          reportPollRef.current = null
-          setIsGeneratingReport(false)
-          setReportDownloadUrl(`${apiUrl}${status.download_url}`)
-          if (status.cause_analysis) setCauseResult(status.cause_analysis)
-        } else if (status.status === 'error') {
-          clearInterval(reportPollRef.current!)
-          reportPollRef.current = null
-          setIsGeneratingReport(false)
-        }
-      }, 2000)
-    } catch {
-      setIsGeneratingReport(false)
-    }
-  }, [apiUrl, sessionId, results, config])
-
-  // ── Ground analysis handler ──
-  const handleGroundAnalysis = useCallback(async () => {
-    if (!sessionId) return
-    setIsGroundAnalyzing(true)
-    setShowGroundHeatmap(true)
-    try {
-      const res = await fetch(`${apiUrl}/sunlight/ground-analysis`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          grid_size: 2.0,
-          altitude: 0.0,
-          latitude: config.latitude,
-          longitude: config.longitude,
-          timezone_offset: config.timezone / 15,
-          month: config.date.month,
-          day: config.date.day,
-          resolution: 'preview',
-        }),
-      })
-      if (!res.ok) throw new Error('지반일조 분석 요청 실패')
-      const data = await res.json()
-      const groundId = data.ground_id
-
-      // Poll for completion
-      if (groundPollRef.current) clearInterval(groundPollRef.current)
-      groundPollRef.current = setInterval(async () => {
-        try {
-          const statusRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/status`)
-          const status = await statusRes.json()
-          if (status.status === 'completed') {
-            clearInterval(groundPollRef.current!)
-            groundPollRef.current = null
-            // Fetch result
-            const resultRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/result`)
-            const result = await resultRes.json()
-            setGroundResult(result)
-            // Fetch isochrones
-            const isoRes = await fetch(`${apiUrl}/sunlight/ground/${groundId}/isochrones`)
-            const isoData = await isoRes.json()
-            setGroundIsochrones(isoData.isochrones || [])
-            setIsGroundAnalyzing(false)
-          } else if (status.status === 'error') {
-            clearInterval(groundPollRef.current!)
-            groundPollRef.current = null
-            setIsGroundAnalyzing(false)
-          }
-        } catch {
-          clearInterval(groundPollRef.current!)
-          groundPollRef.current = null
-          setIsGroundAnalyzing(false)
-        }
-      }, 2000)
-    } catch {
-      setIsGroundAnalyzing(false)
-    }
-  }, [apiUrl, sessionId, config])
 
   // ── Status bar state ──
   const statusBarState = useMemo((): StatusBarState => {
@@ -526,15 +400,14 @@ export default function SunlightWorkspace() {
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
           results={results}
-          onGenerateReport={handleGenerateReport}
-          reportDownloadUrl={reportDownloadUrl}
-          isGeneratingReport={isGeneratingReport}
-          causeResult={causeResult}
+          onGenerateReport={report.generateReport}
+          reportDownloadUrl={report.reportDownloadUrl}
+          isGeneratingReport={report.isGeneratingReport}
+          causeResult={report.causeResult}
           selectedBuildingId={selectedBuildingId}
           onBuildingSelect={setSelectedBuildingId}
-          onStartGroundAnalysis={handleGroundAnalysis}
-          isGroundAnalysisRunning={isGroundAnalyzing}
-          apiUrl={apiUrl}
+          onStartGroundAnalysis={ground.runGroundAnalysis}
+          isGroundAnalysisRunning={ground.isGroundAnalyzing}
           sessionId={sessionId}
           layers={layers}
           onToggleLayerVisibility={handleToggleLayerVisibility}
@@ -660,16 +533,16 @@ export default function SunlightWorkspace() {
         )}
 
         {/* Ground heatmap overlay */}
-        {showGroundHeatmap && groundResult && groundResult.grid_data.length > 0 && (
+        {ground.showGroundHeatmap && ground.groundResult && ground.groundResult.grid_data.length > 0 && (
           <GroundHeatmap
-            gridData={groundResult.grid_data}
-            gridSize={groundResult.grid_size}
+            gridData={ground.groundResult.grid_data}
+            gridSize={ground.groundResult.grid_size}
           />
         )}
 
         {/* Isochrone / contour lines */}
-        {showGroundHeatmap && groundIsochrones.length > 0 && (
-          <ContourLines lines={groundIsochrones} />
+        {ground.showGroundHeatmap && ground.groundIsochrones.length > 0 && (
+          <ContourLines lines={ground.groundIsochrones} />
         )}
 
         {/* Heatmap overlay (results) */}
@@ -686,9 +559,9 @@ export default function SunlightWorkspace() {
         )}
 
         {/* Violation highlight (cause analysis) */}
-        {causeResult && causeResult.point_causes.length > 0 && (
+        {report.causeResult && report.causeResult.point_causes.length > 0 && (
           <ViolationHighlight
-            blockers={causeResult.point_causes.flatMap((pc) => pc.blockers)}
+            blockers={report.causeResult.point_causes.flatMap((pc) => pc.blockers)}
             selectedBuildingId={selectedBuildingId}
           />
         )}

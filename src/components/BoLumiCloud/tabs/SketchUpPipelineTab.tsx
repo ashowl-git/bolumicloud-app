@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePipelineContext } from '@/contexts/PipelineContext'
 import { useApi } from '@/contexts/ApiContext'
@@ -71,6 +71,7 @@ export default function SketchUpPipelineTab() {
   const [vfFiles, setVfFiles] = useState<File[]>([])
   const [objFile, setObjFile] = useState<File | null>(null)
   const [mtlFile, setMtlFile] = useState<File | null>(null)
+  const resultsSectionRef = useRef<HTMLDivElement>(null)
 
   // Config state (multi-date)
   const [config, setConfig] = useState<LocationTimeConfigState>({ ...DEFAULT_PIPELINE_CONFIG.config })
@@ -110,8 +111,7 @@ export default function SketchUpPipelineTab() {
     if (phase === 'completed' && results) {
       setCurrentStep(5)
       setTimeout(() => {
-        const el = document.getElementById('pipeline-results-section')
-        el?.scrollIntoView({ behavior: 'smooth' })
+        resultsSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
       }, 300)
     }
   }, [phase, results])
@@ -347,6 +347,7 @@ export default function SketchUpPipelineTab() {
 
         {currentStep === 5 && results && sessionId && (
           <ResultsStep
+            ref={resultsSectionRef}
             results={results}
             apiUrl={apiUrl}
             sessionId={sessionId}

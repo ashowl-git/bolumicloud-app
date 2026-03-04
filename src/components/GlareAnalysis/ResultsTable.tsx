@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { FileSearch } from 'lucide-react'
+import EmptyState from '@/components/common/EmptyState'
 import type { GlareResult } from '@/lib/types/glare'
 
 interface ResultsTableProps {
@@ -9,6 +11,16 @@ interface ResultsTableProps {
 }
 
 export default function ResultsTable({ results }: ResultsTableProps) {
+  if (!results || results.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="눈부심 분석 결과가 없습니다"
+        description="분석이 완료되면 결과가 표시됩니다."
+      />
+    )
+  }
+
   const [filter, setFilter] = useState<'all' | 'disability' | 'normal'>('all')
   const [filterDate, setFilterDate] = useState<string>('all')
   const [sortBy, setSortBy] = useState<keyof GlareResult>('file')
@@ -130,6 +142,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           <thead className="bg-gray-50">
             <tr>
               <th
+                scope="col"
                 className="p-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('file')}
               >
@@ -137,6 +150,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               </th>
               {hasDateLabels && (
                 <th
+                  scope="col"
                   className="p-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('date_label')}
                 >
@@ -144,35 +158,41 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 </th>
               )}
               <th
+                scope="col"
                 className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('average')}
               >
                 평균 휘도 <SortIcon column="average" />
               </th>
               <th
+                scope="col"
                 className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('max')}
               >
                 최대 휘도 <SortIcon column="max" />
               </th>
               <th
+                scope="col"
                 className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('dgp')}
               >
                 DGP <SortIcon column="dgp" />
               </th>
               <th
+                scope="col"
                 className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('dgi')}
               >
                 DGI <SortIcon column="dgi" />
               </th>
               <th
+                scope="col"
                 className="p-3 text-center font-semibold text-gray-900"
               >
                 DGP 등급
               </th>
               <th
+                scope="col"
                 className="p-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('disability')}
               >

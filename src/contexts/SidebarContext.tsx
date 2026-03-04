@@ -11,7 +11,7 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | null>(null)
 
-const STORAGE_KEY = 'bolumicloud-sidebar-open'
+const STORAGE_KEY = 'sidebarOpen'
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpenState] = useState(true)

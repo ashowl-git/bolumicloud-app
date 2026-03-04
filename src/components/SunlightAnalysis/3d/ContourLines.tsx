@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Line } from '@react-three/drei'
 import type { IsochroneLine, ContourLineType } from '@/lib/types/sunlight'
 import { backendToThree } from '@/components/shared/3d/interaction/types'
@@ -28,7 +28,7 @@ interface ContourLinesProps {
   yOffset?: number
 }
 
-export default function ContourLines({
+function ContourLinesInner({
   lines,
   visibleTypes = null,
   yOffset = 0.06,
@@ -87,3 +87,13 @@ export default function ContourLines({
     </group>
   )
 }
+
+const ContourLines = React.memo(ContourLinesInner, (prev, next) => {
+  return (
+    prev.lines === next.lines &&
+    prev.visibleTypes === next.visibleTypes &&
+    prev.yOffset === next.yOffset
+  )
+})
+
+export default ContourLines

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { useApiClient } from '@/lib/api'
 import BayesianOptimizationPanel from './BayesianOptimizationPanel'
 
 interface OptimizationScenario {
@@ -22,11 +23,16 @@ interface OptimizationResult {
   total_scenarios: number
 }
 
+interface CauseResultData {
+  blocker_buildings?: Array<{ building_id?: string; id?: string; height?: number }>
+  blockers?: Array<{ building_id?: string; id?: string; height?: number }>
+  point_causes?: Array<{ point_id: string; blockers: Array<{ building_id: string }> }>
+  total_non_compliant?: number
+}
+
 interface OptimizationPanelProps {
-  apiUrl: string
   sessionId: string | null
-  causeResult: object | null
-  analysisResult: object | null
+  causeResult: CauseResultData | null
   measurementPoints: { x: number; y: number; z: number }[]
   config: {
     latitude: number
@@ -37,14 +43,12 @@ interface OptimizationPanelProps {
 }
 
 export default function OptimizationPanel({
-  apiUrl,
   sessionId,
   causeResult,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  analysisResult,
   measurementPoints,
   config,
 }: OptimizationPanelProps) {
+  const api = useApiClient()
   const [isExpanded, setIsExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState<'sweep' | 'bayesian'>('sweep')
   const [isRunning, setIsRunning] = useState(false)
@@ -71,40 +75,32 @@ export default function OptimizationPanel({
     setResult(null)
 
     try {
-      const res = await fetch(`${apiUrl}/optimizer/height-sweep`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          cause_result: causeResult,
-          latitude: config.latitude,
-          longitude: config.longitude,
-          timezone_offset: config.timezone / 15,
-          month: config.date.month,
-          day: config.date.day,
-          height_min: heightMin,
-          height_max: heightMax,
-          height_step: heightStep,
-          measurement_points: measurementPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
-        }),
+      const data = await api.post('/optimizer/height-sweep', {
+        session_id: sessionId,
+        cause_result: causeResult,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        timezone_offset: config.timezone / 15,
+        month: config.date.month,
+        day: config.date.day,
+        height_min: heightMin,
+        height_max: heightMax,
+        height_step: heightStep,
+        measurement_points: measurementPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
       })
-      if (!res.ok) throw new Error('최적화 요청 실패')
-      const data = await res.json()
       const sweepId = data.sweep_id
 
       // Poll
       if (sweepPollRef.current) clearInterval(sweepPollRef.current)
       sweepPollRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`${apiUrl}/optimizer/${sweepId}/status`)
-          const status = await statusRes.json()
+          const status = await api.get(`/optimizer/${sweepId}/status`)
           setProgress(status.progress || 0)
 
           if (status.status === 'completed') {
             clearInterval(sweepPollRef.current!)
             sweepPollRef.current = null
-            const resultRes = await fetch(`${apiUrl}/optimizer/${sweepId}/result`)
-            const optimResult = await resultRes.json()
+            const optimResult = await api.get(`/optimizer/${sweepId}/result`)
             setResult(optimResult)
             setIsRunning(false)
           } else if (status.status === 'error') {
@@ -121,7 +117,7 @@ export default function OptimizationPanel({
     } catch {
       setIsRunning(false)
     }
-  }, [apiUrl, sessionId, causeResult, measurementPoints, config, heightMin, heightMax, heightStep, canRun])
+  }, [api, sessionId, causeResult, measurementPoints, config, heightMin, heightMax, heightStep, canRun])
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -165,7 +161,6 @@ export default function OptimizationPanel({
 
           {activeTab === 'bayesian' && (
             <BayesianOptimizationPanel
-              apiUrl={apiUrl}
               sessionId={sessionId}
               causeResult={causeResult}
               measurementPoints={measurementPoints}

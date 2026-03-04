@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { ObserverViewResult } from '@/lib/types/view'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -52,6 +53,16 @@ export default function ViewResultsTable({
     return 0
   })
 
+  if (!observers || observers.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="조망 분석 결과가 없습니다"
+        description="관찰점이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
@@ -70,6 +81,7 @@ export default function ViewResultsTable({
               ] as const).map((col, idx) => (
                 <th
                   key={idx}
+                  scope="col"
                   onClick={() => handleSort(col.key)}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500
                     cursor-pointer hover:text-gray-700 select-none"

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useApi } from '@/contexts/ApiContext'
+// RATIONALE: AbortSignal required for cleanup — raw fetch retained
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,6 +52,7 @@ export function useSunPathData({
   apiBaseUrl,
   enabled = true,
 }: UseSunPathDataOptions): UseSunPathDataResult {
+  const { apiUrl: contextApiUrl } = useApi()
   const [data, setData] = useState<SunPathEntry[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +60,7 @@ export function useSunPathData({
   useEffect(() => {
     if (!enabled) return
 
-    const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+    const baseUrl = apiBaseUrl || contextApiUrl
     const resolvedYear = year || new Date().getFullYear()
     const url = `${baseUrl}/sunpath/annual?lat=${latitude}&lng=${longitude}&year=${resolvedYear}`
 
@@ -91,7 +94,7 @@ export function useSunPathData({
     return () => {
       controller.abort()
     }
-  }, [latitude, longitude, year, apiBaseUrl, enabled])
+  }, [latitude, longitude, year, apiBaseUrl, contextApiUrl, enabled])
 
   return { data, loading, error }
 }

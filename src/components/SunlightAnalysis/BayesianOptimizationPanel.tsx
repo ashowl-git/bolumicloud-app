@@ -2,9 +2,23 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Settings, ChevronDown, ChevronUp, Play, Loader2, Trophy, Clock } from 'lucide-react'
+import { useApiClient } from '@/lib/api'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CauseResult = any
+interface CauseResult {
+  blocker_buildings?: BlockerBuilding[]
+  blockers?: BlockerBuilding[]
+  point_causes?: Array<{
+    point_id: string
+    blockers: Array<{ building_id: string }>
+  }>
+  total_non_compliant?: number
+}
+
+interface BlockerBuilding {
+  building_id?: string
+  id?: string
+  height?: number
+}
 
 interface VariableConfig {
   building_id: string
@@ -37,7 +51,6 @@ interface BayesianResult {
 }
 
 interface BayesianOptimizationPanelProps {
-  apiUrl: string
   sessionId: string | null
   causeResult: CauseResult | null
   measurementPoints: { x: number; y: number; z: number }[]
@@ -49,22 +62,22 @@ interface BayesianOptimizationPanelProps {
   }
 }
 
-function extractBlockers(causeResult: CauseResult): { building_id: string; height: number }[] {
+function extractBlockers(causeResult: CauseResult | null): { building_id: string; height: number }[] {
   if (!causeResult) return []
-  const blockers = causeResult.blocker_buildings || causeResult.blockers || []
-  return blockers.map((b: { building_id?: string; id?: string; height?: number }) => ({
-    building_id: b.building_id || b.id || 'unknown',
-    height: b.height || 0,
+  const blockers = causeResult.blocker_buildings ?? causeResult.blockers ?? []
+  return blockers.map((b) => ({
+    building_id: b.building_id ?? b.id ?? 'unknown',
+    height: b.height ?? 0,
   }))
 }
 
 export default function BayesianOptimizationPanel({
-  apiUrl,
   sessionId,
   causeResult,
   measurementPoints,
   config,
 }: BayesianOptimizationPanelProps) {
+  const api = useApiClient()
   const blockers = extractBlockers(causeResult)
 
   // Variable configs per building
@@ -124,45 +137,37 @@ export default function BayesianOptimizationPanel({
             }
           : null
 
-      const res = await fetch(`${apiUrl}/optimizer/auto-optimize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          cause_result: causeResult,
-          latitude: config.latitude,
-          longitude: config.longitude,
-          timezone_offset: config.timezone / 15,
-          month: config.date.month,
-          day: config.date.day,
-          measurement_points: measurementPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
-          variables: variables.map(v => ({
-            building_id: v.building_id,
-            height_range: v.height_range,
-            translate_range: v.translate_range,
-            rotation_enabled: v.rotation_enabled,
-          })),
-          n_trials: nTrials,
-          constraints,
-        }),
+      const data = await api.post('/optimizer/auto-optimize', {
+        session_id: sessionId,
+        cause_result: causeResult,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        timezone_offset: config.timezone / 15,
+        month: config.date.month,
+        day: config.date.day,
+        measurement_points: measurementPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
+        variables: variables.map(v => ({
+          building_id: v.building_id,
+          height_range: v.height_range,
+          translate_range: v.translate_range,
+          rotation_enabled: v.rotation_enabled,
+        })),
+        n_trials: nTrials,
+        constraints,
       })
-      if (!res.ok) throw new Error('최적화 요청 실패')
-      const data = await res.json()
       const optimId = data.optimize_id || data.sweep_id
 
       // Poll for status
       if (optimPollRef.current) clearInterval(optimPollRef.current)
       optimPollRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`${apiUrl}/optimizer/${optimId}/status`)
-          const status = await statusRes.json()
+          const status = await api.get(`/optimizer/${optimId}/status`)
           setProgress(status.progress || 0)
 
           if (status.status === 'completed') {
             clearInterval(optimPollRef.current!)
             optimPollRef.current = null
-            const resultRes = await fetch(`${apiUrl}/optimizer/${optimId}/result`)
-            const optimResult: BayesianResult = await resultRes.json()
+            const optimResult: BayesianResult = await api.get(`/optimizer/${optimId}/result`)
             setResult(optimResult)
             setIsRunning(false)
           } else if (status.status === 'error') {
@@ -182,7 +187,7 @@ export default function BayesianOptimizationPanel({
       setError('최적화 요청에 실패하였습니다.')
       setIsRunning(false)
     }
-  }, [apiUrl, sessionId, causeResult, measurementPoints, config, variables, nTrials, maxCoverageRatio, maxFar, siteArea, canRun])
+  }, [api, sessionId, causeResult, measurementPoints, config, variables, nTrials, maxCoverageRatio, maxFar, siteArea, canRun])
 
   // For convergence chart: sample every Nth trial
   const getChartTrials = (trials: TrialResult[]) => {

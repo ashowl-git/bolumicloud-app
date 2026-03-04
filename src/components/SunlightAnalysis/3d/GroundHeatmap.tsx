@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
+import React, { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { Html } from '@react-three/drei'
 import type { GridCell } from '@/lib/types/sunlight'
@@ -33,7 +33,7 @@ interface GroundHeatmapProps {
   showTooltip?: boolean
 }
 
-export default function GroundHeatmap({
+function GroundHeatmapInner({
   gridData,
   gridSize,
   maxHours = 8,
@@ -151,3 +151,13 @@ export default function GroundHeatmap({
     </group>
   )
 }
+
+const GroundHeatmap = React.memo(GroundHeatmapInner, (prev, next) => {
+  return (
+    prev.gridData === next.gridData &&
+    prev.gridSize === next.gridSize &&
+    prev.maxHours === next.maxHours
+  )
+})
+
+export default GroundHeatmap

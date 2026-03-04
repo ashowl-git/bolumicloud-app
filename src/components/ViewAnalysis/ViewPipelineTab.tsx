@@ -9,9 +9,12 @@ import { VIEW_STAGE_LABELS } from '@/lib/types/view'
 import type { ViewConfig, ViewConfigState, ViewObserverPoint } from '@/lib/types/view'
 import type { ViewProgress as ViewProgressType } from '@/lib/types/view'
 import type { LocalizedText } from '@/lib/types/i18n'
+import { formatDuration, formatEta } from '@/lib/utils/format'
 
+import { DEFAULT_VIEW_CONFIG } from '@/lib/defaults/view'
 import ViewConfigPanel from './ViewConfigPanel'
 import ViewResults from './ViewResults'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 
 // 3D 뷰어 (dynamic import for SSR safety)
 import dynamic from 'next/dynamic'
@@ -22,6 +25,7 @@ const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), 
 const SceneLighting = dynamic(() => import('@/components/shared/3d/SceneLighting'), { ssr: false })
 import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
+import ModelLoadingSkeleton from '@/components/common/ModelLoadingSkeleton'
 import type { CameraPresetId, ModelConfig } from '@/components/shared/3d/types'
 
 // 인터랙션 레이어 (공유 컴포넌트)
@@ -56,32 +60,10 @@ const STEPS = [
   { label: 'Results', icon: BarChart3 },
 ]
 
-const DEFAULT_CONFIG: ViewConfigState = {
-  latitude: 37.5665,
-  longitude: 126.978,
-  timezone: 135,
-  hemisphereResolution: 180,
-  projectionType: 'equal_solid_angle',
-}
-
 const fadeVariants = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
-}
-
-function formatDuration(sec: number): string {
-  if (sec < 60) return `${sec.toFixed(1)}s`
-  const min = Math.floor(sec / 60)
-  const remaining = (sec % 60).toFixed(0)
-  return `${min}m ${remaining}s`
-}
-
-function formatEta(sec: number): string {
-  const minutes = Math.floor(sec / 60)
-  const seconds = sec % 60
-  if (minutes > 0) return `${minutes}분 ${seconds}초`
-  return `${seconds}초`
 }
 
 // ─── 컴포넌트 ─────────────────────────────
@@ -107,10 +89,12 @@ export default function ViewPipelineTab() {
   const [currentStep, setCurrentStep] = useState(1)
   const [objFile, setObjFile] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const resultsSectionRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_CONFIG })
+  const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_VIEW_CONFIG })
   const [cameraPreset, setCameraPreset] = useState<CameraPresetId>('perspective')
   const [selectedObserverId, setSelectedObserverId] = useState<string | null>(null)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   const modelConfig: ModelConfig | null = sceneUrl
     ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
@@ -133,8 +117,7 @@ export default function ViewPipelineTab() {
     if (phase === 'completed' && results) {
       setCurrentStep(4)
       setTimeout(() => {
-        const el = document.getElementById('view-results-section')
-        el?.scrollIntoView({ behavior: 'smooth' })
+        resultsSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
       }, 300)
     }
   }, [phase, results])
@@ -209,7 +192,7 @@ export default function ViewPipelineTab() {
     reset()
     setCurrentStep(1)
     setObjFile(null)
-    setConfig({ ...DEFAULT_CONFIG })
+    setConfig({ ...DEFAULT_VIEW_CONFIG })
     placement.clearPoints()
     setSelectedObserverId(null)
   }, [reset, placement])
@@ -239,7 +222,7 @@ export default function ViewPipelineTab() {
           )}
           {currentStep > 1 && (
             <button
-              onClick={handleReset}
+              onClick={() => setShowResetConfirm(true)}
               className="border border-gray-200 hover:border-red-600/30 px-4 py-3
                 text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
             >
@@ -248,6 +231,17 @@ export default function ViewPipelineTab() {
           )}
         </div>
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="분석 초기화"
+        message="현재 분석 결과와 설정이 모두 초기화됩니다. 계속하시겠습니까?"
+        confirmLabel="초기화"
+        cancelLabel="취소"
+        onConfirm={() => { setShowResetConfirm(false); handleReset() }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
 
       {/* Step Indicator */}
       <div className="flex items-center justify-center mb-10">
@@ -391,10 +385,7 @@ export default function ViewPipelineTab() {
               </div>
             )}
             {sessionId && modelState === 'loading' && (
-              <div className="border border-gray-200 p-8 text-center">
-                <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-xs text-gray-400">3D 모델 변환 중...</p>
-              </div>
+              <ModelLoadingSkeleton height="360px" message="3D 모델 변환 중..." />
             )}
 
             {sessionId && (
@@ -516,7 +507,7 @@ export default function ViewPipelineTab() {
 
         {/* ========== Step 4: Results ========== */}
         {currentStep === 4 && results && (
-          <motion.div key="step-4" id="view-results-section" variants={fadeVariants}
+          <motion.div key="step-4" ref={resultsSectionRef} variants={fadeVariants}
             initial="initial" animate="animate" exit="exit"
             transition={{ duration: 0.25 }} className="space-y-6"
           >
@@ -533,7 +524,7 @@ export default function ViewPipelineTab() {
               >
                 {t(txt.backToSettings)}
               </button>
-              <button onClick={handleReset}
+              <button onClick={() => setShowResetConfirm(true)}
                 className="border border-gray-200 hover:border-red-600/30 px-6 py-3
                   text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
               >

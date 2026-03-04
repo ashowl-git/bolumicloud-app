@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { PairResult } from '@/lib/types/privacy'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -59,6 +60,16 @@ export default function PrivacyResultsTable({
     return 'text-green-600'
   }
 
+  if (!pairs || pairs.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="프라이버시 분석 결과가 없습니다"
+        description="분석 쌍이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
@@ -78,6 +89,7 @@ export default function PrivacyResultsTable({
               ]).map((col, idx) => (
                 <th
                   key={idx}
+                  scope="col"
                   onClick={() => handleSort(col.key)}
                   className="px-3 py-3 text-left text-xs font-medium text-gray-500
                     cursor-pointer hover:text-gray-700 select-none"

@@ -87,6 +87,8 @@ export default function InteractionToolbar({
           key={id}
           onClick={() => onModeChange(id)}
           title={label}
+          aria-label={label}
+          aria-pressed={mode === id}
           className={`p-1.5 transition-colors ${
             mode === id
               ? 'text-red-600 bg-red-50'
@@ -104,6 +106,8 @@ export default function InteractionToolbar({
           <button
             onClick={() => onRoleChange('target')}
             title="대상 건물"
+            aria-label="대상 건물"
+            aria-pressed={activeRole === 'target'}
             className={`px-2 py-0.5 text-xs transition-colors ${
               activeRole === 'target'
                 ? 'text-orange-600 bg-orange-50 border border-orange-200'
@@ -115,6 +119,8 @@ export default function InteractionToolbar({
           <button
             onClick={() => onRoleChange('observer')}
             title="관찰 건물"
+            aria-label="관찰 건물"
+            aria-pressed={activeRole === 'observer'}
             className={`px-2 py-0.5 text-xs transition-colors ${
               activeRole === 'observer'
                 ? 'text-blue-600 bg-blue-50 border border-blue-200'
@@ -141,6 +147,7 @@ export default function InteractionToolbar({
           )}
           <button
             onClick={onClearAll}
+            aria-label="측정점 초기화"
             className="text-xs text-gray-400 hover:text-red-500 px-1"
           >
             초기화

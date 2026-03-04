@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useApiClient } from '@/lib/api'
 import type { AnalysisResponse } from '@/lib/types/glare'
 import type { PipelineConfig, PipelineProgress, PipelineUploadResponse } from '@/lib/types/pipeline'
 import { logger } from '@/lib/logger'
@@ -28,6 +29,7 @@ interface UsePipelineReturn {
 }
 
 export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
+  const api = useApiClient()
   const [phase, setPhase] = useState<PipelinePhase>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [vfCount, setVfCount] = useState(0)
@@ -109,17 +111,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         formData.append('mtl_file', mtlFile)
       }
 
-      const res = await fetch(`${apiUrl}/pipeline/upload`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ detail: '업로드 실패' }))
-        throw new Error(errData.detail || '파일 업로드 실패')
-      }
-
-      const data: PipelineUploadResponse = await res.json()
+      const data: PipelineUploadResponse = await api.postFormData('/pipeline/upload', formData)
       setSessionId(data.session_id)
       setVfCount(data.vf_count)
       setPhase('idle')
@@ -130,7 +122,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       setPhase('error')
       logger.error('Pipeline upload error', err instanceof Error ? err : undefined)
     }
-  }, [apiUrl])
+  }, [api])
 
   const startPolling = useCallback((sid: string) => {
     errorCountRef.current = 0
@@ -140,8 +132,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
 
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`${apiUrl}/pipeline/progress/${sid}`)
-        const data: PipelineProgress = await res.json()
+        const data: PipelineProgress = await api.get(`/pipeline/progress/${sid}`)
 
         errorCountRef.current = 0
         setProgress(data)
@@ -161,14 +152,13 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
             pollIntervalRef.current = null
           }
 
-          const resultsRes = await fetch(`${apiUrl}/pipeline/results/${sid}`)
-          if (resultsRes.ok) {
-            const resultsData = await resultsRes.json()
+          try {
+            const resultsData = await api.get(`/pipeline/results/${sid}`)
             setResults(resultsData)
             setPhase('completed')
             setEstimatedRemainingSec(null)
             clearPipelineSession()
-          } else {
+          } catch {
             setError('결과를 가져올 수 없습니다')
             setPhase('error')
             clearPipelineSession()
@@ -197,7 +187,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         }
       }
     }, 2000)
-  }, [apiUrl])
+  }, [api])
 
   // Session restore on mount
   useEffect(() => {
@@ -214,7 +204,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
   const cancelPipeline = useCallback(async () => {
     if (!sessionId) return
     try {
-      await fetch(`${apiUrl}/pipeline/cancel/${sessionId}`, { method: 'POST' })
+      await api.post(`/pipeline/cancel/${sessionId}`)
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current)
         pollIntervalRef.current = null
@@ -228,7 +218,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
     } catch (err) {
       logger.error('Pipeline cancel error', err instanceof Error ? err : undefined)
     }
-  }, [sessionId, apiUrl])
+  }, [sessionId, api])
 
   const runPipeline = useCallback(async (config: PipelineConfig) => {
     if (!sessionId) {
@@ -266,16 +256,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
         backendConfig.render_params = config.renderParams
       }
 
-      const res = await fetch(`${apiUrl}/pipeline/run/${sessionId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(backendConfig),
-      })
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ detail: '파이프라인 시작 실패' }))
-        throw new Error(errData.detail || '파이프라인 시작 실패')
-      }
+      await api.post(`/pipeline/run/${sessionId}`, backendConfig)
 
       setPhase('polling')
       savePipelineSession(sessionId, 'polling', vfCount)
@@ -286,7 +267,7 @@ export function usePipeline({ apiUrl }: UsePipelineOptions): UsePipelineReturn {
       setPhase('error')
       logger.error('Pipeline run error', err instanceof Error ? err : undefined)
     }
-  }, [sessionId, vfCount, apiUrl, startPolling])
+  }, [sessionId, vfCount, api, startPolling])
 
   return {
     phase,

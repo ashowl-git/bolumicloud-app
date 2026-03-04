@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { FileSpreadsheet, Download, Loader2 } from 'lucide-react'
+import { useApiClient } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import type {
   SunlightAnalysisResult,
@@ -28,6 +29,7 @@ export default function ReportDownloadPanel({
   config,
   onCauseAnalysis,
 }: ReportDownloadPanelProps) {
+  const api = useApiClient()
   const { apiUrl } = useApi()
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -67,25 +69,13 @@ export default function ReportDownloadPanel({
         body.project_info = projectInfo
       }
 
-      const res = await fetch(`${apiUrl}/reports/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: '보고서 생성 실패' }))
-        throw new Error(err.detail || '보고서 생성 실패')
-      }
-
-      const data = await res.json()
+      const data = await api.post('/reports/generate', body)
       const rid = data.report_id
 
       // Poll status
       pollRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`${apiUrl}/reports/${rid}/status`)
-          const status = await statusRes.json()
+          const status = await api.get(`/reports/${rid}/status`)
 
           setProgress(status.progress)
 
@@ -110,7 +100,7 @@ export default function ReportDownloadPanel({
       setIsGenerating(false)
       setError(err instanceof Error ? err.message : '보고서 생성 중 오류')
     }
-  }, [apiUrl, sessionId, results, config, onCauseAnalysis, reportFormat, projectInfo])
+  }, [api, apiUrl, sessionId, results, config, onCauseAnalysis, reportFormat, projectInfo])
 
   const handleDownload = useCallback(() => {
     if (!downloadUrl) return
@@ -167,12 +157,19 @@ export default function ReportDownloadPanel({
 
           {/* 생성 중 */}
           {isGenerating && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" aria-live="polite">
               <Loader2 size={14} className="animate-spin text-gray-500" />
               <span className="text-xs text-gray-500">
                 생성 중... {progress.toFixed(0)}%
               </span>
-              <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="보고서 생성 진행률"
+              >
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }}
@@ -183,14 +180,17 @@ export default function ReportDownloadPanel({
 
           {/* 다운로드 버튼 */}
           {downloadUrl && (
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-1.5 border border-green-200 hover:border-green-400
-                px-4 py-2 text-sm text-green-700 hover:text-green-800 transition-all duration-300"
-            >
-              <Download size={14} />
-              Excel 다운로드
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-1.5 border border-green-200 hover:border-green-400
+                  px-4 py-2 text-sm text-green-700 hover:text-green-800 transition-all duration-300"
+              >
+                <Download size={14} />
+                Excel 다운로드
+              </button>
+              <span className="text-xs text-gray-400">2시간 내 다운로드하세요</span>
+            </div>
           )}
         </div>
       </div>

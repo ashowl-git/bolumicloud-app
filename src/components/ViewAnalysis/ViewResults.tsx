@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { ViewAnalysisResult } from '@/lib/types/view'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -33,6 +35,16 @@ export default function ViewResults({
   const selectedObserver = selectedObserverId
     ? results.observers.find((o) => o.id === selectedObserverId) ?? null
     : null
+
+  if (!results.observers || results.observers.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="조망 분석 결과가 없습니다"
+        description="관찰점이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">

@@ -84,6 +84,7 @@ export default function TimeSlider({
             onClick={skipBack}
             className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
             title="처음으로"
+            aria-label="처음으로"
           >
             <SkipBack size={16} />
           </button>
@@ -91,6 +92,7 @@ export default function TimeSlider({
             onClick={playback.isPlaying ? onPause : onPlay}
             className="p-1.5 text-gray-700 hover:text-red-600 transition-colors"
             title={playback.isPlaying ? '일시정지' : '재생'}
+            aria-label={playback.isPlaying ? '일시정지' : '재생'}
           >
             {playback.isPlaying ? <Pause size={18} /> : <Play size={18} />}
           </button>
@@ -98,6 +100,7 @@ export default function TimeSlider({
             onClick={skipForward}
             className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
             title="끝으로"
+            aria-label="끝으로"
           >
             <SkipForward size={16} />
           </button>
@@ -117,6 +120,7 @@ export default function TimeSlider({
             step={stepSize}
             value={playback.currentMinute}
             onChange={handleSliderChange}
+            aria-label="시간 슬라이더"
             className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5
@@ -133,6 +137,8 @@ export default function TimeSlider({
             <button
               key={speed}
               onClick={() => onSpeedChange(speed)}
+              aria-label={`재생 속도 ${speed}배`}
+              aria-pressed={playback.speed === speed}
               className={`px-2 py-1 text-xs transition-colors ${
                 playback.speed === speed
                   ? 'text-red-600 font-medium'

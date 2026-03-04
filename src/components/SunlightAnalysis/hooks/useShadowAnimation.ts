@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useApiClient } from '@/lib/api'
 import type { ShadowFrame, PlaybackState, PlaybackSpeed } from '@/lib/types/shadow'
 import { logger } from '@/lib/logger'
 
@@ -38,6 +39,7 @@ interface ShadowComputeParams {
 }
 
 export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseShadowAnimationReturn {
+  const api = useApiClient()
   const [shadowId, setShadowId] = useState<string | null>(null)
   const [frames, setFrames] = useState<ShadowFrame[]>([])
   const [playback, setPlayback] = useState<PlaybackState>({
@@ -72,26 +74,15 @@ export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseSh
     setError(null)
 
     try {
-      const res = await fetch(`${apiUrl}/shadows/compute`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: params.sessionId,
-          latitude: params.latitude,
-          longitude: params.longitude,
-          timezone_offset: params.timezoneOffset ?? 9.0,
-          month: params.month,
-          day: params.day,
-          step_minutes: params.stepMinutes ?? 10,
-        }),
+      const data = await api.post('/shadows/compute', {
+        session_id: params.sessionId,
+        latitude: params.latitude,
+        longitude: params.longitude,
+        timezone_offset: params.timezoneOffset ?? 9.0,
+        month: params.month,
+        day: params.day,
+        step_minutes: params.stepMinutes ?? 10,
       })
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ detail: '그림자 계산 실패' }))
-        throw new Error(errData.detail || '그림자 계산 요청 실패')
-      }
-
-      const data = await res.json()
       const sid = data.shadow_id
       setShadowId(sid)
 
@@ -99,8 +90,7 @@ export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseSh
       await new Promise<void>((resolve, reject) => {
         pollRef.current = setInterval(async () => {
           try {
-            const statusRes = await fetch(`${apiUrl}/shadows/${sid}/status`)
-            const status = await statusRes.json()
+            const status = await api.get(`/shadows/${sid}/status`)
 
             setComputeProgress(status.progress)
 
@@ -108,8 +98,7 @@ export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseSh
               if (pollRef.current) clearInterval(pollRef.current)
 
               // 전체 프레임 로드
-              const framesRes = await fetch(`${apiUrl}/shadows/${sid}/frames`)
-              const framesData = await framesRes.json()
+              const framesData = await api.get(`/shadows/${sid}/frames`)
               setFrames(framesData.frames)
               setIsComputing(false)
               resolve()
@@ -131,7 +120,7 @@ export function useShadowAnimation({ apiUrl }: UseShadowAnimationOptions): UseSh
       setIsComputing(false)
       logger.error('Shadow computation error', err instanceof Error ? err : undefined)
     }
-  }, [apiUrl])
+  }, [api])
 
   // ─── 재생 제어 ─────────────────────────────
 

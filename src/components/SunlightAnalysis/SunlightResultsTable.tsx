@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, XCircle, ArrowUpDown } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowUpDown, FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { PointSunlightResult } from '@/lib/types/sunlight'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -59,6 +60,16 @@ export default function SunlightResultsTable({
     return 0
   })
 
+  if (!points || points.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="일조 분석 결과가 없습니다"
+        description="측정점이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -100,6 +111,7 @@ export default function SunlightResultsTable({
               ] as const).map((col, idx) => (
                 <th
                   key={idx}
+                  scope="col"
                   onClick={() => handleSort(col.key)}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500
                     cursor-pointer hover:text-gray-700 select-none"

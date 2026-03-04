@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+// RATIONALE: AbortSignal required for timeout — raw fetch retained
 import { logger } from '@/lib/logger'
 
 export interface BackendInfo {

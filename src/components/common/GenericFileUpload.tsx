@@ -167,6 +167,15 @@ export default function GenericFileUpload({
     <div className="space-y-4">
       {/* Drop Zone */}
       <motion.div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (!isDisabled) fileInputRef.current?.click()
+          }
+        }}
+        aria-label={`${fileTypeLabel} 파일 업로드`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

@@ -25,6 +25,8 @@ function centerModel(object: THREE.Object3D, bbox: BoundingBox): void {
   object.position.set(-bbox.center[0], -bbox.min[1], -bbox.center[2])
 }
 
+const MODEL_LOAD_TIMEOUT = 30000
+
 export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
   const [state, setState] = useState<ModelLoadState>('idle')
   const [scene, setScene] = useState<THREE.Group | null>(null)
@@ -39,9 +41,21 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
     setState('loading')
     setError(null)
 
+    let settled = false
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        setError('모델 로드 시간이 초과되었습니다. 파일 크기를 확인하거나 다시 시도하세요.')
+        setState('error')
+      }
+    }, MODEL_LOAD_TIMEOUT)
+
     const group = new THREE.Group()
 
     const onLoad = (loaded: THREE.Object3D) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timeoutId)
       // Z-up → Y-up 좌표 변환
       // OBJ 원본 및 trimesh 경유 GLB 모두 Z-up 좌표계를 유지하므로 회전 필요
       if (config.zUp !== false) {
@@ -71,6 +85,9 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
     }
 
     const onError = (err: unknown) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timeoutId)
       const msg = err instanceof Error ? err.message : '모델 로딩 실패'
       setError(msg)
       setState('error')
@@ -90,6 +107,8 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
     }
 
     return () => {
+      clearTimeout(timeoutId)
+      settled = true
       group.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.geometry?.dispose()

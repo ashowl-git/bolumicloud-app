@@ -14,7 +14,24 @@ interface SunlightPipelineProviderProps {
 export function SunlightPipelineProvider({ children, apiUrl }: SunlightPipelineProviderProps) {
   const pipeline = useSunlightPipeline({ apiUrl })
 
-  const value = useMemo(() => pipeline, [pipeline])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const value = useMemo(() => pipeline, [
+    pipeline.phase,
+    pipeline.sessionId,
+    pipeline.modelId,
+    pipeline.sceneUrl,
+    pipeline.modelMeta,
+    pipeline.progress,
+    pipeline.results,
+    pipeline.error,
+    pipeline.isCancelled,
+    pipeline.estimatedRemainingSec,
+    pipeline.importData,
+    pipeline.uploadFile,
+    pipeline.runAnalysis,
+    pipeline.cancelAnalysis,
+    pipeline.reset,
+  ])
 
   return (
     <SunlightPipelineContext.Provider value={value}>

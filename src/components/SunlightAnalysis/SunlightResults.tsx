@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { SunlightAnalysisResult } from '@/lib/types/sunlight'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -34,6 +36,16 @@ export default function SunlightResults({
   const selectedPoint = selectedPointId
     ? results.points.find((p) => p.id === selectedPointId) ?? null
     : null
+
+  if (!results.points || results.points.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="일조 분석 결과가 없습니다"
+        description="측정점이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">

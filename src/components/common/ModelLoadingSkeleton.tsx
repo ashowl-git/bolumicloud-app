@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 
 interface ModelLoadingSkeletonProps {
@@ -11,6 +12,18 @@ export default function ModelLoadingSkeleton({
   height = '360px',
   message = '3D 모델 로딩 중...',
 }: ModelLoadingSkeletonProps) {
+  const [elapsed, setElapsed] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setElapsed((prev) => prev + 1)
+    }, 1000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [])
+
   return (
     <div
       className="border border-gray-200 bg-gray-50 flex flex-col items-center justify-center"
@@ -33,7 +46,11 @@ export default function ModelLoadingSkeleton({
           <span className="text-gray-400 text-xs font-light">3D</span>
         </div>
       </motion.div>
-      <p className="text-sm text-gray-500">{message}</p>
+      <div aria-live="polite">
+        <p className="text-sm text-gray-500">
+          {elapsed >= 10 ? `${message.replace('...', '')} (${elapsed}초 경과)` : message}
+        </p>
+      </div>
       <div className="mt-3 w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-gray-400 rounded-full"

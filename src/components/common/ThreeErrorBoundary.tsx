@@ -63,6 +63,7 @@ export default class ThreeErrorBoundary extends Component<
 
       return (
         <div
+          role="alert"
           className={`border border-gray-200 bg-gray-50 flex flex-col items-center justify-center ${
             isFluid ? 'w-full h-full' : ''
           }`}
@@ -75,11 +76,11 @@ export default class ThreeErrorBoundary extends Component<
                   <span className="text-gray-400 text-lg font-light">3D</span>
                 </div>
                 <p className="text-sm font-medium text-gray-800 mb-1">
-                  3D viewer failed to load
+                  3D 뷰어를 로드할 수 없습니다
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  WebGL context was lost or is unavailable. This can happen
-                  when GPU resources are exhausted.
+                  WebGL 컨텍스트가 손실되었거나 사용할 수 없습니다.
+                  GPU 리소스가 부족할 때 발생할 수 있습니다.
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <button
@@ -87,31 +88,31 @@ export default class ThreeErrorBoundary extends Component<
                     className="border border-gray-200 hover:border-gray-400 px-4 py-2
                       text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
                   >
-                    Retry
+                    다시 시도
                   </button>
                   <button
                     onClick={this.handleReload}
                     className="border border-gray-200 hover:border-red-600/30 px-4 py-2
                       text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
                   >
-                    Reload Page
+                    페이지 새로고침
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-sm font-medium text-gray-800 mb-1">
-                  3D rendering error
+                  3D 렌더링 오류
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  {error?.message || 'An unexpected error occurred in the 3D viewer.'}
+                  {error?.message || '3D 뷰어에서 예상치 못한 오류가 발생하였습니다.'}
                 </p>
                 <button
                   onClick={this.handleRetry}
                   className="border border-gray-200 hover:border-gray-400 px-4 py-2
                     text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
                 >
-                  Retry
+                  다시 시도
                 </button>
               </>
             )}

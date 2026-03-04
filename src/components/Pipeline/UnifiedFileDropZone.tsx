@@ -9,6 +9,9 @@ interface ClassifiedFiles {
   mtl: File | null
 }
 
+const MAX_FILE_SIZE_MB = 100
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
 interface UnifiedFileDropZoneProps {
   onFilesClassified: (files: ClassifiedFiles) => void
   currentFiles: ClassifiedFiles
@@ -48,13 +51,19 @@ export default function UnifiedFileDropZone({
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [unknownFiles, setUnknownFiles] = useState<string[]>([])
+  const [oversizedFiles, setOversizedFiles] = useState<string[]>([])
 
   const processFiles = useCallback(
     (fileList: File[]) => {
       const unknowns: string[] = []
+      const oversized: string[] = []
       const valid: File[] = []
 
       for (const file of fileList) {
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          oversized.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+          continue
+        }
         const ext = file.name.split('.').pop()?.toLowerCase()
         if (ext === 'vf' || ext === 'obj' || ext === 'mtl') {
           valid.push(file)
@@ -64,6 +73,7 @@ export default function UnifiedFileDropZone({
       }
 
       setUnknownFiles(unknowns)
+      setOversizedFiles(oversized)
       if (valid.length > 0) {
         const classified = classifyFiles(valid, currentFiles)
         onFilesClassified(classified)
@@ -96,6 +106,15 @@ export default function UnifiedFileDropZone({
   return (
     <div>
       <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (!disabled && !isProcessing) inputRef.current?.click()
+          }
+        }}
+        aria-label="파일 업로드"
         onDragOver={(e) => {
           e.preventDefault()
           if (!disabled && !isProcessing) setIsDragging(true)
@@ -139,6 +158,11 @@ export default function UnifiedFileDropZone({
         )}
       </div>
 
+      {oversizedFiles.length > 0 && (
+        <p className="text-xs text-red-500 mt-2">
+          파일 크기 초과 (최대 {MAX_FILE_SIZE_MB}MB): {oversizedFiles.join(', ')}
+        </p>
+      )}
       {unknownFiles.length > 0 && (
         <p className="text-xs text-red-500 mt-2">
           인식할 수 없는 파일: {unknownFiles.join(', ')}

@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
+import EmptyState from '@/components/common/EmptyState'
 import type { PrivacyAnalysisResult } from '@/lib/types/privacy'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -35,6 +37,16 @@ export default function PrivacyResults({
 }: PrivacyResultsProps) {
   const { t } = useLocalizedText()
   const [activeTab, setActiveTab] = useState<'summary' | '3d' | 'data'>('summary')
+
+  if (!results.pairs || results.pairs.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSearch}
+        title="프라이버시 분석 결과가 없습니다"
+        description="분석 쌍이 올바르게 설정되었는지 확인하세요."
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">

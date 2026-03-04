@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, AlertCircle, Circle } from 'lucide-react'
 import type { PipelineProgress as PipelineProgressType } from '@/lib/types/pipeline'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { usePipelineContext } from '@/contexts/PipelineContext'
+import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 const txt = {
@@ -19,31 +20,16 @@ const txt = {
   elapsed: { ko: '경과', en: 'Elapsed' } as LocalizedText,
   overall: { ko: '전체', en: 'Overall' } as LocalizedText,
   current: { ko: '현재:', en: 'Current:' } as LocalizedText,
+  cancel: { ko: '분석 취소', en: 'Cancel Analysis' } as LocalizedText,
 }
 
 interface PipelineProgressProps {
   progress: PipelineProgressType
 }
 
-function formatDuration(sec: number): string {
-  if (sec < 60) return `${sec.toFixed(1)}s`
-  const min = Math.floor(sec / 60)
-  const remaining = (sec % 60).toFixed(0)
-  return `${min}m ${remaining}s`
-}
-
-function formatEta(sec: number): string {
-  const minutes = Math.floor(sec / 60)
-  const seconds = sec % 60
-  if (minutes > 0) {
-    return `${minutes}분 ${seconds}초`
-  }
-  return `${seconds}초`
-}
-
 export default function PipelineProgress({ progress }: PipelineProgressProps) {
   const { t } = useLocalizedText()
-  const { estimatedRemainingSec } = usePipelineContext()
+  const { estimatedRemainingSec, cancelPipeline } = usePipelineContext()
 
   return (
     <motion.div
@@ -154,6 +140,20 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
           />
         </div>
       </div>
+
+      {/* Cancel Button */}
+      {progress.status === 'processing' && (
+        <div className="pt-4">
+          <button
+            onClick={cancelPipeline}
+            aria-label="분석 취소"
+            className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
+          >
+            {t(txt.cancel)}
+          </button>
+        </div>
+      )}
     </motion.div>
   )
 }
