@@ -42,9 +42,10 @@ export default function PrivacyWorkspace() {
   const [activeRole, setActiveRole] = useState<'target' | 'observer'>('target')
 
   // 3D model (single upload → one scene)
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
-    : null
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
 

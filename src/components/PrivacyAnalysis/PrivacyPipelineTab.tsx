@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Upload, Settings, Loader2, BarChart3, EyeOff, CheckCircle2, AlertCircle, RotateCcw, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
@@ -74,10 +74,14 @@ export default function PrivacyPipelineTab() {
   const windowIdCounter = useRef(1)
 
   // 3D 모델 로딩
-  const targetModelConfig: ModelConfig | null = targetSceneUrl
-    ? { url: targetSceneUrl, format: 'glb', autoCenter: true, zUp: true } : null
-  const observerModelConfig: ModelConfig | null = observerSceneUrl
-    ? { url: observerSceneUrl, format: 'glb', autoCenter: true, zUp: true } : null
+  const targetModelConfig = useMemo<ModelConfig | null>(() =>
+    targetSceneUrl ? { url: targetSceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [targetSceneUrl]
+  )
+  const observerModelConfig = useMemo<ModelConfig | null>(() =>
+    observerSceneUrl ? { url: observerSceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [observerSceneUrl]
+  )
 
   const { scene: targetScene, bbox: targetBbox } = useModelLoader(targetModelConfig)
   const { scene: observerScene, bbox: observerBbox } = useModelLoader(observerModelConfig)

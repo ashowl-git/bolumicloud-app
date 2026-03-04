@@ -44,8 +44,10 @@ export default function SunlightPipelineTab() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true } : null
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const shadow = useShadowAnimation({ apiUrl })
   const placement = usePointPlacement({ prefix: 'P' })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, Settings, Loader2, BarChart3, CheckCircle2, CloudUpload } from 'lucide-react'
 import { useViewPipelineContext } from '@/contexts/ViewPipelineContext'
@@ -96,9 +96,10 @@ export default function ViewPipelineTab() {
   const [selectedObserverId, setSelectedObserverId] = useState<string | null>(null)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
-    : null
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
   // 관찰점 배치 (인터랙션 레이어)

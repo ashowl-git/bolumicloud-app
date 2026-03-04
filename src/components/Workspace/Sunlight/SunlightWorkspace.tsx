@@ -69,10 +69,11 @@ export default function SunlightWorkspace() {
   // Config state
   const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_SUNLIGHT_CONFIG })
 
-  // 3D model
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
-    : null
+  // 3D model (useMemo로 객체 참조 안정화 — 매 렌더마다 새 객체 생성 방지)
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
 

@@ -39,9 +39,10 @@ export default function ViewWorkspace() {
   const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_VIEW_CONFIG })
 
   // 3D model
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
-    : null
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
 

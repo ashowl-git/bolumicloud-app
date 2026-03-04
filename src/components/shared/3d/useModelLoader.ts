@@ -120,7 +120,7 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
         }
       })
     }
-  }, [config])
+  }, [config?.url, config?.format, config?.autoCenter, config?.zUp])
 
   return { state, scene, bbox, error }
 }

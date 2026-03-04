@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useMemo } from 'react'
 import { CloudUpload, CheckCircle } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
@@ -57,9 +57,10 @@ export default function UploadStep({
   const [fileError, setFileError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
-  const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
-    : null
+  const modelConfig = useMemo<ModelConfig | null>(() =>
+    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
+    [sceneUrl]
+  )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
   const validateFile = useCallback((file: File): boolean => {
