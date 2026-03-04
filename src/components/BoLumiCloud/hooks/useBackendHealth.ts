@@ -22,13 +22,16 @@ export function useBackendHealth(apiUrl: string): UseBackendHealthResult {
   const [backendInfo, setBackendInfo] = useState<BackendInfo | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     const checkBackendHealth = async () => {
       try {
         const response = await fetch(`${apiUrl}/health`, {
           method: 'GET',
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(10000)
         })
 
+        if (cancelled) return
         if (response.ok) {
           const data = await response.json()
           setBackendStatus('healthy')
@@ -37,12 +40,21 @@ export function useBackendHealth(apiUrl: string): UseBackendHealthResult {
           setBackendStatus('unhealthy')
         }
       } catch (error) {
+        if (cancelled) return
         logger.error('Backend health check failed', error instanceof Error ? error : undefined)
         setBackendStatus('unhealthy')
       }
     }
 
     checkBackendHealth()
+
+    // 30초마다 재확인 (unhealthy -> healthy 복구 가능)
+    const interval = setInterval(checkBackendHealth, 30000)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [apiUrl])
 
   return { backendStatus, backendInfo }
