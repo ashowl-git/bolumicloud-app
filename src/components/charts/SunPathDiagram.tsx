@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { Info } from 'lucide-react'
+import { useSunPathData } from '@/hooks/useSunPathData'
+import { useResizeObserver } from '@/hooks/useResizeObserver'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -17,6 +19,8 @@ export interface SunPathDiagramProps {
   }>
   width?: number
   height?: number
+  dataSource?: 'local' | 'backend' // default 'local'
+  apiBaseUrl?: string // default: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +178,35 @@ function dateLabel(d: Date): string {
 }
 
 // ---------------------------------------------------------------------------
+// Point-in-polygon test (ray casting algorithm)
+//
+// Tests whether a point (azimuth, altitude) lies inside an obstruction
+// polygon defined in the same coordinate space.
+// ---------------------------------------------------------------------------
+
+function isPointInPolygon(
+  point: { azimuth: number; altitude: number },
+  polygon: Array<{ azimuth: number; altitude: number }>
+): boolean {
+  if (polygon.length < 3) return false
+  let inside = false
+  const { azimuth: px, altitude: py } = point
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].azimuth
+    const yi = polygon[i].altitude
+    const xj = polygon[j].azimuth
+    const yj = polygon[j].altitude
+
+    const intersect =
+      yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
+    if (intersect) inside = !inside
+  }
+
+  return inside
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -185,21 +218,12 @@ export default function SunPathDiagram({
   obstructions,
   width: propWidth,
   height: propHeight,
+  dataSource = 'local',
+  apiBaseUrl,
 }: SunPathDiagramProps) {
   // ---- responsive sizing ------------------------------------------------
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
-
-  useEffect(() => {
-    if (!containerRef.current) return
-    const obs = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width)
-      }
-    })
-    obs.observe(containerRef.current)
-    return () => obs.disconnect()
-  }, [])
+  const { width: containerWidth } = useResizeObserver(containerRef)
 
   const size = propWidth ?? propHeight ?? (containerWidth > 0 ? Math.min(containerWidth, 600) : 500)
   const svgSize = size
@@ -222,10 +246,21 @@ export default function SunPathDiagram({
     [cx, cy, radius]
   )
 
+  // ---- backend data hook (only fetches when dataSource === 'backend') ----
+  const { data: backendPaths, loading: backendLoading, error: backendError } = useSunPathData({
+    latitude,
+    longitude,
+    year: new Date().getFullYear(),
+    apiBaseUrl,
+    enabled: dataSource === 'backend',
+  })
+
   // ---- sun paths --------------------------------------------------------
   const usedDates = dates ?? defaultDates()
 
-  const sunPaths = useMemo(() => {
+  // Local computation (used when dataSource === 'local')
+  const localSunPaths = useMemo(() => {
+    if (dataSource === 'backend') return []
     return usedDates.map((date, di) => {
       const positions: Array<{
         hour: number
@@ -263,7 +298,35 @@ export default function SunPathDiagram({
         hourlyMarkers,
       }
     })
-  }, [usedDates, latitude, longitude, timeZoneOffset, toSvg])
+  }, [usedDates, latitude, longitude, timeZoneOffset, toSvg, dataSource])
+
+  // Backend data transformed to same format as local computation
+  const backendSunPaths = useMemo(() => {
+    if (dataSource !== 'backend' || !backendPaths) return []
+    return backendPaths.map((entry, di) => {
+      const positions = entry.data
+        .filter((p) => p.altitude > 0)
+        .map((p) => {
+          const { x, y } = toSvg(p.azimuth, p.altitude)
+          return { hour: p.hour, alt: p.altitude, az: p.azimuth, x, y }
+        })
+
+      const hourlyMarkers = positions.filter(
+        (p) => Math.abs(p.hour - Math.round(p.hour)) < 0.01
+      )
+
+      return {
+        date: new Date(entry.date),
+        color: DATE_COLORS[di % DATE_COLORS.length],
+        label: entry.label,
+        positions,
+        hourlyMarkers,
+      }
+    })
+  }, [backendPaths, toSvg, dataSource])
+
+  // Unified sun paths: use backend data when available, else local
+  const sunPaths = dataSource === 'backend' ? backendSunPaths : localSunPaths
 
   // ---- obstruction overlay -----------------------------------------------
   const obstructionPaths = useMemo(() => {
@@ -304,9 +367,22 @@ export default function SunPathDiagram({
           <h3 className="text-sm font-medium text-gray-900">Sun Path Diagram</h3>
           <p className="text-xs text-gray-500 mt-0.5">
             ({latitude.toFixed(4)}, {longitude.toFixed(4)}) | UTC+{timeZoneOffset}
+            {dataSource === 'backend' && (
+              <span className="ml-2 text-blue-500">[Backend]</span>
+            )}
           </p>
         </div>
       </div>
+
+      {/* Backend loading / error state */}
+      {dataSource === 'backend' && backendLoading && (
+        <div className="mb-3 text-xs text-gray-400">Loading sun path data from server...</div>
+      )}
+      {dataSource === 'backend' && backendError && (
+        <div className="mb-3 text-xs text-red-500">
+          Failed to load data: {backendError}
+        </div>
+      )}
 
       {/* SVG Diagram */}
       <svg
@@ -399,59 +475,126 @@ export default function SunPathDiagram({
           )
         })}
 
-        {/* Sun paths */}
+        {/* Sun paths with obstruction-aware rendering */}
         {sunPaths.map((sp, si) => {
           if (sp.positions.length < 2) return null
-          const pathD = sp.positions
-            .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-            .join(' ')
+
+          // Classify each position as blocked or unblocked by obstructions
+          const hasObstructions = obstructions && obstructions.length > 0
+          const classified = sp.positions.map((p) => ({
+            ...p,
+            blocked: hasObstructions
+              ? obstructions!.some((obs) =>
+                  isPointInPolygon(
+                    { azimuth: p.az, altitude: p.alt },
+                    obs.points
+                  )
+                )
+              : false,
+          }))
+
+          // Split positions into contiguous segments by blocked status
+          type Segment = { blocked: boolean; points: typeof classified }
+          const segments: Segment[] = []
+          let currentSeg: Segment | null = null
+
+          for (const pt of classified) {
+            if (!currentSeg || currentSeg.blocked !== pt.blocked) {
+              // Start new segment; overlap last point for continuity
+              const newSeg: Segment = { blocked: pt.blocked, points: [] }
+              if (currentSeg && currentSeg.points.length > 0) {
+                newSeg.points.push(currentSeg.points[currentSeg.points.length - 1])
+              }
+              newSeg.points.push(pt)
+              segments.push(newSeg)
+              currentSeg = newSeg
+            } else {
+              currentSeg.points.push(pt)
+            }
+          }
 
           return (
             <g key={`path-${si}`}>
-              {/* Path line */}
-              <path
-                d={pathD}
-                fill="none"
-                stroke={sp.color}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.8}
-              />
+              {/* Path line segments */}
+              {segments.map((seg, segIdx) => {
+                if (seg.points.length < 2) return null
+                const segD = seg.points
+                  .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+                  .join(' ')
+
+                return (
+                  <path
+                    key={`seg-${si}-${segIdx}`}
+                    d={segD}
+                    fill="none"
+                    stroke={sp.color}
+                    strokeWidth={seg.blocked ? 1.5 : 2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray={seg.blocked ? '4,3' : 'none'}
+                    opacity={seg.blocked ? 0.35 : 0.8}
+                  />
+                )
+              })}
 
               {/* Hourly markers */}
-              {sp.hourlyMarkers.map((m) => (
-                <g key={`marker-${si}-${m.hour}`}>
-                  <circle
-                    cx={m.x}
-                    cy={m.y}
-                    r={4}
-                    fill={sp.color}
-                    stroke="white"
-                    strokeWidth={1.5}
-                    className="cursor-pointer"
-                    onMouseEnter={() =>
-                      setHovered({
-                        x: m.x,
-                        y: m.y,
-                        hour: m.hour,
-                        alt: m.alt,
-                        az: m.az,
-                        dateLabel: sp.label,
-                      })
-                    }
-                  />
-                  {/* Hour label */}
-                  <text
-                    x={m.x}
-                    y={m.y - 8}
-                    textAnchor="middle"
-                    className="text-[8px] fill-gray-500 pointer-events-none"
-                  >
-                    {Math.round(m.hour)}
-                  </text>
-                </g>
-              ))}
+              {sp.hourlyMarkers.map((m) => {
+                const isBlocked = hasObstructions
+                  ? obstructions!.some((obs) =>
+                      isPointInPolygon(
+                        { azimuth: m.az, altitude: m.alt },
+                        obs.points
+                      )
+                    )
+                  : false
+
+                return (
+                  <g key={`marker-${si}-${m.hour}`}>
+                    <circle
+                      cx={m.x}
+                      cy={m.y}
+                      r={4}
+                      fill={isBlocked ? '#94a3b8' : sp.color}
+                      stroke="white"
+                      strokeWidth={1.5}
+                      opacity={isBlocked ? 0.5 : 1}
+                      className="cursor-pointer"
+                      onMouseEnter={() =>
+                        setHovered({
+                          x: m.x,
+                          y: m.y,
+                          hour: m.hour,
+                          alt: m.alt,
+                          az: m.az,
+                          dateLabel: sp.label,
+                        })
+                      }
+                    />
+                    {/* Shadow indicator for blocked markers */}
+                    {isBlocked && (
+                      <line
+                        x1={m.x - 3}
+                        y1={m.y - 3}
+                        x2={m.x + 3}
+                        y2={m.y + 3}
+                        stroke="#475569"
+                        strokeWidth={1.5}
+                        opacity={0.6}
+                        className="pointer-events-none"
+                      />
+                    )}
+                    {/* Hour label */}
+                    <text
+                      x={m.x}
+                      y={m.y - 8}
+                      textAnchor="middle"
+                      className="text-[8px] fill-gray-500 pointer-events-none"
+                    >
+                      {Math.round(m.hour)}
+                    </text>
+                  </g>
+                )
+              })}
             </g>
           )
         })}
@@ -504,10 +647,18 @@ export default function SunPathDiagram({
           </div>
         ))}
         {obstructions && obstructions.length > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-3 h-3 inline-block bg-slate-500 opacity-30" />
-            <span>Obstructions</span>
-          </div>
+          <>
+            <div className="flex items-center gap-1.5 text-xs text-gray-600">
+              <span className="w-3 h-3 inline-block bg-slate-500 opacity-30" />
+              <span>Obstructions</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-600">
+              <span
+                className="w-3 h-0.5 inline-block border-t border-dashed border-slate-400"
+              />
+              <span>Blocked</span>
+            </div>
+          </>
         )}
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { Info } from 'lucide-react'
+import { useResizeObserver } from '@/hooks/useResizeObserver'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -13,11 +14,21 @@ interface ObstructionPolygon {
   color?: string
 }
 
+export interface SunPathData {
+  label: string
+  date: string
+  positions: Array<{ hour: number; altitude: number; azimuth: number }>
+  color?: string
+}
+
 export interface WaldramChartProps {
   obstructions: ObstructionPolygon[]
   viewpoint?: { lat: number; lng: number }
   width?: number
   height?: number
+  sunPaths?: SunPathData[]
+  editable?: boolean
+  onObstructionsChange?: (obstructions: ObstructionPolygon[]) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -66,30 +77,30 @@ const PALETTE = [
   '#ec4899', // pink-500
 ]
 
+// Default sun path colors for up to 4 dates
+const SUN_PATH_PALETTE = [
+  '#22c55e', // green
+  '#ef4444', // red
+  '#f59e0b', // amber
+  '#3b82f6', // blue
+]
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function WaldramChart({
-  obstructions,
+  obstructions: obstructionsProp,
   viewpoint,
   width: propWidth,
   height: propHeight,
+  sunPaths,
+  editable = false,
+  onObstructionsChange,
 }: WaldramChartProps) {
   // ---- responsive sizing ------------------------------------------------
   const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
-
-  useEffect(() => {
-    if (!containerRef.current) return
-    const obs = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width)
-      }
-    })
-    obs.observe(containerRef.current)
-    return () => obs.disconnect()
-  }, [])
+  const { width: containerWidth } = useResizeObserver(containerRef)
 
   const svgWidth = propWidth ?? (containerWidth > 0 ? containerWidth : 640)
   const svgHeight = propHeight ?? Math.round(svgWidth * 0.5)
@@ -114,6 +125,43 @@ export default function WaldramChart({
     (wy: number) => margin.top + plotH - (wy / wyMax) * plotH,
     [plotH, margin.top]
   )
+
+  // Reverse-map SVG coords to azimuth/altitude
+  const fromSvgCoords = useCallback(
+    (svgX: number, svgY: number) => {
+      const azDeg = azMin + ((svgX - margin.left) / plotW) * (azMax - azMin)
+      const wyNorm = ((margin.top + plotH - svgY) / plotH) * wyMax
+      const altDeg = (0.5 * Math.asin(Math.min(Math.max(2 * wyNorm, -1), 1))) / DEG
+      return { azDeg, altDeg }
+    },
+    [plotW, plotH, margin.left, margin.top]
+  )
+
+  // ---- editable state ---------------------------------------------------
+  const [internalObstructions, setInternalObstructions] = useState<ObstructionPolygon[]>(obstructionsProp)
+
+  // Keep internal state in sync when prop changes from outside
+  useEffect(() => {
+    setInternalObstructions(obstructionsProp)
+  }, [obstructionsProp])
+
+  const obstructions = editable ? internalObstructions : obstructionsProp
+
+  // Update obstructions and notify parent
+  const updateObstructions = useCallback(
+    (next: ObstructionPolygon[]) => {
+      setInternalObstructions(next)
+      onObstructionsChange?.(next)
+    },
+    [onObstructionsChange]
+  )
+
+  // Drawing state
+  const [isDrawing, setIsDrawing] = useState(false)
+  const [currentPoints, setCurrentPoints] = useState<Array<{ azimuth: number; altitude: number }>>([])
+
+  // Vertex dragging state
+  const [dragging, setDragging] = useState<{ obsIdx: number; vertexIdx: number } | null>(null)
 
   // ---- projected obstruction polygons ------------------------------------
   const projectedObstructions = useMemo(
@@ -173,6 +221,159 @@ export default function WaldramChart({
   const altitudeLines = [10, 20, 30, 40, 50, 60, 70, 80, 90]
   const azimuthLines = [-90, -60, -30, 0, 30, 60, 90]
 
+  // ---- sun path projected points ----------------------------------------
+  const projectedSunPaths = useMemo(() => {
+    if (!sunPaths) return []
+    return sunPaths.map((sp, idx) => {
+      const color = sp.color ?? SUN_PATH_PALETTE[idx % SUN_PATH_PALETTE.length]
+      // Filter to positions within the chart azimuth range
+      const visiblePositions = sp.positions.filter(
+        (p) => p.azimuth >= azMin && p.azimuth <= azMax && p.altitude >= 0
+      )
+      const svgPoints = visiblePositions.map((p) => ({
+        sx: toSvgX(p.azimuth),
+        sy: toSvgY(waldramY(p.altitude)),
+        hour: p.hour,
+        altitude: p.altitude,
+        azimuth: p.azimuth,
+      }))
+      // Build SVG path data string from consecutive points
+      let pathD = ''
+      if (svgPoints.length > 0) {
+        pathD = svgPoints
+          .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.sx.toFixed(2)} ${pt.sy.toFixed(2)}`)
+          .join(' ')
+      }
+      return { ...sp, color, svgPoints, pathD }
+    })
+  }, [sunPaths, toSvgX, toSvgY])
+
+  // ---- SVG mouse event helpers ------------------------------------------
+  const getSvgPoint = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>): { svgX: number; svgY: number } | null => {
+      const svg = e.currentTarget
+      const pt = svg.createSVGPoint()
+      pt.x = e.clientX
+      pt.y = e.clientY
+      const ctm = svg.getScreenCTM()
+      if (!ctm) return null
+      const svgP = pt.matrixTransform(ctm.inverse())
+      return { svgX: svgP.x, svgY: svgP.y }
+    },
+    []
+  )
+
+  const isInsidePlot = useCallback(
+    (svgX: number, svgY: number) =>
+      svgX >= margin.left &&
+      svgX <= margin.left + plotW &&
+      svgY >= margin.top &&
+      svgY <= margin.top + plotH,
+    [plotW, plotH, margin.left, margin.top]
+  )
+
+  // ---- Keyboard handler for Escape (cancel drawing) ---------------------
+  useEffect(() => {
+    if (!editable) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDrawing) {
+        setIsDrawing(false)
+        setCurrentPoints([])
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [editable, isDrawing])
+
+  // ---- SVG event handlers (editable mode) --------------------------------
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!editable) return
+      // Right-click is handled by onContextMenu
+      if (e.button !== 0) return
+      const coords = getSvgPoint(e)
+      if (!coords) return
+      if (!isInsidePlot(coords.svgX, coords.svgY)) return
+
+      const { azDeg, altDeg } = fromSvgCoords(coords.svgX, coords.svgY)
+      const clampedAlt = Math.max(0, Math.min(90, altDeg))
+
+      setIsDrawing(true)
+      setCurrentPoints((prev) => [
+        ...prev,
+        { azimuth: azDeg, altitude: clampedAlt },
+      ])
+    },
+    [editable, getSvgPoint, isInsidePlot, fromSvgCoords]
+  )
+
+  const handleSvgContextMenu = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!editable || !isDrawing) return
+      e.preventDefault()
+      // Complete/close the polygon if it has at least 3 points
+      if (currentPoints.length >= 3) {
+        const newObs: ObstructionPolygon = {
+          name: `Obstruction ${obstructions.length + 1}`,
+          points: currentPoints,
+        }
+        updateObstructions([...obstructions, newObs])
+      }
+      setIsDrawing(false)
+      setCurrentPoints([])
+    },
+    [editable, isDrawing, currentPoints, obstructions, updateObstructions]
+  )
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const coords = getSvgPoint(e)
+      if (!coords) return
+
+      // Handle vertex dragging
+      if (dragging && editable) {
+        const { azDeg, altDeg } = fromSvgCoords(coords.svgX, coords.svgY)
+        const clampedAlt = Math.max(0, Math.min(90, altDeg))
+        const next = obstructions.map((obs, oIdx) => {
+          if (oIdx !== dragging.obsIdx) return obs
+          const newPoints = obs.points.map((pt, vIdx) => {
+            if (vIdx !== dragging.vertexIdx) return pt
+            return { azimuth: azDeg, altitude: clampedAlt }
+          })
+          return { ...obs, points: newPoints }
+        })
+        updateObstructions(next)
+        return
+      }
+
+      // Hover tooltip (existing behavior, non-edit mode)
+      if (!editable && isInsidePlot(coords.svgX, coords.svgY)) {
+        const { azDeg, altDeg } = fromSvgCoords(coords.svgX, coords.svgY)
+        setHoveredPoint({
+          x: coords.svgX,
+          y: coords.svgY,
+          az: azDeg,
+          alt: altDeg,
+        })
+      }
+    },
+    [dragging, editable, obstructions, updateObstructions, getSvgPoint, fromSvgCoords, isInsidePlot]
+  )
+
+  const handleMouseUp = useCallback(() => {
+    setDragging(null)
+  }, [])
+
+  const handleVertexMouseDown = useCallback(
+    (obsIdx: number, vertexIdx: number, e: React.MouseEvent) => {
+      if (!editable) return
+      e.stopPropagation()
+      e.preventDefault()
+      setDragging({ obsIdx, vertexIdx })
+    },
+    [editable]
+  )
+
   return (
     <div ref={containerRef} className="w-full">
       {/* Header */}
@@ -186,6 +387,13 @@ export default function WaldramChart({
           )}
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-600">
+          {editable && (
+            <span className="text-amber-600 font-medium">
+              {isDrawing
+                ? `Drawing (${currentPoints.length} pts) | Right-click to close | Esc to cancel`
+                : 'Click to start polygon'}
+            </span>
+          )}
           <span>
             SVF: <strong className="text-gray-900">{(svf * 100).toFixed(1)}%</strong>
           </span>
@@ -200,7 +408,15 @@ export default function WaldramChart({
         width={svgWidth}
         height={svgHeight}
         className="border border-gray-200 bg-white select-none"
-        onMouseLeave={() => setHoveredPoint(null)}
+        style={{ cursor: editable ? 'crosshair' : 'default' }}
+        onMouseLeave={() => {
+          setHoveredPoint(null)
+          if (dragging) setDragging(null)
+        }}
+        onClick={handleSvgClick}
+        onContextMenu={handleSvgContextMenu}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       >
         {/* Background fill for sky area */}
         <rect
@@ -282,6 +498,52 @@ export default function WaldramChart({
           Altitude (deg)
         </text>
 
+        {/* Sun path curves - rendered after grid lines, before obstructions */}
+        {projectedSunPaths.map((sp, spIdx) => (
+          <g key={`sunpath-${sp.date}-${spIdx}`}>
+            {/* Path line */}
+            {sp.pathD && (
+              <path
+                d={sp.pathD}
+                fill="none"
+                stroke={sp.color}
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                opacity={0.8}
+              />
+            )}
+            {/* Hourly markers */}
+            {sp.svgPoints.map((pt, ptIdx) => {
+              // Show markers on integer hours only
+              const isWholeHour = Number.isInteger(pt.hour)
+              if (!isWholeHour) return null
+              return (
+                <g key={`sp-${spIdx}-pt-${ptIdx}`}>
+                  <circle
+                    cx={pt.sx}
+                    cy={pt.sy}
+                    r={3}
+                    fill={sp.color}
+                    stroke="white"
+                    strokeWidth={1}
+                    opacity={0.9}
+                  />
+                  <text
+                    x={pt.sx + 4}
+                    y={pt.sy - 4}
+                    fontSize={9}
+                    fill={sp.color}
+                    opacity={0.9}
+                  >
+                    {pt.hour}h
+                  </text>
+                </g>
+              )
+            })}
+          </g>
+        ))}
+
         {/* Obstruction polygons */}
         {projectedObstructions.map((obs, idx) => {
           const pointsStr = obs.svgPoints.map((p) => `${p.sx},${p.sy}`).join(' ')
@@ -295,31 +557,35 @@ export default function WaldramChart({
                 stroke={obs.color}
                 strokeWidth={isSelected ? 2 : 1}
                 strokeLinejoin="round"
-                className="cursor-pointer transition-opacity duration-200"
-                onClick={() => setSelectedIdx(isSelected ? null : idx)}
-                onMouseMove={(e) => {
-                  const svg = e.currentTarget.ownerSVGElement
-                  if (!svg) return
-                  const pt = svg.createSVGPoint()
-                  pt.x = e.clientX
-                  pt.y = e.clientY
-                  const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse())
-                  // Reverse-map to azimuth/altitude
-                  const azDeg =
-                    azMin + ((svgP.x - margin.left) / plotW) * (azMax - azMin)
-                  const wyNorm =
-                    ((margin.top + plotH - svgP.y) / plotH) * wyMax
-                  // Invert waldramY: wy = 0.5*sin(2*alt) -> alt = 0.5*asin(2*wy)
-                  const altDeg =
-                    (0.5 * Math.asin(Math.min(2 * wyNorm, 1))) / DEG
-                  setHoveredPoint({
-                    x: svgP.x,
-                    y: svgP.y,
-                    az: azDeg,
-                    alt: altDeg,
-                    name: obs.name,
-                  })
-                }}
+                className={editable ? 'cursor-move' : 'cursor-pointer transition-opacity duration-200'}
+                onClick={
+                  !editable
+                    ? () => setSelectedIdx(isSelected ? null : idx)
+                    : undefined
+                }
+                onMouseMove={
+                  !editable
+                    ? (e) => {
+                        const svg = e.currentTarget.ownerSVGElement
+                        if (!svg) return
+                        const pt = svg.createSVGPoint()
+                        pt.x = e.clientX
+                        pt.y = e.clientY
+                        const ctm = svg.getScreenCTM()
+                        if (!ctm) return
+                        const svgP = pt.matrixTransform(ctm.inverse())
+                        const coords = fromSvgCoords(svgP.x, svgP.y)
+                        if (coords.altDeg < 0 || coords.altDeg > 90) return
+                        setHoveredPoint({
+                          x: svgP.x,
+                          y: svgP.y,
+                          az: coords.azDeg,
+                          alt: coords.altDeg,
+                          name: obs.name,
+                        })
+                      }
+                    : undefined
+                }
               />
               {/* Polygon vertices */}
               {obs.svgPoints.map((p, pi) => (
@@ -327,18 +593,55 @@ export default function WaldramChart({
                   key={pi}
                   cx={p.sx}
                   cy={p.sy}
-                  r={isSelected ? 4 : 2.5}
+                  r={editable ? 5 : isSelected ? 4 : 2.5}
                   fill={obs.color}
                   stroke="white"
                   strokeWidth={1}
+                  style={{ cursor: editable ? 'grab' : 'default' }}
+                  onMouseDown={
+                    editable
+                      ? (e) => handleVertexMouseDown(idx, pi, e)
+                      : undefined
+                  }
                 />
               ))}
             </g>
           )
         })}
 
+        {/* Current polygon being drawn (editable mode) */}
+        {editable && isDrawing && currentPoints.length > 0 && (
+          <g>
+            {/* Lines connecting the in-progress vertices */}
+            {currentPoints.length > 1 && (
+              <polyline
+                points={currentPoints
+                  .map((p) => `${toSvgX(p.azimuth).toFixed(2)},${toSvgY(waldramY(p.altitude)).toFixed(2)}`)
+                  .join(' ')}
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                strokeLinejoin="round"
+              />
+            )}
+            {/* Vertex dots */}
+            {currentPoints.map((p, pi) => (
+              <circle
+                key={`drawing-pt-${pi}`}
+                cx={toSvgX(p.azimuth)}
+                cy={toSvgY(waldramY(p.altitude))}
+                r={4}
+                fill="#6366f1"
+                stroke="white"
+                strokeWidth={1}
+              />
+            ))}
+          </g>
+        )}
+
         {/* Hover tooltip */}
-        {hoveredPoint && (
+        {hoveredPoint && !editable && (
           <g>
             <rect
               x={hoveredPoint.x + 10}
@@ -372,13 +675,13 @@ export default function WaldramChart({
       </svg>
 
       {/* Legend */}
-      {obstructions.length > 0 && (
+      {(obstructions.length > 0 || (sunPaths && sunPaths.length > 0)) && (
         <div className="mt-3 flex flex-wrap gap-3">
           {projectedObstructions.map((obs, idx) => (
             <button
               key={obs.name + idx}
               type="button"
-              onClick={() => setSelectedIdx(selectedIdx === idx ? null : idx)}
+              onClick={() => !editable && setSelectedIdx(selectedIdx === idx ? null : idx)}
               className={`flex items-center gap-1.5 px-2 py-1 text-xs border transition-all duration-200 ${
                 selectedIdx === idx
                   ? 'border-gray-400 bg-gray-50'
@@ -392,6 +695,18 @@ export default function WaldramChart({
               <span className="text-gray-700">{obs.name}</span>
             </button>
           ))}
+          {projectedSunPaths.map((sp, idx) => (
+            <div
+              key={`sp-legend-${sp.date}-${idx}`}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs border border-gray-200"
+            >
+              <span
+                className="w-6 h-0.5 inline-block"
+                style={{ backgroundColor: sp.color }}
+              />
+              <span className="text-gray-700">{sp.label}</span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -402,6 +717,7 @@ export default function WaldramChart({
           Waldram equal-solid-angle projection. Each unit area on the chart
           corresponds to an equal solid angle of the sky hemisphere.
           SVF = Sky Visibility Factor (unobstructed sky fraction).
+          {editable && ' Click to add vertices; right-click to close polygon; Escape to cancel.'}
         </span>
       </div>
     </div>
