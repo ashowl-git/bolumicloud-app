@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { List, FolderPlus, Grid3X3, ArrowUpDown, ArrowRightLeft, X, Crosshair } from 'lucide-react'
 import type { MeasurementPointGroup } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
@@ -42,12 +42,35 @@ export default function PointGroupManager({
 }: PointGroupManagerProps) {
   const [showBatchDialog, setShowBatchDialog] = useState(false)
 
+  // 선택된 포인트에서 기준점 + 입면 방향 자동 제안
+  const selectedPoint = useMemo(() => {
+    if (!selectedPointId) return null
+    return points.find((p) => p.id === selectedPointId) ?? null
+  }, [points, selectedPointId])
+
+  const suggestedBasePoint = useMemo(() => {
+    if (!selectedPoint) return null
+    return selectedPoint.position
+  }, [selectedPoint])
+
+  // 법선의 수평 직교 벡터 = 입면(벽면) 따라가는 방향
+  // 법선 (dx, dy) -> 직교 (-dy, dx)
+  const suggestedDirection = useMemo(() => {
+    if (!selectedPoint?.normal) return null
+    const { dx, dy } = selectedPoint.normal
+    const mag = Math.sqrt(dx * dx + dy * dy)
+    if (mag < 0.01) return null  // 수평 법선이 거의 없으면 (지면 등)
+    return { x: -dy / mag, y: dx / mag }
+  }, [selectedPoint])
+
   return (
     <>
     <BatchPointCreationDialog
       open={showBatchDialog}
       onClose={() => setShowBatchDialog(false)}
       onConfirm={(params) => onBatchCreate?.(params)}
+      suggestedBasePoint={suggestedBasePoint}
+      suggestedDirection={suggestedDirection}
     />
     <WorkspacePanelSection
       title="측정점 그룹"
