@@ -144,6 +144,9 @@ export interface PointSunlightResult {
   y: number
   z: number
   name: string
+  group?: string
+  row?: number
+  column?: number
   total_hours: number
   continuous_hours: number
   hourly_status: number[]  // 1=일조, 0=그림자, -1=야간
@@ -156,6 +159,26 @@ export interface SunlightSummary {
   compliance_rate: number
   building_type: BuildingType
   regulation_reference: string
+}
+
+export interface UnitMappingResult {
+  building_name: string
+  floor: number
+  unit_number: number
+  unit_id: string
+  point_ids: string[]
+  total_hours: number
+  continuous_hours: number
+  compliant: boolean
+  housing_grade: number | null
+}
+
+export interface BuildingMappingResult {
+  building_name: string
+  units: UnitMappingResult[]
+  total_units: number
+  compliant_units: number
+  compliance_rate: number
 }
 
 export interface SunlightAnalysisResult {
@@ -175,6 +198,7 @@ export interface SunlightAnalysisResult {
   }
   summary: SunlightSummary
   points: PointSunlightResult[]
+  unit_mappings?: BuildingMappingResult[]
   metadata: {
     computation_time_sec: number
     triangle_count: number
