@@ -6,17 +6,21 @@ const mockPost = vi.fn()
 const mockPostFormData = vi.fn()
 const mockDel = vi.fn()
 
-vi.mock('@/lib/api', () => ({
-  useApiClient: () => ({
-    get: mockGet,
-    post: mockPost,
-    postFormData: mockPostFormData,
-    del: mockDel,
-    downloadBlob: vi.fn(),
-    getBlob: vi.fn(),
-    postBlob: vi.fn(),
-  }),
-}))
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+  return {
+    ...actual,
+    useApiClient: () => ({
+      get: mockGet,
+      post: mockPost,
+      postFormData: mockPostFormData,
+      del: mockDel,
+      downloadBlob: vi.fn(),
+      getBlob: vi.fn(),
+      postBlob: vi.fn(),
+    }),
+  }
+})
 
 vi.mock('@/contexts/ApiContext', () => ({
   useApi: () => ({

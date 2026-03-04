@@ -4,17 +4,21 @@ import { renderHook, act } from '@testing-library/react'
 const mockGet = vi.fn()
 const mockDel = vi.fn()
 
-vi.mock('@/lib/api', () => ({
-  useApiClient: () => ({
-    get: mockGet,
-    post: vi.fn(),
-    postFormData: vi.fn(),
-    del: mockDel,
-    downloadBlob: vi.fn(),
-    getBlob: vi.fn(),
-    postBlob: vi.fn(),
-  }),
-}))
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+  return {
+    ...actual,
+    useApiClient: () => ({
+      get: mockGet,
+      post: vi.fn(),
+      postFormData: vi.fn(),
+      del: mockDel,
+      downloadBlob: vi.fn(),
+      getBlob: vi.fn(),
+      postBlob: vi.fn(),
+    }),
+  }
+})
 
 vi.mock('@/contexts/ApiContext', () => ({
   useApi: () => ({
@@ -243,7 +247,7 @@ describe('useAnalysisPipeline', () => {
     })
 
     expect(result.current.phase).toBe('error')
-    expect(result.current.error).toContain('결과를 가져올 수 없습니다')
+    expect(result.current.error).toContain('fetch failed')
   })
 
   // ── Cancel ──
