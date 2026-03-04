@@ -164,6 +164,39 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
         setModelId(importDataRes.model_id)
         setSceneUrl(`${contextApiUrl}${importDataRes.scene_url}`)
 
+        // BUG-2 fix: OBJ 응답으로 modelMeta 설정
+        setModelMeta({
+          model_id: importDataRes.model_id,
+          scene_url: importDataRes.scene_url,
+          original_name: objFile.name,
+          format: 'glb',
+          vertices: importDataRes.vertices ?? 0,
+          faces: importDataRes.faces ?? 0,
+          bounds_min: [0, 0, 0],
+          bounds_max: [0, 0, 0],
+        })
+
+        // BUG-3 fix: OBJ 응답의 groups로 importData 설정
+        const rawGroups = Array.isArray(importDataRes.groups) ? importDataRes.groups : []
+        const groups: BuildingGroupInfo[] = (rawGroups as string[]).map((name: string, i: number) => ({
+          name,
+          vertexCount: 0,
+          faceCount: 0,
+          color: GROUP_COLORS[i % GROUP_COLORS.length],
+          visible: true,
+        }))
+        if (groups.length > 0) {
+          setImportData({
+            sessionId: '',
+            modelId: importDataRes.model_id,
+            sceneUrl: importDataRes.scene_url,
+            groups,
+            conditions: null,
+            measurementGroups: [],
+            layers: [],
+          })
+        }
+
         const analysisFormData = new FormData()
         analysisFormData.append('obj_file', objFile)
 

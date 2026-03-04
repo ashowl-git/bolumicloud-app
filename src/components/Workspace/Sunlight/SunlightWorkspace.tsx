@@ -71,7 +71,7 @@ export default function SunlightWorkspace() {
 
   // 3D model
   const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene

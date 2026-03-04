@@ -43,7 +43,7 @@ export default function PrivacyWorkspace() {
 
   // 3D model (single upload → one scene)
   const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene

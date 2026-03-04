@@ -58,7 +58,7 @@ export default function UploadStep({
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
   const modelConfig: ModelConfig | null = sceneUrl
-    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false }
+    ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: true }
     : null
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
 
