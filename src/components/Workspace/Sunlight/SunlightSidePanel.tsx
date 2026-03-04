@@ -1,6 +1,6 @@
 'use client'
 
-import { Grid3X3 } from 'lucide-react'
+import { Grid3X3, Sun } from 'lucide-react'
 import type {
   SunlightConfigState,
   SunlightAnalysisResult,
@@ -10,6 +10,7 @@ import type {
 } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
 import type { BatchPointParams } from './hooks/usePointGroups'
+import type { useSolarChart3D } from '@/hooks/useSolarChart3D'
 
 import WorkspaceSidePanel from '../WorkspaceSidePanel'
 import WorkspacePanelSection from '../WorkspacePanelSection'
@@ -73,6 +74,8 @@ interface SunlightSidePanelProps {
   onToggleLayerVisibility?: (layerId: string) => void
   onToggleAnalysisTarget?: (layerId: string) => void
   onToggleAllLayers?: (visible: boolean) => void
+  // Solar chart 3D
+  solarChart?: ReturnType<typeof useSolarChart3D>
 }
 
 export default function SunlightSidePanel({
@@ -112,6 +115,7 @@ export default function SunlightSidePanel({
   onToggleLayerVisibility,
   onToggleAnalysisTarget,
   onToggleAllLayers,
+  solarChart,
 }: SunlightSidePanelProps) {
   const noPoints = points.length === 0
 
@@ -220,6 +224,62 @@ export default function SunlightSidePanel({
             longitude={config.longitude}
             selectedPointId={selectedPointId}
           />
+
+          {/* 3D 일조도표 (씬 위 렌더링) */}
+          {solarChart && sessionId && selectedPointId && (
+            <WorkspacePanelSection
+              title="3D 일조도표"
+              icon={<Sun size={14} />}
+              defaultOpen
+            >
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500">
+                  선택된 측정점에서 태양 궤적 방향으로 팬 곡면을 렌더링하여 일조침해를 시각화합니다.
+                </p>
+                {solarChart.data ? (
+                  <div className="space-y-2">
+                    <div className="text-xs bg-gray-50 rounded p-2 space-y-1">
+                      <div>총일조: <b>{solarChart.data.summary.total_hours}시간</b></div>
+                      <div>연속일조: <b>{solarChart.data.summary.continuous_hours}시간</b></div>
+                      {solarChart.data.sunlit_intervals.map((iv, i) => (
+                        <div key={i} className="text-gray-500">{iv.label}: {iv.start}~{iv.end}</div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => solarChart.clear()}
+                      className="w-full px-3 py-1.5 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const pt = points.find(p => p.id === selectedPointId)
+                      if (!pt || !sessionId) return
+                      solarChart.compute({
+                        session_id: sessionId,
+                        point: [pt.position.x, pt.position.y, pt.position.z],
+                        point_normal: pt.normal ? [pt.normal.dx, pt.normal.dy, pt.normal.dz] : null,
+                        latitude: config.latitude,
+                        longitude: config.longitude,
+                        timezone_offset: config.timezone / 15,
+                        month: config.date.month,
+                        day: config.date.day,
+                      })
+                    }}
+                    disabled={solarChart.isLoading}
+                    className="w-full px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded transition-colors disabled:opacity-50"
+                  >
+                    {solarChart.isLoading ? '계산 중...' : '일조도표 생성'}
+                  </button>
+                )}
+                {solarChart.error && (
+                  <p className="text-xs text-red-500">{solarChart.error}</p>
+                )}
+              </div>
+            </WorkspacePanelSection>
+          )}
         </>
       )}
     </WorkspaceSidePanel>

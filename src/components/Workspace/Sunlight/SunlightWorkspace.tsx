@@ -12,6 +12,7 @@ import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
 import { usePointGroups } from './hooks/usePointGroups'
 import { useReportGeneration } from '@/hooks/useReportGeneration'
 import { useGroundAnalysis } from '@/hooks/useGroundAnalysis'
+import { useSolarChart3D } from '@/hooks/useSolarChart3D'
 import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
@@ -43,6 +44,7 @@ const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3
 const ModelTransformControls = dynamic(() => import('@/components/shared/3d/interaction/ModelTransformControls'), { ssr: false })
 const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
 const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
+const SolarChart3DOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SolarChart3DOverlay'), { ssr: false })
 
 import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
 import { Undo2, Redo2 } from 'lucide-react'
@@ -164,6 +166,9 @@ export default function SunlightWorkspace() {
       date: config.date,
     },
   })
+
+  // Solar chart 3D (extracted hook)
+  const solarChart = useSolarChart3D()
 
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
 
@@ -415,6 +420,7 @@ export default function SunlightWorkspace() {
           onToggleLayerVisibility={handleToggleLayerVisibility}
           onToggleAnalysisTarget={handleToggleAnalysisTarget}
           onToggleAllLayers={handleToggleAllLayers}
+          solarChart={solarChart}
         />
       }
       bottomControls={
@@ -566,6 +572,11 @@ export default function SunlightWorkspace() {
             blockers={report.causeResult.point_causes.flatMap((pc) => pc.blockers)}
             selectedBuildingId={selectedBuildingId}
           />
+        )}
+
+        {/* Solar chart 3D overlay */}
+        {solarChart.data && (
+          <SolarChart3DOverlay data={solarChart.data} />
         )}
       </WorkspaceViewport>
 
