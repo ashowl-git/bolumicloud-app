@@ -1,11 +1,14 @@
 // 3D 인터랙션 공유 타입 (BoLumiCloud)
 //
 // 좌표 규약:
-//   Backend:  X=동, Y=북, Z=위
-//   Three.js: X=동, Y=위, Z=북
+//   Backend (Z-up):  X=동(East), Y=북(North), Z=위(Up)
+//   Three.js (Y-up): X=동(East), Y=위(Up),   Z=남(South)
 //
-//   backendToThree(bx, by, bz) => [bx, bz, by]
-//   threeToBackend(tx, ty, tz) => { x: tx, y: tz, z: ty }
+//   SketchUp OBJ Y-up → Three.js Y-up: 동일 (zUp:false)
+//   Three.js → Backend: Y↔Z 교환 + Z 부호 반전
+//
+//   backendToThree(bx, by, bz) => [bx, bz, -by]
+//   threeToBackend(tx, ty, tz) => { x: tx, y: -tz, z: ty }
 //   법선도 동일 규칙 적용
 
 // ─── 인터랙션 모드 ─────────────────────────────
@@ -42,17 +45,17 @@ export interface BaseAnalysisPoint {
 // ─── 좌표 변환 유틸리티 ─────────────────────────
 
 export function backendToThree(bx: number, by: number, bz: number): [number, number, number] {
-  return [bx, bz, by]
+  return [bx, bz, -by]
 }
 
 export function threeToBackend(tx: number, ty: number, tz: number): { x: number; y: number; z: number } {
-  return { x: tx, y: tz, z: ty }
+  return { x: tx, y: -tz, z: ty }
 }
 
 export function threeNormalToBackend(nx: number, ny: number, nz: number): { dx: number; dy: number; dz: number } {
-  return { dx: nx, dy: nz, dz: ny }
+  return { dx: nx, dy: -nz, dz: ny }
 }
 
 export function backendNormalToThree(dx: number, dy: number, dz: number): [number, number, number] {
-  return [dx, dz, dy]
+  return [dx, dz, -dy]
 }

@@ -61,6 +61,7 @@ interface InteractiveBuildingModelProps {
   allowedSurfaces?: SurfaceType[]
   opacity?: number
   groups?: BuildingGroupInfo[]
+  preserveOriginalMaterials?: boolean
 }
 
 export default function InteractiveBuildingModel({
@@ -76,6 +77,7 @@ export default function InteractiveBuildingModel({
   allowedSurfaces,
   opacity,
   groups,
+  preserveOriginalMaterials = false,
 }: InteractiveBuildingModelProps) {
   const groupRef = useRef<THREE.Group>(null)
   const hoveredMeshRef = useRef<THREE.Mesh | null>(null)
@@ -111,7 +113,9 @@ export default function InteractiveBuildingModel({
     if (!scene) return
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        child.material = material
+        if (!preserveOriginalMaterials) {
+          child.material = material
+        }
         child.castShadow = true
         child.receiveShadow = true
 
@@ -126,7 +130,7 @@ export default function InteractiveBuildingModel({
         }
       }
     })
-  }, [scene, material, showWireframe])
+  }, [scene, material, showWireframe, preserveOriginalMaterials])
 
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {

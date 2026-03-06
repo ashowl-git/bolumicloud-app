@@ -132,6 +132,7 @@ export default function SettingsStep({
                 interactionEnabled={placement.mode === 'place_point'}
                 onSurfaceHover={placement.setHoverHit}
                 onSurfaceClick={placement.handleSurfaceClick}
+                preserveOriginalMaterials
               />
               <InteractiveGround
                 bbox={modelBbox}

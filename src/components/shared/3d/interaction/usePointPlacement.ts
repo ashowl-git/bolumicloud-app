@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { useUndoHistory } from '@/hooks/useUndoHistory'
 import type { InteractionMode, SurfaceHit, BaseAnalysisPoint } from './types'
-import { threeToBackend, threeNormalToBackend } from './types'
+import { threeToBackend, threeNormalToBackend, backendToThree } from './types'
 
 // ─── usePointPlacement ─────────────────────────────
 // useMeasurementPlacement의 통합 대체. 완전한 3D 위치 + 법선 저장.
@@ -78,11 +78,12 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
   const addPointDirect = useCallback((input: DirectPointInput) => {
     if (maxPoints && points.length >= maxPoints) return
 
+    const threePos = backendToThree(input.position.x, input.position.y, input.position.z)
     const point: BaseAnalysisPoint = {
       id: input.id,
       name: input.name,
       position: input.position,
-      threePosition: [input.position.x, input.position.z, -input.position.y],
+      threePosition: threePos,
       surfaceType: 'wall',
       normal: { dx: 0, dy: 0, dz: 1 },
     }
