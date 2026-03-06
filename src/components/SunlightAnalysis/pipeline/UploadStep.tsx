@@ -1,18 +1,19 @@
 'use client'
 
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { CloudUpload, CheckCircle } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
 import type { ModelMetadata } from '@/lib/types/sunlight'
 import ModelLoadingSkeleton from '@/components/common/ModelLoadingSkeleton'
 import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
-import type { CameraPresetId, ModelConfig } from '@/components/shared/3d/types'
-import { useModelLoader } from '@/components/shared/3d/useModelLoader'
+import type { CameraPresetId, BoundingBox, ModelLoadState } from '@/components/shared/3d/types'
+import type * as THREE from 'three'
 
 const MAX_OBJ_SIZE = 100 * 1024 * 1024  // 100MB
 const MAX_SN5F_SIZE = 20 * 1024 * 1024  // 20MB
 const SUPPORTED_FORMATS = ['obj', 'sn5f', 'dxf']
+const MTL_FORMAT = 'mtl'
 
 import dynamic from 'next/dynamic'
 const ThreeViewer = dynamic(() => import('@/components/shared/3d/ThreeViewer'), { ssr: false })
@@ -25,85 +26,87 @@ const txt = {
   uploadBtn: { ko: 'OBJ 파일 업로드', en: 'Upload OBJ File' } as LocalizedText,
   uploading: { ko: '업로드 중...', en: 'Uploading...' } as LocalizedText,
   continue: { ko: '다음', en: 'Continue' } as LocalizedText,
-  dropzone: { ko: 'OBJ 파일을 드래그하거나 클릭하세요', en: 'Drag or click to upload OBJ file' } as LocalizedText,
-  dropzoneHint: { ko: '.obj 파일 (최대 100MB)', en: '.obj file (max 100MB)' } as LocalizedText,
+  dropzone: { ko: 'OBJ + MTL 파일을 드래그하거나 클릭하세요', en: 'Drag or click to upload OBJ + MTL files' } as LocalizedText,
+  dropzoneHint: { ko: '.obj + .mtl (재질 색상 보존)', en: '.obj + .mtl (preserves material colors)' } as LocalizedText,
 }
 
 export interface UploadStepProps {
   sessionId: string | null
-  sceneUrl: string | null
   modelMeta: ModelMetadata | null
   isUploading: boolean
-  onUpload: (file: File) => Promise<void>
+  onUpload: (file: File, mtlFile?: File) => Promise<void>
   onContinue: () => void
   cameraPreset: CameraPresetId
   onCameraPresetChange: (preset: CameraPresetId) => void
+  modelState: ModelLoadState
+  modelScene: THREE.Group | null
+  modelBbox: BoundingBox | null
 }
 
 export default function UploadStep({
   sessionId,
-  sceneUrl,
   modelMeta,
   isUploading,
   onUpload,
   onContinue,
   cameraPreset,
   onCameraPresetChange,
+  modelState,
+  modelScene,
+  modelBbox,
 }: UploadStepProps) {
   const { t } = useLocalizedText()
   const inputRef = useRef<HTMLInputElement>(null)
   const [objFile, setObjFile] = useState<File | null>(null)
+  const [mtlFile, setMtlFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
-  const modelConfig = useMemo<ModelConfig | null>(() =>
-    sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
-    [sceneUrl]
-  )
-  const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
-
-  const validateFile = useCallback((file: File): boolean => {
+  // OBJ/SN5F/DXF + MTL 파일 분류
+  const classifyFiles = useCallback((files: File[]) => {
     setFileError(null)
-    const ext = file.name.split('.').pop()?.toLowerCase()
-    if (!SUPPORTED_FORMATS.includes(ext || '')) {
-      setFileError(`지원하지 않는 파일 형식입니다. (${SUPPORTED_FORMATS.join(', ')} 파일만 업로드 가능합니다)`)
-      return false
+    for (const file of files) {
+      const ext = file.name.split('.').pop()?.toLowerCase()
+      if (ext === MTL_FORMAT) {
+        setMtlFile(file)
+        continue
+      }
+      if (!SUPPORTED_FORMATS.includes(ext || '')) {
+        setFileError(`지원하지 않는 파일 형식입니다. (${SUPPORTED_FORMATS.join(', ')}, mtl 파일만 업로드 가능합니다)`)
+        return
+      }
+      const maxSize = ext === 'obj' ? MAX_OBJ_SIZE : MAX_SN5F_SIZE
+      if (file.size > maxSize) {
+        setFileError(`파일 크기가 ${maxSize / (1024 * 1024)}MB를 초과합니다. (현재: ${(file.size / (1024 * 1024)).toFixed(1)}MB)`)
+        return
+      }
+      setObjFile(file)
     }
-    const maxSize = ext === 'obj' ? MAX_OBJ_SIZE : MAX_SN5F_SIZE
-    if (file.size > maxSize) {
-      setFileError(`파일 크기가 ${maxSize / (1024 * 1024)}MB를 초과합니다. (현재: ${(file.size / (1024 * 1024)).toFixed(1)}MB)`)
-      return false
-    }
-    return true
   }, [])
 
   const handleFileDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
       setIsDragging(false)
-      const files = Array.from(e.dataTransfer.files)
-      const target = files[0]
-      if (target && validateFile(target)) setObjFile(target)
+      classifyFiles(Array.from(e.dataTransfer.files))
     },
-    [validateFile]
+    [classifyFiles]
   )
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
-    const files = Array.from(e.target.files)
-    const target = files[0]
-    if (target && validateFile(target)) setObjFile(target)
+    classifyFiles(Array.from(e.target.files))
     e.target.value = ''
-  }, [validateFile])
+  }, [classifyFiles])
 
   const handleUpload = useCallback(async () => {
     if (!objFile) return
     setUploadSuccess(false)
-    await onUpload(objFile)
+    await onUpload(objFile, mtlFile ?? undefined)
     setUploadSuccess(true)
     setTimeout(() => setUploadSuccess(false), 3000)
-  }, [objFile, onUpload])
+  }, [objFile, mtlFile, onUpload])
 
   const canUpload = !!objFile && !isUploading
 
@@ -138,7 +141,8 @@ export default function UploadStep({
         <input
           ref={inputRef}
           type="file"
-          accept=".obj,.sn5f,.dxf"
+          accept=".obj,.sn5f,.dxf,.mtl"
+          multiple
           onChange={handleFileChange}
           className="hidden"
           disabled={isUploading || !!sessionId}
@@ -170,22 +174,34 @@ export default function UploadStep({
         </div>
       )}
 
-      {/* Selected File */}
+      {/* Selected Files */}
       {objFile && (
-        <div className="border border-gray-200 p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-700">{objFile.name}</p>
-            <p className="text-xs text-gray-400">
-              {(objFile.size / (1024 * 1024)).toFixed(1)} MB
-            </p>
+        <div className="border border-gray-200 p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-700">{objFile.name}</p>
+              <p className="text-xs text-gray-400">
+                {(objFile.size / (1024 * 1024)).toFixed(1)} MB
+              </p>
+            </div>
+            {!sessionId && (
+              <button
+                onClick={() => { setObjFile(null); setMtlFile(null) }}
+                className="text-xs text-gray-400 hover:text-red-500"
+              >
+                제거
+              </button>
+            )}
           </div>
-          {!sessionId && (
-            <button
-              onClick={() => setObjFile(null)}
-              className="text-xs text-gray-400 hover:text-red-500"
-            >
-              제거
-            </button>
+          {mtlFile ? (
+            <div className="flex items-center gap-2 text-xs text-green-600">
+              <CheckCircle size={12} />
+              <span>{mtlFile.name} (재질 색상 포함)</span>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">
+              MTL 파일 없음 — OBJ와 함께 MTL을 선택하면 스케치업 색상이 보존됩니다
+            </p>
           )}
         </div>
       )}
@@ -210,7 +226,7 @@ export default function UploadStep({
         <div className="border border-gray-200 relative">
           <ThreeViewer bbox={modelBbox} height="360px">
             <SceneLighting />
-            <BuildingModel scene={modelScene} bbox={modelBbox} />
+            <BuildingModel scene={modelScene} bbox={modelBbox} preserveOriginalMaterials />
             <GroundGrid bbox={modelBbox} />
             <CompassRose bbox={modelBbox} />
           </ThreeViewer>

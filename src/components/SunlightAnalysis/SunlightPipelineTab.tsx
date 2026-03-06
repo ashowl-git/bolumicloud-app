@@ -33,7 +33,7 @@ export default function SunlightPipelineTab() {
   const { apiUrl } = useApi()
   const {
     phase, sessionId, sceneUrl, modelMeta, progress, results,
-    error, isCancelled, estimatedRemainingSec,
+    error, isCancelled, estimatedRemainingSec, windowPoints,
     uploadFile, runAnalysis, cancelAnalysis, reset,
   } = useSunlightPipelineContext()
 
@@ -48,7 +48,7 @@ export default function SunlightPipelineTab() {
     sceneUrl ? { url: sceneUrl, format: 'glb', autoCenter: true, zUp: false } : null,
     [sceneUrl]
   )
-  const { scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
+  const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const shadow = useShadowAnimation({ apiUrl })
   const placement = usePointPlacement({ prefix: 'P' })
   const areaPlacement = useAreaPlacement('G')
@@ -65,6 +65,20 @@ export default function SunlightPipelineTab() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, results, sessionId])
+
+  // 창문 자동 측정점 → placement에 추가
+  useEffect(() => {
+    if (windowPoints.length > 0 && placement.points.length === 0) {
+      for (const wp of windowPoints) {
+        placement.addPointDirect?.({
+          id: wp.id,
+          position: { x: wp.x, y: wp.y, z: wp.z },
+          name: wp.name,
+        })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [windowPoints])
 
   // Phase -> step auto-transitions
   useEffect(() => {
@@ -175,9 +189,10 @@ export default function SunlightPipelineTab() {
       <AnimatePresence mode="wait">
         {currentStep === 1 && (
           <motion.div key="step-1" variants={fadeVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
-            <UploadStep sessionId={sessionId} sceneUrl={sceneUrl} modelMeta={modelMeta}
+            <UploadStep sessionId={sessionId} modelMeta={modelMeta}
               isUploading={phase === 'uploading'} onUpload={uploadFile} onContinue={() => setCurrentStep(2)}
-              cameraPreset={cameraPreset} onCameraPresetChange={setCameraPreset} />
+              cameraPreset={cameraPreset} onCameraPresetChange={setCameraPreset}
+              modelState={modelState} modelScene={modelScene} modelBbox={modelBbox} />
           </motion.div>
         )}
         {currentStep === 2 && (

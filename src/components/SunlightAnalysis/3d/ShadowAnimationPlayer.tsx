@@ -71,7 +71,7 @@ export default function ShadowAnimationPlayer({
       {/* 3D 뷰어 */}
       <div className="border border-gray-200 border-b-0 relative">
         <ThreeViewer bbox={modelBbox} height="450px">
-          <SceneLighting sunDirection={sunDirection} />
+          <SceneLighting sunDirection={sunDirection} enableShadow={!!currentFrame} />
           {modelScene && (
             <BuildingModel scene={modelScene} bbox={modelBbox} autoFitCamera={false} />
           )}

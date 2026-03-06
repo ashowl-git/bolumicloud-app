@@ -6,6 +6,12 @@ import { threeToBackend, threeNormalToBackend } from './types'
 // ─── usePointPlacement ─────────────────────────────
 // useMeasurementPlacement의 통합 대체. 완전한 3D 위치 + 법선 저장.
 
+interface DirectPointInput {
+  id: string
+  position: { x: number; y: number; z: number }
+  name: string
+}
+
 interface UsePointPlacementReturn {
   points: BaseAnalysisPoint[]
   selectedPointId: string | null
@@ -13,6 +19,7 @@ interface UsePointPlacementReturn {
   hoverHit: SurfaceHit | null
   setMode: (mode: InteractionMode) => void
   addPointFromHit: (hit: SurfaceHit) => void
+  addPointDirect: (input: DirectPointInput) => void
   removePoint: (id: string) => void
   selectPoint: (id: string | null) => void
   clearPoints: () => void
@@ -68,6 +75,27 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
     setSelectedPointId(id)
   }, [prefix, maxPoints, points, undoHistory])
 
+  const addPointDirect = useCallback((input: DirectPointInput) => {
+    if (maxPoints && points.length >= maxPoints) return
+
+    const point: BaseAnalysisPoint = {
+      id: input.id,
+      name: input.name,
+      position: input.position,
+      threePosition: [input.position.x, input.position.z, -input.position.y],
+      surfaceType: 'wall',
+      normal: { dx: 0, dy: 0, dz: 1 },
+    }
+
+    undoHistory.push([...points, point])
+    // nextIdRef 갱신
+    const match = input.id.match(/\d+/)
+    if (match) {
+      const num = parseInt(match[0])
+      if (num >= nextIdRef.current) nextIdRef.current = num + 1
+    }
+  }, [maxPoints, points, undoHistory])
+
   const removePoint = useCallback((id: string) => {
     undoHistory.push(points.filter((p) => p.id !== id))
     setSelectedPointId((prev) => (prev === id ? null : prev))
@@ -118,6 +146,7 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
     hoverHit,
     setMode,
     addPointFromHit,
+    addPointDirect,
     removePoint,
     selectPoint,
     clearPoints,

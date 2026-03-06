@@ -27,6 +27,7 @@ export function SunlightPipelineProvider({ children, apiUrl }: SunlightPipelineP
     pipeline.isCancelled,
     pipeline.estimatedRemainingSec,
     pipeline.importData,
+    pipeline.windowPoints,
     pipeline.uploadFile,
     pipeline.runAnalysis,
     pipeline.cancelAnalysis,

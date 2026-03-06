@@ -34,7 +34,8 @@ export interface UseSunlightPipelineReturn {
   estimatedRemainingSec: number | null
   importData: Sn5fImportData | null
 
-  uploadFile: (objFile: File) => Promise<void>
+  windowPoints: Array<{ id: string; x: number; y: number; z: number; name: string; group: string }>
+  uploadFile: (objFile: File, mtlFile?: File) => Promise<void>
   runAnalysis: (config: SunlightConfig) => Promise<void>
   cancelAnalysis: () => Promise<void>
   reset: () => void
@@ -69,6 +70,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
   const [sceneUrl, setSceneUrl] = useState<string | null>(null)
   const [modelMeta, setModelMeta] = useState<ModelMetadata | null>(null)
   const [importData, setImportData] = useState<Sn5fImportData | null>(null)
+  const [windowPoints, setWindowPoints] = useState<Array<{ id: string; x: number; y: number; z: number; name: string; group: string }>>([])
 
   const reset = useCallback(() => {
     base.reset()
@@ -76,12 +78,14 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     setSceneUrl(null)
     setModelMeta(null)
     setImportData(null)
+    setWindowPoints([])
   }, [base])
 
-  const uploadFile = useCallback(async (objFile: File) => {
+  const uploadFile = useCallback(async (objFile: File, mtlFile?: File) => {
     base.setPhase('uploading')
     base.setError(null)
     setImportData(null)
+    setWindowPoints([])
 
     const ext = objFile.name.split('.').pop()?.toLowerCase()
 
@@ -159,6 +163,9 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
       if (ext === 'obj') {
         const formData = new FormData()
         formData.append('file', objFile)
+        if (mtlFile) {
+          formData.append('mtl_file', mtlFile)
+        }
 
         const importDataRes = await api.postFormData('/import/obj', formData)
         setModelId(importDataRes.model_id)
@@ -176,13 +183,27 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
           bounds_max: [0, 0, 0],
         })
 
+        // 백엔드에서 추출한 그룹별 색상 사용 (없으면 팔레트 fallback)
+        const colorMap = new Map<string, string>()
+        if (Array.isArray(importDataRes.group_colors)) {
+          for (const gc of importDataRes.group_colors) {
+            if (gc.color) colorMap.set(gc.name, gc.color)
+          }
+        }
+
+        // 창문 자동 측정점
+        if (Array.isArray(importDataRes.window_points) && importDataRes.window_points.length > 0) {
+          setWindowPoints(importDataRes.window_points)
+          logger.info('Window points detected', { count: importDataRes.window_points.length })
+        }
+
         // BUG-3 fix: OBJ 응답의 groups로 importData 설정
         const rawGroups = Array.isArray(importDataRes.groups) ? importDataRes.groups : []
         const groups: BuildingGroupInfo[] = (rawGroups as string[]).map((name: string, i: number) => ({
           name,
           vertexCount: 0,
           faceCount: 0,
-          color: GROUP_COLORS[i % GROUP_COLORS.length],
+          color: colorMap.get(name) || GROUP_COLORS[i % GROUP_COLORS.length],
           visible: true,
         }))
         if (groups.length > 0) {
@@ -272,6 +293,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     isCancelled: base.isCancelled,
     estimatedRemainingSec: base.estimatedRemainingSec,
     importData,
+    windowPoints,
     uploadFile,
     runAnalysis,
     cancelAnalysis: base.cancelAnalysis,
