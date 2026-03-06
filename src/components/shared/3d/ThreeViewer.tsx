@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useRef, useState, useEffect, type ReactNode } from 'react'
+import { Suspense, useRef, useMemo, useState, useEffect, type ReactNode } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -130,11 +130,18 @@ export default function ThreeViewer({
     }
   }, [])
 
-  if (!webglAvailable) return <WebGLFallback />
-
   const isFluid = height === '100%'
-
   const maxDim = bbox ? Math.max(...bbox.size) : 0
+
+  const orbitTarget = useMemo(
+    () => bbox
+      ? new THREE.Vector3(bbox.center[0], bbox.center[1], bbox.center[2])
+      : new THREE.Vector3(0, 0, 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bbox?.center[0], bbox?.center[1], bbox?.center[2]]
+  )
+
+  if (!webglAvailable) return <WebGLFallback />
 
   return (
     <div
@@ -167,7 +174,7 @@ export default function ThreeViewer({
           dampingFactor={0.1}
           minDistance={maxDim > 0 ? Math.max(1, maxDim * 0.01) : 1}
           maxDistance={maxDim > 0 ? Math.max(5000, maxDim * 5) : 5000}
-          target={bbox ? new THREE.Vector3(bbox.center[0], bbox.center[1], bbox.center[2]) : new THREE.Vector3(0, 0, 0)}
+          target={orbitTarget}
           maxPolarAngle={Math.PI * 0.85}
         />
         {enableDamping && <DampingInvalidator />}

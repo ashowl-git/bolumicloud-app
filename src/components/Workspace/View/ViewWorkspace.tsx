@@ -132,7 +132,7 @@ export default function ViewWorkspace() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [placement])
+  }, [placement.undo, placement.redo])
 
   return (
     <AnalysisWorkspace

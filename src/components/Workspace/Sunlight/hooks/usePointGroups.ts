@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
 import type { MeasurementPoint, MeasurementPointGroup } from '@/lib/types/sunlight'
 
@@ -136,9 +136,8 @@ export interface UsePointGroupsReturn {
   setGroupPoints: (groupId: string, points: MeasurementPoint[]) => void
 }
 
-let groupIdCounter = 1
-
 export function usePointGroups(): UsePointGroupsReturn {
+  const groupIdCounterRef = useRef(1)
   const [groups, setGroups] = useState<MeasurementPointGroup[]>([
     {
       id: 'g1',
@@ -151,7 +150,7 @@ export function usePointGroups(): UsePointGroupsReturn {
   const [activeGroupId, setActiveGroupId] = useState<string | null>('g1')
 
   const addGroup = useCallback((name: string) => {
-    const id = `g${++groupIdCounter}`
+    const id = `g${++groupIdCounterRef.current}`
     setGroups((prev) => [
       ...prev,
       { id, name, points: [], sorted: false, reverseColumns: false },
@@ -163,7 +162,7 @@ export function usePointGroups(): UsePointGroupsReturn {
     setGroups((prev) => {
       const filtered = prev.filter((g) => g.id !== groupId)
       if (filtered.length === 0) {
-        const id = `g${++groupIdCounter}`
+        const id = `g${++groupIdCounterRef.current}`
         return [{ id, name: DEFAULT_GROUP_NAME, points: [], sorted: false, reverseColumns: false }]
       }
       return filtered
@@ -255,7 +254,7 @@ export function usePointGroups(): UsePointGroupsReturn {
       }
     }
 
-    const id = `g${++groupIdCounter}`
+    const id = `g${++groupIdCounterRef.current}`
     setGroups((prev) => [
       ...prev,
       { id, name: groupName, points, sorted: true, reverseColumns: false },
@@ -265,7 +264,7 @@ export function usePointGroups(): UsePointGroupsReturn {
 
   const importGroups = useCallback((importData: ImportGroupData[]) => {
     const newGroups: MeasurementPointGroup[] = importData.map((gd) => {
-      const id = `g${++groupIdCounter}`
+      const id = `g${++groupIdCounterRef.current}`
       const pts: MeasurementPoint[] = gd.points.map((p) => ({
         id: p.id,
         x: p.x,

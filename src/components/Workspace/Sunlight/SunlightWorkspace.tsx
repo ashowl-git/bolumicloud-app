@@ -346,7 +346,7 @@ export default function SunlightWorkspace() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [placement])
+  }, [placement.undo, placement.redo])
 
   return (
     <AnalysisWorkspace

@@ -241,6 +241,17 @@ function MaterialApplicator({
         }
       }
     })
+    return () => {
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const edgeLines = child.children.filter((c) => c.userData.isEdgeLines)
+          edgeLines.forEach((c) => {
+            if (c instanceof THREE.LineSegments) c.geometry.dispose()
+            child.remove(c)
+          })
+        }
+      })
+    }
   }, [scene, material, showWireframe, groupMaterialCache, groupColorMap, selectedGroup, preserveOriginalMaterials])
 
   return null

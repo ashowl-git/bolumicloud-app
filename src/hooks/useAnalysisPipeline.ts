@@ -116,6 +116,7 @@ export function useAnalysisPipeline<
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const errorCountRef = useRef(0)
   const startTimeRef = useRef<number | null>(null)
+  const startPollingRef = useRef<(sid: string) => void>(() => {})
 
   // ── Cleanup on unmount ──
   useEffect(() => {
@@ -243,13 +244,15 @@ export function useAnalysisPipeline<
     }, pollInterval)
   }, [api, statusPath, resultPath, module, maxErrors, pollInterval, stopPolling, sessionKey, validateResult])
 
+  startPollingRef.current = startPolling
+
   // ── Session restore on mount ──
   useEffect(() => {
     const session = restoreSession(sessionKey)
     if (session && (session.phase === 'polling' || session.phase === 'running')) {
       setSessionId(session.sessionId)
       setPhase('polling')
-      startPolling(session.sessionId)
+      startPollingRef.current(session.sessionId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

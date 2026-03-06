@@ -124,7 +124,7 @@ export default function PrivacyWorkspace() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [placement])
+  }, [placement.undo, placement.redo])
 
   // Role toggle extra control for toolbar
   const roleToggle = (

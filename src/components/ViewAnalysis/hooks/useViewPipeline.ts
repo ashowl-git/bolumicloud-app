@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useApiClient } from '@/lib/api'
+import { useApiClient, buildUserMessage } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
 import type {
@@ -129,8 +129,7 @@ export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): Us
       base.setPhase('idle')
       logger.info('View import success', { sessionId: data.session_id, modelId: importRes.model_id })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '업로드 중 오류 발생'
-      base.setError(msg)
+      base.setError(buildUserMessage(err))
       base.setPhase('error')
     }
   }, [api, contextApiUrl, base])
@@ -152,8 +151,7 @@ export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): Us
       base.saveSession(base.sessionId, 'polling')
       base.startPolling(base.sessionId)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '분석 시작 중 오류 발생'
-      base.setError(msg)
+      base.setError(buildUserMessage(err))
       base.setPhase('error')
     }
   }, [base, api])
