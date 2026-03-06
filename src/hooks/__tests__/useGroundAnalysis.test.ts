@@ -49,7 +49,7 @@ describe('useGroundAnalysis', () => {
 
   it('starts with null result and not analyzing', () => {
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     expect(result.current.groundResult).toBeNull()
@@ -62,7 +62,7 @@ describe('useGroundAnalysis', () => {
 
   it('does nothing when sessionId is null', async () => {
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: null, config: baseConfig })
+      useGroundAnalysis({ sessionId: null, config: baseConfig, gridInterval: 2.0 })
     )
 
     await act(async () => {
@@ -79,7 +79,7 @@ describe('useGroundAnalysis', () => {
     mockPost.mockResolvedValueOnce({ ground_id: 'g1' })
 
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     await act(async () => {
@@ -101,7 +101,7 @@ describe('useGroundAnalysis', () => {
     mockPost.mockResolvedValueOnce({ ground_id: 'g1' })
 
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     await act(async () => {
@@ -129,7 +129,7 @@ describe('useGroundAnalysis', () => {
     mockPost.mockResolvedValueOnce({ ground_id: 'g1' })
 
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     await act(async () => {
@@ -151,7 +151,7 @@ describe('useGroundAnalysis', () => {
     mockPost.mockRejectedValueOnce(new Error('server down'))
 
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     await act(async () => {
@@ -165,7 +165,7 @@ describe('useGroundAnalysis', () => {
 
   it('setShowGroundHeatmap toggles heatmap visibility', () => {
     const { result } = renderHook(() =>
-      useGroundAnalysis({ sessionId: 's1', config: baseConfig })
+      useGroundAnalysis({ sessionId: 's1', config: baseConfig, gridInterval: 2.0 })
     )
 
     act(() => result.current.setShowGroundHeatmap(true))

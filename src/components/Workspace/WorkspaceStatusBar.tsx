@@ -22,6 +22,14 @@ interface WorkspaceStatusBarProps {
   errorMessage?: string
   /** Custom message */
   message?: string
+  /** Callback: scroll side panel to results */
+  onViewResults?: () => void
+  /** Callback: retry after error (re-run analysis) */
+  onRetry?: () => void
+  /** Callback: reset to initial state (re-upload) */
+  onReset?: () => void
+  /** Callback: cancel running analysis */
+  onCancel?: () => void
 }
 
 const stateStyles: Record<StatusBarState, string> = {
@@ -42,6 +50,10 @@ export default function WorkspaceStatusBar({
   completionTime,
   errorMessage,
   message,
+  onViewResults,
+  onRetry,
+  onReset,
+  onCancel,
 }: WorkspaceStatusBarProps) {
   const progress =
     state === 'uploading' ? uploadProgress :
@@ -100,8 +112,9 @@ export default function WorkspaceStatusBar({
       )}
 
       {/* Action area — completed: link / error: retry / running: cancel */}
-      {state === 'completed' && (
+      {state === 'completed' && onViewResults && (
         <button
+          onClick={onViewResults}
           className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
             font-medium transition-colors flex-shrink-0"
         >
@@ -109,15 +122,30 @@ export default function WorkspaceStatusBar({
         </button>
       )}
       {state === 'error' && (
-        <button
-          className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
-            font-medium transition-colors flex-shrink-0"
-        >
-          재시도
-        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
+                font-medium transition-colors"
+            >
+              재시도
+            </button>
+          )}
+          {onReset && (
+            <button
+              onClick={onReset}
+              className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-[11px]
+                font-medium transition-colors"
+            >
+              초기화
+            </button>
+          )}
+        </div>
       )}
-      {state === 'running' && (
+      {state === 'running' && onCancel && (
         <button
+          onClick={onCancel}
           className="p-1 bg-white/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
           title="분석 취소"
         >

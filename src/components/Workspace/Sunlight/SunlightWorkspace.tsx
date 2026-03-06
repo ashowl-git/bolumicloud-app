@@ -66,6 +66,8 @@ export default function SunlightWorkspace() {
     importData,
     uploadFile,
     runAnalysis,
+    cancelAnalysis,
+    reset,
   } = pipeline
 
   // Config state
@@ -157,8 +159,10 @@ export default function SunlightWorkspace() {
   })
 
   // Ground analysis (extracted hook)
+  const [gridInterval, setGridInterval] = useState(2.0)
   const ground = useGroundAnalysis({
     sessionId,
+    gridInterval,
     config: {
       latitude: config.latitude,
       longitude: config.longitude,
@@ -246,8 +250,8 @@ export default function SunlightWorkspace() {
   }, [phase, progress])
 
   // ── Handlers ──
-  const handleFileSelect = useCallback(async (file: File) => {
-    await uploadFile(file)
+  const handleFileSelect = useCallback(async (file: File, mtlFile?: File) => {
+    await uploadFile(file, mtlFile)
   }, [uploadFile])
 
   const handleConfigChange = useCallback((partial: Partial<SunlightConfigState>) => {
@@ -413,6 +417,8 @@ export default function SunlightWorkspace() {
           causeResult={report.causeResult}
           selectedBuildingId={selectedBuildingId}
           onBuildingSelect={setSelectedBuildingId}
+          gridInterval={gridInterval}
+          onGridIntervalChange={setGridInterval}
           onStartGroundAnalysis={ground.runGroundAnalysis}
           isGroundAnalysisRunning={ground.isGroundAnalyzing}
           sessionId={sessionId}
@@ -445,6 +451,13 @@ export default function SunlightWorkspace() {
           etaText={estimatedRemainingSec ? formatEta(estimatedRemainingSec) : undefined}
           completionTime={results ? `${formatDuration(results.metadata.computation_time_sec)}` : undefined}
           errorMessage={error || undefined}
+          onViewResults={() => {
+            layout.setActivePanelTab('results')
+            layout.setSidePanelOpen(true)
+          }}
+          onRetry={handleStartAnalysis}
+          onReset={reset}
+          onCancel={cancelAnalysis}
         />
       }
       uploadOverlay={

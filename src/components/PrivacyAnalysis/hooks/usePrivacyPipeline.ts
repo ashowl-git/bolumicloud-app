@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useApiClient } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
@@ -10,6 +10,25 @@ import type {
   PrivacyProgress,
   PrivacyAnalysisResult,
 } from '@/lib/types/privacy'
+
+// ── Model info persistence ──
+const PRIVACY_MODEL_KEY = 'privacyModelInfo'
+
+function persistPrivacyModelInfo(sceneUrl: string, targetSceneUrl: string | null, observerSceneUrl: string | null) {
+  try { localStorage.setItem(PRIVACY_MODEL_KEY, JSON.stringify({ sceneUrl, targetSceneUrl, observerSceneUrl })) } catch { /* ignore */ }
+}
+
+function restorePrivacyModelInfo(): { sceneUrl: string; targetSceneUrl: string | null; observerSceneUrl: string | null } | null {
+  try {
+    const raw = localStorage.getItem(PRIVACY_MODEL_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return null
+}
+
+function clearPrivacyModelInfo() {
+  try { localStorage.removeItem(PRIVACY_MODEL_KEY) } catch { /* ignore */ }
+}
 
 export type PrivacyPipelinePhase =
   | 'idle'
@@ -65,12 +84,26 @@ export function usePrivacyPipeline(_apiUrl: string): UsePrivacyPipelineReturn {
     setConfigState((prev) => ({ ...prev, ...partial }))
   }, [])
 
+  // Restore model info on mount when session is being resumed
+  useEffect(() => {
+    if (base.phase === 'polling' && base.sessionId && !sceneUrl) {
+      const info = restorePrivacyModelInfo()
+      if (info) {
+        setSceneUrl(info.sceneUrl)
+        setTargetSceneUrl(info.targetSceneUrl)
+        setObserverSceneUrl(info.observerSceneUrl)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base.phase, base.sessionId])
+
   const reset = useCallback(() => {
     base.reset()
     setSceneUrl(null)
     setTargetSceneUrl(null)
     setObserverSceneUrl(null)
     setConfigState(DEFAULT_CONFIG)
+    clearPrivacyModelInfo()
   }, [base])
 
   const upload = useCallback(async (targetFile: File, observerFile: File) => {
@@ -102,8 +135,11 @@ export function usePrivacyPipeline(_apiUrl: string): UsePrivacyPipelineReturn {
         uploadModel(targetFile),
         uploadModel(observerFile),
       ])
-      if (tUrl) { setTargetSceneUrl(`${contextApiUrl}${tUrl}`); setSceneUrl(`${contextApiUrl}${tUrl}`) }
-      if (oUrl) setObserverSceneUrl(`${contextApiUrl}${oUrl}`)
+      const fullTargetUrl = tUrl ? `${contextApiUrl}${tUrl}` : null
+      const fullObserverUrl = oUrl ? `${contextApiUrl}${oUrl}` : null
+      if (fullTargetUrl) { setTargetSceneUrl(fullTargetUrl); setSceneUrl(fullTargetUrl) }
+      if (fullObserverUrl) setObserverSceneUrl(fullObserverUrl)
+      if (fullTargetUrl) persistPrivacyModelInfo(fullTargetUrl, fullTargetUrl, fullObserverUrl)
 
       base.setPhase('idle')
     } catch (e) {

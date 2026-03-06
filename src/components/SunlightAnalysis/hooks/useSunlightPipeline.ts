@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useApiClient, buildUserMessage } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
@@ -46,6 +46,31 @@ const GROUP_COLORS = [
   '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
 ]
 
+// ── Model info persistence (session restore) ──
+const MODEL_INFO_KEY = 'sunlightModelInfo'
+
+interface PersistedModelInfo {
+  sceneUrl: string
+  modelId: string
+  modelMeta: ModelMetadata | null
+}
+
+function persistModelInfo(info: PersistedModelInfo) {
+  try { localStorage.setItem(MODEL_INFO_KEY, JSON.stringify(info)) } catch { /* ignore */ }
+}
+
+function restoreModelInfo(): PersistedModelInfo | null {
+  try {
+    const raw = localStorage.getItem(MODEL_INFO_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return null
+}
+
+function clearModelInfo() {
+  try { localStorage.removeItem(MODEL_INFO_KEY) } catch { /* ignore */ }
+}
+
 function validateSunlightResult(data: unknown): string | null {
   const d = data as Record<string, unknown>
   if (!d || !d.points || !Array.isArray(d.points)) {
@@ -72,6 +97,20 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
   const [importData, setImportData] = useState<Sn5fImportData | null>(null)
   const [windowPoints, setWindowPoints] = useState<Array<{ id: string; x: number; y: number; z: number; name: string; group: string }>>([])
 
+  // Restore model info on mount when session is being resumed
+  useEffect(() => {
+    if (base.phase === 'polling' && base.sessionId && !sceneUrl) {
+      const info = restoreModelInfo()
+      if (info) {
+        setModelId(info.modelId)
+        setSceneUrl(info.sceneUrl)
+        setModelMeta(info.modelMeta)
+        logger.info('Model info restored from session', { modelId: info.modelId })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base.phase, base.sessionId])
+
   const reset = useCallback(() => {
     base.reset()
     setModelId(null)
@@ -79,6 +118,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     setModelMeta(null)
     setImportData(null)
     setWindowPoints([])
+    clearModelInfo()
   }, [base])
 
   const uploadFile = useCallback(async (objFile: File, mtlFile?: File) => {
@@ -153,7 +193,9 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
         setImportData(sn5fData)
         base.setSessionId(sn5fData.sessionId)
         setModelId(sn5fData.modelId)
-        setSceneUrl(`${contextApiUrl}${sn5fData.sceneUrl}`)
+        const fullSceneUrl = `${contextApiUrl}${sn5fData.sceneUrl}`
+        setSceneUrl(fullSceneUrl)
+        persistModelInfo({ sceneUrl: fullSceneUrl, modelId: sn5fData.modelId, modelMeta: null })
         base.setPhase('idle')
         logger.info('SN5F import success', { sessionId: sn5fData.sessionId, groups: groups.length })
         return
@@ -169,10 +211,11 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
 
         const importDataRes = await api.postFormData('/import/obj', formData)
         setModelId(importDataRes.model_id)
-        setSceneUrl(`${contextApiUrl}${importDataRes.scene_url}`)
+        const fullSceneUrl = `${contextApiUrl}${importDataRes.scene_url}`
+        setSceneUrl(fullSceneUrl)
 
         // BUG-2 fix: OBJ 응답으로 modelMeta 설정
-        setModelMeta({
+        const meta: ModelMetadata = {
           model_id: importDataRes.model_id,
           scene_url: importDataRes.scene_url,
           original_name: objFile.name,
@@ -181,7 +224,9 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
           faces: importDataRes.faces ?? 0,
           bounds_min: [0, 0, 0],
           bounds_max: [0, 0, 0],
-        })
+        }
+        setModelMeta(meta)
+        persistModelInfo({ sceneUrl: fullSceneUrl, modelId: importDataRes.model_id, modelMeta: meta })
 
         // 백엔드에서 추출한 그룹별 색상 사용 (없으면 팔레트 fallback)
         const colorMap = new Map<string, string>()
@@ -218,10 +263,10 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
           })
         }
 
-        const analysisFormData = new FormData()
-        analysisFormData.append('obj_file', objFile)
-
-        const analysisData: SunlightUploadResponse = await api.postFormData('/sunlight/upload', analysisFormData)
+        // /import/obj의 model_id로 세션 등록 (파일 재전송 없음)
+        const analysisData: SunlightUploadResponse = await api.post(
+          `/sunlight/register?model_id=${importDataRes.model_id}`
+        )
         base.setSessionId(analysisData.session_id)
         base.setPhase('idle')
         logger.info('OBJ import success', { sessionId: analysisData.session_id, modelId: importDataRes.model_id })

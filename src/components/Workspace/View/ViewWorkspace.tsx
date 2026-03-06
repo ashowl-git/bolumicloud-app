@@ -12,6 +12,7 @@ import type { ModelConfig } from '@/components/shared/3d/types'
 import { DEFAULT_VIEW_CONFIG } from '@/lib/defaults/view'
 import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
+import { Undo2, Redo2 } from 'lucide-react'
 
 import AnalysisWorkspace from '../AnalysisWorkspace'
 import WorkspaceViewport from '../WorkspaceViewport'
@@ -33,7 +34,7 @@ export default function ViewWorkspace() {
   const {
     phase, sessionId, sceneUrl, modelMeta,
     progress, results, error, estimatedRemainingSec,
-    uploadFile, runAnalysis,
+    uploadFile, runAnalysis, cancelAnalysis, reset,
   } = pipeline
 
   const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_VIEW_CONFIG })
@@ -118,6 +119,21 @@ export default function ViewWorkspace() {
 
   const isRunning = phase === 'running' || phase === 'polling'
 
+  // Undo/Redo keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) placement.redo()
+        else placement.undo()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [placement])
+
   return (
     <AnalysisWorkspace
       toolbar={
@@ -128,6 +144,27 @@ export default function ViewWorkspace() {
             onModeChange={placement.setMode}
             pointCount={placement.points.length}
             onClearAll={placement.clearPoints}
+            extraControls={
+              <div className="flex items-center gap-0.5 ml-1">
+                <div className="w-px h-5 bg-gray-200" />
+                <button
+                  onClick={placement.undo}
+                  disabled={!placement.canUndo}
+                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  title="실행 취소 (Ctrl+Z)"
+                >
+                  <Undo2 size={14} />
+                </button>
+                <button
+                  onClick={placement.redo}
+                  disabled={!placement.canRedo}
+                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  title="다시 실행 (Ctrl+Shift+Z)"
+                >
+                  <Redo2 size={14} />
+                </button>
+              </div>
+            }
           />
         ) : undefined
       }
@@ -159,6 +196,13 @@ export default function ViewWorkspace() {
           etaText={estimatedRemainingSec ? formatEta(estimatedRemainingSec) : undefined}
           completionTime={results ? formatDuration(results.metadata.computation_time_sec) : undefined}
           errorMessage={error || undefined}
+          onViewResults={() => {
+            layout.setActivePanelTab('results')
+            layout.setSidePanelOpen(true)
+          }}
+          onRetry={handleStartAnalysis}
+          onReset={reset}
+          onCancel={cancelAnalysis}
         />
       }
       uploadOverlay={

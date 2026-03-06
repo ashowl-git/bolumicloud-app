@@ -3,20 +3,25 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { CloudUpload } from 'lucide-react'
 
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
+
 interface WorkspaceUploadOverlayProps {
-  onFileSelect: (file: File) => void
+  onFileSelect: (file: File, mtlFile?: File) => void
   accept?: string
   isUploading?: boolean
   hint?: string
+  maxSizeMB?: number
 }
 
 export default function WorkspaceUploadOverlay({
   onFileSelect,
-  accept = '.obj,.sn5f',
+  accept = '.obj,.sn5f,.mtl',
   isUploading = false,
   hint = 'OBJ 또는 Sanalyst SN5F 파일을 드래그하세요 (최대 100MB)',
+  maxSizeMB = 100,
 }: WorkspaceUploadOverlayProps) {
   const [isDragging, setIsDragging] = useState(false)
+  const [sizeError, setSizeError] = useState<string | null>(null)
   const [fadePhase, setFadePhase] = useState<'visible' | 'fading' | 'hidden'>('visible')
   const inputRef = useRef<HTMLInputElement>(null)
   const prevUploading = useRef(isUploading)
@@ -31,6 +36,17 @@ export default function WorkspaceUploadOverlay({
     prevUploading.current = isUploading
   }, [isUploading])
 
+  const maxBytes = maxSizeMB * 1024 * 1024
+
+  const validateAndSelect = useCallback((file: File, mtlFile?: File) => {
+    if (file.size > maxBytes) {
+      setSizeError(`파일 크기(${(file.size / 1024 / 1024).toFixed(1)}MB)가 ${maxSizeMB}MB 제한을 초과합니다`)
+      return
+    }
+    setSizeError(null)
+    onFileSelect(file, mtlFile)
+  }, [maxBytes, maxSizeMB, onFileSelect])
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
@@ -41,19 +57,30 @@ export default function WorkspaceUploadOverlay({
         const ext = f.name.split('.').pop()?.toLowerCase()
         return accept.includes(`.${ext}`)
       })
-      if (valid) onFileSelect(valid)
+      if (valid) {
+        // MTL 파일이 함께 드래그되었는지 확인
+        const mtl = files.find((f) => f.name.toLowerCase().endsWith('.mtl'))
+        validateAndSelect(valid, mtl || undefined)
+      }
     },
-    [accept, isUploading, onFileSelect]
+    [accept, isUploading, validateAndSelect]
   )
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!e.target.files) return
-      const file = e.target.files[0]
-      if (file) onFileSelect(file)
+      if (!e.target.files || e.target.files.length === 0) return
+      const files = Array.from(e.target.files)
+      const main = files.find((f) => {
+        const ext = f.name.split('.').pop()?.toLowerCase()
+        return ext === 'obj' || ext === 'sn5f'
+      })
+      if (main) {
+        const mtl = files.find((f) => f.name.toLowerCase().endsWith('.mtl'))
+        validateAndSelect(main, mtl || undefined)
+      }
       e.target.value = ''
     },
-    [onFileSelect]
+    [validateAndSelect]
   )
 
   if (fadePhase === 'hidden') return null
@@ -86,6 +113,7 @@ export default function WorkspaceUploadOverlay({
           ref={inputRef}
           type="file"
           accept={accept}
+          multiple
           onChange={handleChange}
           className="hidden"
           disabled={isUploading}
@@ -104,6 +132,9 @@ export default function WorkspaceUploadOverlay({
             <div>
               <p className="text-sm font-medium text-gray-700">OBJ / SN5F 파일을 드래그하거나 클릭하세요</p>
               <p className="text-xs text-gray-400 mt-1.5">{hint}</p>
+              {sizeError && (
+                <p className="text-xs text-red-500 mt-2 font-medium">{sizeError}</p>
+              )}
             </div>
           </div>
         )}

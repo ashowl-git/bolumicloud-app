@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useApiClient } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
@@ -10,6 +10,25 @@ import type {
 } from '@/lib/types/view'
 import type { ModelMetadata } from '@/lib/types/sunlight'
 import { logger } from '@/lib/logger'
+
+// ── Model info persistence ──
+const VIEW_MODEL_KEY = 'viewModelInfo'
+
+function persistViewModelInfo(sceneUrl: string, modelMeta: ModelMetadata | null) {
+  try { localStorage.setItem(VIEW_MODEL_KEY, JSON.stringify({ sceneUrl, modelMeta })) } catch { /* ignore */ }
+}
+
+function restoreViewModelInfo(): { sceneUrl: string; modelMeta: ModelMetadata | null } | null {
+  try {
+    const raw = localStorage.getItem(VIEW_MODEL_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return null
+}
+
+function clearViewModelInfo() {
+  try { localStorage.removeItem(VIEW_MODEL_KEY) } catch { /* ignore */ }
+}
 
 interface UseViewPipelineOptions {
   apiUrl: string
@@ -48,10 +67,24 @@ export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): Us
   const [sceneUrl, setSceneUrl] = useState<string | null>(null)
   const [modelMeta, setModelMeta] = useState<ModelMetadata | null>(null)
 
+  // Restore model info on mount when session is being resumed
+  useEffect(() => {
+    if (base.phase === 'polling' && base.sessionId && !sceneUrl) {
+      const info = restoreViewModelInfo()
+      if (info) {
+        setSceneUrl(info.sceneUrl)
+        setModelMeta(info.modelMeta)
+        logger.info('View model info restored', { sceneUrl: info.sceneUrl })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base.phase, base.sessionId])
+
   const reset = useCallback(() => {
     base.reset()
     setSceneUrl(null)
     setModelMeta(null)
+    clearViewModelInfo()
   }, [base])
 
   const uploadFile = useCallback(async (objFile: File) => {
@@ -59,26 +92,42 @@ export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): Us
     base.setError(null)
 
     try {
-      // 1) View upload (analysis engine)
+      // 1) /import/obj: GLB 변환 + 3D 시각화
       const formData = new FormData()
-      formData.append('obj_file', objFile)
+      formData.append('file', objFile)
 
-      const data: ViewUploadResponse = await api.postFormData('/view/upload', formData)
+      const importRes = await api.postFormData('/import/obj', formData)
+      const fullUrl = `${contextApiUrl}${importRes.scene_url}`
+      setSceneUrl(fullUrl)
+      setModelMeta({
+        model_id: importRes.model_id,
+        scene_url: importRes.scene_url,
+        original_name: objFile.name,
+        format: 'glb',
+        vertices: importRes.vertices ?? 0,
+        faces: importRes.faces ?? 0,
+        bounds_min: [0, 0, 0],
+        bounds_max: [0, 0, 0],
+      })
+      persistViewModelInfo(fullUrl, {
+        model_id: importRes.model_id,
+        scene_url: importRes.scene_url,
+        original_name: objFile.name,
+        format: 'glb',
+        vertices: importRes.vertices ?? 0,
+        faces: importRes.faces ?? 0,
+        bounds_min: [0, 0, 0],
+        bounds_max: [0, 0, 0],
+      })
+
+      // 2) /view/register: 분석 세션 등록 (파일 재전송 없음)
+      const data: ViewUploadResponse = await api.post(
+        `/view/register?model_id=${importRes.model_id}`
+      )
       base.setSessionId(data.session_id)
 
-      // 2) 3D model upload (GLB conversion + viewer)
-      const modelFormData = new FormData()
-      modelFormData.append('file', objFile)
-
-      try {
-        const modelData: ModelMetadata = await api.postFormData('/models/upload', modelFormData)
-        setSceneUrl(`${contextApiUrl}${modelData.scene_url}`)
-        setModelMeta(modelData)
-      } catch {
-        logger.warn('Model upload failed, 3D preview unavailable')
-      }
-
       base.setPhase('idle')
+      logger.info('View import success', { sessionId: data.session_id, modelId: importRes.model_id })
     } catch (err) {
       const msg = err instanceof Error ? err.message : '업로드 중 오류 발생'
       base.setError(msg)

@@ -6,6 +6,7 @@ import type { GroundAnalysisResult, IsochroneLine } from '@/lib/types/sunlight'
 
 interface UseGroundAnalysisOptions {
   sessionId: string | null
+  gridInterval: number
   config: {
     latitude: number
     longitude: number
@@ -23,7 +24,7 @@ interface UseGroundAnalysisReturn {
   runGroundAnalysis: () => Promise<void>
 }
 
-export function useGroundAnalysis({ sessionId, config }: UseGroundAnalysisOptions): UseGroundAnalysisReturn {
+export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGroundAnalysisOptions): UseGroundAnalysisReturn {
   const api = useApiClient()
   const [groundResult, setGroundResult] = useState<GroundAnalysisResult | null>(null)
   const [groundIsochrones, setGroundIsochrones] = useState<IsochroneLine[]>([])
@@ -44,7 +45,7 @@ export function useGroundAnalysis({ sessionId, config }: UseGroundAnalysisOption
     try {
       const data = await api.post('/sunlight/ground-analysis', {
         session_id: sessionId,
-        grid_size: 2.0,
+        grid_size: gridInterval,
         altitude: 0.0,
         latitude: config.latitude,
         longitude: config.longitude,

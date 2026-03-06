@@ -11,6 +11,7 @@ import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { WindowSpec } from '@/lib/types/privacy'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import type { StatusBarState } from '../WorkspaceStatusBar'
+import { Undo2, Redo2 } from 'lucide-react'
 
 import AnalysisWorkspace from '../AnalysisWorkspace'
 import WorkspaceViewport from '../WorkspaceViewport'
@@ -35,7 +36,7 @@ export default function PrivacyWorkspace() {
   const {
     phase, sessionId, sceneUrl,
     config, progress, results, error,
-    setConfig, run,
+    setConfig, run, cancel, reset,
   } = pipeline
 
   // Active role: target (orange) vs observer (blue)
@@ -110,6 +111,21 @@ export default function PrivacyWorkspace() {
 
   const isRunning = phase === 'running' || phase === 'polling'
 
+  // Undo/Redo keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) placement.redo()
+        else placement.undo()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [placement])
+
   // Role toggle extra control for toolbar
   const roleToggle = (
     <>
@@ -147,7 +163,30 @@ export default function PrivacyWorkspace() {
             onModeChange={placement.setMode}
             pointCount={config.targetWindows.length + config.observerWindows.length}
             onClearAll={placement.clearPoints}
-            extraControls={roleToggle}
+            extraControls={
+              <>
+                {roleToggle}
+                <div className="flex items-center gap-0.5 ml-1">
+                  <div className="w-px h-5 bg-gray-200" />
+                  <button
+                    onClick={placement.undo}
+                    disabled={!placement.canUndo}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                    title="실행 취소 (Ctrl+Z)"
+                  >
+                    <Undo2 size={14} />
+                  </button>
+                  <button
+                    onClick={placement.redo}
+                    disabled={!placement.canRedo}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                    title="다시 실행 (Ctrl+Shift+Z)"
+                  >
+                    <Redo2 size={14} />
+                  </button>
+                </div>
+              </>
+            }
           />
         ) : undefined
       }
@@ -178,6 +217,13 @@ export default function PrivacyWorkspace() {
           message={hasModel
             ? `대상: ${config.targetWindows.length} | 관찰: ${config.observerWindows.length}`
             : undefined}
+          onViewResults={() => {
+            layout.setActivePanelTab('results')
+            layout.setSidePanelOpen(true)
+          }}
+          onRetry={handleStartAnalysis}
+          onReset={reset}
+          onCancel={cancel}
         />
       }
       uploadOverlay={
