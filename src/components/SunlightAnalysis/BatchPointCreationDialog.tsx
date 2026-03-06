@@ -26,7 +26,7 @@ export default function BatchPointCreationDialog({
   // ─── 폼 상태 ─────────────────────────────
   const [groupName, setGroupName] = useState('101동')
   const [startFloor, setStartFloor] = useState(2)
-  const [endFloor, setEndFloor] = useState(25)
+  const [endFloor, setEndFloor] = useState(5)
   const [floorHeight, setFloorHeight] = useState(2.8)
   const [unitCount, setUnitCount] = useState(4)
   const [unitSpacing, setUnitSpacing] = useState(8.0)
@@ -187,7 +187,7 @@ export default function BatchPointCreationDialog({
           {/* 호수 / 호 간격 */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] font-medium text-gray-500 block mb-1">호수 (세대수)</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">수평 분할 수</label>
               <input
                 type="number"
                 min={1}
@@ -197,7 +197,7 @@ export default function BatchPointCreationDialog({
               />
             </div>
             <div>
-              <label className="text-[10px] font-medium text-gray-500 block mb-1">호 간격 (m)</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">수평 간격 (m)</label>
               <input
                 type="number"
                 min={0.5}
@@ -212,7 +212,7 @@ export default function BatchPointCreationDialog({
           {/* 기준점 */}
           <div>
             <label className="text-[10px] font-medium text-gray-500 block mb-1">
-              기준점 (1층 1호 위치)
+              기준점 (그리드 좌측 하단)
             </label>
             <div className="grid grid-cols-3 gap-1.5">
               <div>
@@ -264,7 +264,7 @@ export default function BatchPointCreationDialog({
           {/* 입면 방향 */}
           <div>
             <label className="text-[10px] font-medium text-gray-500 block mb-1">
-              입면 방향 (수평 벡터)
+              그리드 수평 방향
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               <div>
@@ -290,12 +290,23 @@ export default function BatchPointCreationDialog({
             </div>
           </div>
 
-          {/* 미리보기 요약 */}
+          {/* 그리드 배치 가이드 + 미리보기 요약 */}
           <div className="bg-gray-50 border border-gray-200 rounded px-3 py-2">
+            <div className="flex items-start gap-3 mb-1.5">
+              <pre className="text-[9px] leading-tight text-gray-400 font-mono whitespace-pre select-none">{
+`       수평 방향 →
+  ┌──┬──┬──┬──┐ ${endFloor}층
+  │  │  │  │  │
+  ├──┼──┼──┼──┤
+★ │  │  │  │  │ ${startFloor}층
+  └──┴──┴──┴──┘
+★ 기준점(좌측 하단)`
+              }</pre>
+            </div>
             <p className="text-xs text-gray-700">
               <span className="font-medium">{floorCount}층</span>
               {' x '}
-              <span className="font-medium">{unitCount}호</span>
+              <span className="font-medium">{unitCount}열</span>
               {' = '}
               <span className="font-semibold text-red-600">{totalPoints}개</span>
               {' 측정점 생성'}
