@@ -82,7 +82,7 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
     } catch {
       setIsGroundAnalyzing(false)
     }
-  }, [api, sessionId, config])
+  }, [api, sessionId, config, gridInterval])
 
   return { groundResult, groundIsochrones, showGroundHeatmap, isGroundAnalyzing, setShowGroundHeatmap, runGroundAnalysis }
 }

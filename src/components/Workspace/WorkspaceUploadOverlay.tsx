@@ -3,8 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { CloudUpload } from 'lucide-react'
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
-
 interface WorkspaceUploadOverlayProps {
   onFileSelect: (file: File, mtlFile?: File) => void
   accept?: string
