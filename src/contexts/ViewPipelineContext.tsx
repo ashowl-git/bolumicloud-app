@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useViewPipeline } from '@/components/ViewAnalysis/hooks/useViewPipeline'
 import type { ViewPipelinePhase, UseViewPipelineReturn } from '@/components/ViewAnalysis/hooks/useViewPipeline'
 
@@ -14,8 +14,21 @@ interface ViewPipelineProviderProps {
 export function ViewPipelineProvider({ children, apiUrl }: ViewPipelineProviderProps) {
   const pipeline = useViewPipeline({ apiUrl })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const value = useMemo(() => pipeline, [
+    pipeline.phase,
+    pipeline.sessionId,
+    pipeline.sceneUrl,
+    pipeline.modelMeta,
+    pipeline.progress,
+    pipeline.results,
+    pipeline.error,
+    pipeline.isCancelled,
+    pipeline.estimatedRemainingSec,
+  ])
+
   return (
-    <ViewPipelineContext.Provider value={pipeline}>
+    <ViewPipelineContext.Provider value={value}>
       {children}
     </ViewPipelineContext.Provider>
   )

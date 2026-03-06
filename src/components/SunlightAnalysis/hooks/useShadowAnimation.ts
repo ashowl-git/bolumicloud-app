@@ -54,6 +54,9 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
   const rafRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number>(0)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
+  const framesRef = useRef<ShadowFrame[]>([])
+
+  framesRef.current = frames
 
   // 현재 프레임 계산
   const currentFrame = frames.find((f) => f.minute === playback.currentMinute) ?? null
@@ -132,6 +135,8 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
       const delta = now - lastTimeRef.current
       lastTimeRef.current = now
 
+      const currentFrames = framesRef.current
+
       setPlayback((prev) => {
         if (!prev.isPlaying) return prev
 
@@ -140,8 +145,8 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
         const newMinute = prev.currentMinute + minuteIncrement
 
         // 최대 분 (step 단위로 snap)
-        const maxMinute = frames.length > 0
-          ? frames[frames.length - 1].minute
+        const maxMinute = currentFrames.length > 0
+          ? currentFrames[currentFrames.length - 1].minute
           : 479
 
         if (newMinute >= maxMinute) {
@@ -149,7 +154,7 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
         }
 
         // step 단위로 snap
-        const stepSize = frames.length > 1 ? frames[1].minute - frames[0].minute : 10
+        const stepSize = currentFrames.length > 1 ? currentFrames[1].minute - currentFrames[0].minute : 10
         const snapped = Math.round(newMinute / stepSize) * stepSize
 
         return { ...prev, currentMinute: snapped }
@@ -159,7 +164,7 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
     }
 
     rafRef.current = requestAnimationFrame(animate)
-  }, [frames])
+  }, [])
 
   const pause = useCallback(() => {
     setPlayback((prev) => ({ ...prev, isPlaying: false }))

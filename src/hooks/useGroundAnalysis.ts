@@ -57,8 +57,17 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
       const groundId = data.ground_id
 
       if (pollRef.current) clearInterval(pollRef.current)
+      let pollCount = 0
+      const MAX_POLLS = 150 // 5분 (2초 간격)
       pollRef.current = setInterval(async () => {
         try {
+          pollCount++
+          if (pollCount > MAX_POLLS) {
+            clearInterval(pollRef.current!)
+            pollRef.current = null
+            setIsGroundAnalyzing(false)
+            return
+          }
           const status = await api.get(`/sunlight/ground/${groundId}/status`)
           if (status.status === 'completed') {
             clearInterval(pollRef.current!)
