@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapPin, Search, Loader2 } from 'lucide-react'
 import { CITY_PRESETS } from '@/lib/types/pipeline'
 import type { SunlightConfigState } from '@/lib/types/sunlight'
@@ -38,6 +38,7 @@ export default function LocationConfigSection({
   const [dmsMode, setDmsMode] = useState(false)
   const [latDMS, setLatDMS] = useState(() => decimalToDMS(config.latitude))
   const [lonDMS, setLonDMS] = useState(() => decimalToDMS(config.longitude))
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!dmsMode) {
@@ -69,32 +70,27 @@ export default function LocationConfigSection({
   const searchAddress = useCallback((query: string) => {
     setAddressQuery(query)
     setAddressNoResults(false)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     if (query.length < 2) {
       setAddressResults([])
       return
     }
-    const timer = setTimeout(async () => {
+    debounceRef.current = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=ko`,
-          { headers: { 'User-Agent': 'BoLumiCloud/1.0' } }
-        )
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`)
-        }
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data: NominatimResult[] = await res.json()
         setAddressResults(data)
         setAddressNoResults(data.length === 0)
       } catch {
         setAddressResults([])
         setAddressNoResults(false)
-        showToast({ type: 'error', message: '주소 검색 중 네트워크 오류가 발생하였습니다.' })
+        showToast({ type: 'error', message: '주소 검색 중 오류가 발생하였습니다.' })
       } finally {
         setIsSearching(false)
       }
-    }, 400)
-    return () => clearTimeout(timer)
+    }, 500)
   }, [showToast])
 
   const selectAddress = useCallback((result: NominatimResult) => {

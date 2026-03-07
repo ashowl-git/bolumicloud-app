@@ -76,10 +76,7 @@ export default function ViewConfigPanel({ config, onChange, disabled }: ViewConf
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=ko`,
-          { headers: { 'User-Agent': 'BoLumiCloud/1.0' } }
-        )
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
         const data: NominatimResult[] = await res.json()
         setAddressResults(data)
       } catch {
