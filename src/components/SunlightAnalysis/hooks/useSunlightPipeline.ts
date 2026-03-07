@@ -308,6 +308,8 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
       return
     }
 
+    // 이전 결과를 지워서 재분석 실패 시 stale 데이터 표시 방지
+    base.setResults(null)
     base.setPhase('running')
     base.setError(null)
     base.saveSession(base.sessionId, 'running')

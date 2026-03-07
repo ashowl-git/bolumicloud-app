@@ -19,6 +19,7 @@ import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
 
+import { useToast } from '@/contexts/ToastContext'
 import AnalysisWorkspace from '../AnalysisWorkspace'
 import WorkspaceViewport from '../WorkspaceViewport'
 import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
@@ -72,6 +73,15 @@ export default function SunlightWorkspace() {
     cancelAnalysis,
     reset,
   } = pipeline
+
+  const { showToast } = useToast()
+
+  // 분석 오류 발생 시 토스트 알림
+  useEffect(() => {
+    if (error) {
+      showToast({ type: 'error', message: error })
+    }
+  }, [error, showToast])
 
   // Config state
   const [config, setConfig] = useState<SunlightConfigState>({ ...DEFAULT_SUNLIGHT_CONFIG })
@@ -483,6 +493,7 @@ export default function SunlightWorkspace() {
           onBatchCreate={pointGroups.batchCreatePoints}
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
+          error={error}
           results={results}
           onGenerateReport={report.generateReport}
           reportDownloadUrl={report.reportDownloadUrl}

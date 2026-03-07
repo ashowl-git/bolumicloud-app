@@ -52,6 +52,7 @@ interface SunlightSidePanelProps {
   // Analysis
   isRunning: boolean
   onStartAnalysis: () => void
+  error?: string | null
   // Results
   results: SunlightAnalysisResult | null
   // Report
@@ -100,6 +101,7 @@ export default function SunlightSidePanel({
   onBatchCreate,
   isRunning,
   onStartAnalysis,
+  error,
   results,
   onGenerateReport,
   reportDownloadUrl,
@@ -127,6 +129,7 @@ export default function SunlightSidePanel({
       onStartAnalysis={onStartAnalysis}
       results={results}
       disabled={disabled}
+      error={error}
       noPoints={noPoints}
     />
   )

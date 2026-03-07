@@ -43,6 +43,7 @@ export interface AnalysisPipelineActions {
   setPhase: (phase: PipelinePhase) => void
   setSessionId: (id: string | null) => void
   setError: (error: string | null) => void
+  setResults: (results: unknown) => void
   startPolling: (sessionId: string) => void
   stopPolling: () => void
   saveSession: (sessionId: string, phase: PipelinePhase) => void
@@ -170,6 +171,12 @@ export function useAnalysisPipeline<
 
   // ── Polling ──
   const startPolling = useCallback((sid: string) => {
+    // 기존 폴링이 돌고 있으면 먼저 정리 (중복 interval 방지)
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+
     errorCountRef.current = 0
     if (startTimeRef.current === null) {
       startTimeRef.current = Date.now()
@@ -286,6 +293,7 @@ export function useAnalysisPipeline<
     setPhase,
     setSessionId,
     setError,
+    setResults: ((r: unknown) => setResults(r as TResult | null)) as (results: unknown) => void,
     startPolling,
     stopPolling,
     saveSession,

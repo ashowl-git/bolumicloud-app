@@ -140,6 +140,7 @@ export function useViewPipeline({ apiUrl: _apiUrl }: UseViewPipelineOptions): Us
       return
     }
 
+    base.setResults(null)
     base.setPhase('running')
     base.setError(null)
     base.saveSession(base.sessionId, 'running')

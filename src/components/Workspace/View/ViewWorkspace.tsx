@@ -14,6 +14,7 @@ import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
 import { Undo2, Redo2 } from 'lucide-react'
 
+import { useToast } from '@/contexts/ToastContext'
 import AnalysisWorkspace from '../AnalysisWorkspace'
 import WorkspaceViewport from '../WorkspaceViewport'
 import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
@@ -36,6 +37,14 @@ export default function ViewWorkspace() {
     progress, results, error, estimatedRemainingSec,
     uploadFile, runAnalysis, cancelAnalysis, reset,
   } = pipeline
+
+  const { showToast } = useToast()
+
+  useEffect(() => {
+    if (error) {
+      showToast({ type: 'error', message: error })
+    }
+  }, [error, showToast])
 
   const [config, setConfig] = useState<ViewConfigState>({ ...DEFAULT_VIEW_CONFIG })
 
