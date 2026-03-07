@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useApiClient } from '@/lib/api'
 
 export interface ProjectEntry {
@@ -30,6 +30,8 @@ interface UseProjectListOptions {
 
 export function useProjectList({ module, status, limit = 20 }: UseProjectListOptions = {}) {
   const api = useApiClient()
+  const apiRef = useRef(api)
+  apiRef.current = api
   const [projects, setProjects] = useState<ProjectEntry[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -45,7 +47,7 @@ export function useProjectList({ module, status, limit = 20 }: UseProjectListOpt
       if (status) params.set('status', status)
       params.set('limit', String(limit))
       params.set('offset', String(fetchOffset))
-      const data = await api.get(`/sessions?${params.toString()}`)
+      const data = await apiRef.current.get(`/sessions?${params.toString()}`)
       setProjects(data.sessions)
       setTotal(data.total)
       setOffset(fetchOffset)
@@ -54,7 +56,7 @@ export function useProjectList({ module, status, limit = 20 }: UseProjectListOpt
     } finally {
       setIsLoading(false)
     }
-  }, [api, module, status, limit])
+  }, [module, status, limit])
 
   useEffect(() => {
     fetchProjects(0)
