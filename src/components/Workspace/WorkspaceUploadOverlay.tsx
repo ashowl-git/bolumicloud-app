@@ -77,7 +77,7 @@ export default function WorkspaceUploadOverlay({
       const files = Array.from(e.dataTransfer.files)
       const valid = files.find((f) => {
         const ext = f.name.split('.').pop()?.toLowerCase()
-        return accept.includes(`.${ext}`)
+        return ext === 'obj' || ext === 'sn5f'
       })
       if (valid) {
         const mtl = files.find((f) => f.name.toLowerCase().endsWith('.mtl'))
