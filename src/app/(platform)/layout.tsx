@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { LocaleContext } from '@/hooks/useLocalizedText'
 import { ApiProvider, PipelineProvider, ToastProvider, SidebarProvider } from '@/contexts'
@@ -42,12 +42,22 @@ export default function PlatformLayout({
 }: {
   children: ReactNode
 }) {
-  const [locale, setLocale] = useState<Locale>('ko')
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bolumicloud-locale')
+      if (saved === 'en' || saved === 'ko') return saved
+    }
+    return 'ko'
+  })
+  const handleSetLocale = useCallback((newLocale: Locale) => {
+    setLocale(newLocale)
+    localStorage.setItem('bolumicloud-locale', newLocale)
+  }, [])
   const pathname = usePathname()
   const isWorkspace = WORKSPACE_ROUTES.some((route) => pathname?.endsWith(route))
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale }}>
+    <LocaleContext.Provider value={{ locale, setLocale: handleSetLocale }}>
       <ApiProvider>
         <PipelineProvider>
           <ToastProvider>

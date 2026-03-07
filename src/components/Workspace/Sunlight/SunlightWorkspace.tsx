@@ -24,6 +24,7 @@ import WorkspaceViewport from '../WorkspaceViewport'
 import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
 import WorkspaceStatusBar from '../WorkspaceStatusBar'
 import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
+import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
 import SunlightSidePanel from './SunlightSidePanel'
 import SunlightShadowControls from './SunlightShadowControls'
 import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
@@ -145,7 +146,7 @@ export default function SunlightWorkspace() {
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
 
-  // Report generation (extracted hook)
+  // Report generation (extracted hook — auto-generates on completion)
   const report = useReportGeneration({
     sessionId,
     config: {
@@ -156,6 +157,7 @@ export default function SunlightWorkspace() {
       buildingType: config.buildingType,
     },
     results,
+    autoGenerate: true,
   })
 
   // Ground analysis (extracted hook)
@@ -303,6 +305,14 @@ export default function SunlightWorkspace() {
     return 'idle'
   }, [phase, error])
 
+  // ── Progress stepper step ──
+  const currentStep = useMemo((): WorkspaceStep => {
+    if (phase === 'completed') return 'results'
+    if (phase === 'running' || phase === 'polling') return 'analyze'
+    if (hasModel) return 'configure'
+    return 'upload'
+  }, [phase, hasModel])
+
   const statusModelInfo = modelMeta
     ? `${modelMeta.original_name} | V: ${modelMeta.vertices.toLocaleString()} F: ${modelMeta.faces.toLocaleString()}`
     : undefined
@@ -350,6 +360,7 @@ export default function SunlightWorkspace() {
 
   return (
     <AnalysisWorkspace
+      progressStepper={<WorkspaceProgressStepper currentStep={currentStep} />}
       toolbar={
         hasModel ? (
           <WorkspaceToolbar

@@ -18,6 +18,8 @@ interface UseReportGenerationOptions {
     buildingType: string
   }
   results: unknown
+  /** Auto-generate report when results become available */
+  autoGenerate?: boolean
 }
 
 const REPORT_TIMEOUT = 5 * 60 * 1000 // 5분
@@ -31,7 +33,7 @@ interface UseReportGenerationReturn {
   generateReport: () => Promise<void>
 }
 
-export function useReportGeneration({ sessionId, analysisType = 'sunlight', config, results }: UseReportGenerationOptions): UseReportGenerationReturn {
+export function useReportGeneration({ sessionId, analysisType = 'sunlight', config, results, autoGenerate = false }: UseReportGenerationOptions): UseReportGenerationReturn {
   const { apiUrl } = useApi()
   const api = useApiClient()
   const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
@@ -118,6 +120,19 @@ export function useReportGeneration({ sessionId, analysisType = 'sunlight', conf
       setError('보고서 생성 오류')
     }
   }, [api, apiUrl, sessionId, analysisType, results, config, cleanupTimers])
+
+  // Auto-generate report when results first become available
+  const autoTriggeredRef = useRef(false)
+  useEffect(() => {
+    if (autoGenerate && results && sessionId && !autoTriggeredRef.current && !isGeneratingReport && !reportDownloadUrl) {
+      autoTriggeredRef.current = true
+      generateReport()
+    }
+    // Reset when session changes (new analysis)
+    if (!results) {
+      autoTriggeredRef.current = false
+    }
+  }, [autoGenerate, results, sessionId, isGeneratingReport, reportDownloadUrl, generateReport])
 
   return { reportDownloadUrl, isGeneratingReport, progress, error, causeResult, generateReport }
 }

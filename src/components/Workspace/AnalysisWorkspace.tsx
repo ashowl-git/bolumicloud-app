@@ -5,6 +5,8 @@ import type { ReactNode } from 'react'
 interface AnalysisWorkspaceProps {
   /** 3D viewport content (ThreeViewer + scene children) */
   children: ReactNode
+  /** Progress stepper (top-center) */
+  progressStepper?: ReactNode
   /** Toolbar overlay (top-left) */
   toolbar?: ReactNode
   /** Side panel overlay (right) */
@@ -19,6 +21,7 @@ interface AnalysisWorkspaceProps {
 
 export default function AnalysisWorkspace({
   children,
+  progressStepper,
   toolbar,
   sidePanel,
   statusBar,
@@ -31,6 +34,13 @@ export default function AnalysisWorkspace({
       <div className="absolute inset-0">
         {children}
       </div>
+
+      {/* Progress Stepper — top-center, over 3D */}
+      {progressStepper && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          {progressStepper}
+        </div>
+      )}
 
       {/* Toolbar — top-left, over 3D */}
       {toolbar && (

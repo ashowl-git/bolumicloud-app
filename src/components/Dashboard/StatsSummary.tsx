@@ -22,7 +22,7 @@ const SECTION_ICONS: Record<string, typeof ScanEye> = {
 export default function StatsSummary() {
   const { t } = useLocalizedText()
 
-  const stats = NAVIGATION.map((section) => ({
+  const stats = NAVIGATION.filter((s) => s.modules.length > 1).map((section) => ({
     id: section.id,
     name: section.name,
     count: section.modules.filter((m) => m.status === 'active').length,

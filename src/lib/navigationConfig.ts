@@ -1,5 +1,5 @@
 import {
-  ScanEye, Sun, Eye, EyeOff, Telescope,
+  ScanEye, Sun, Eye, EyeOff, Telescope, FolderOpen,
   Wrench, ArrowRightLeft, Palette, SunDim, CloudSun,
   Box, GlassWater, Clapperboard, Film,
   ShieldCheck, AlertTriangle, Award, Building2, Star,
@@ -7,6 +7,22 @@ import {
 import type { NavigationConfig } from './types/navigation'
 
 export const NAVIGATION: NavigationConfig = [
+  {
+    id: 'projects',
+    name: { ko: '프로젝트', en: 'Projects' },
+    icon: FolderOpen,
+    basePath: '',
+    modules: [
+      {
+        id: 'my-projects',
+        slug: 'projects',
+        name: { ko: '내 프로젝트', en: 'My Projects' },
+        description: { ko: '이전 분석 세션 및 결과 관리', en: 'Manage analysis sessions and results' },
+        icon: FolderOpen,
+        status: 'active',
+      },
+    ],
+  },
   {
     id: 'analysis',
     name: { ko: '분석', en: 'Analysis' },

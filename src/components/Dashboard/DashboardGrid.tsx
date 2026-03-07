@@ -6,6 +6,8 @@ import { NAVIGATION } from '@/lib/navigationConfig'
 import ModuleCard from './ModuleCard'
 import QuickStartCard from './QuickStartCard'
 import StatsSummary from './StatsSummary'
+import RecentProjects from './RecentProjects'
+import WelcomeBanner from './WelcomeBanner'
 import BoLumiCloudMark from '@/components/BoLumiCloud/BoLumiCloudMark'
 
 export default function DashboardGrid() {
@@ -42,14 +44,20 @@ export default function DashboardGrid() {
         </div>
       </div>
 
+      {/* Welcome Banner (first visit) */}
+      <WelcomeBanner />
+
       {/* Quick Start */}
       <QuickStartCard />
+
+      {/* Recent Projects */}
+      <RecentProjects />
 
       {/* Stats Summary */}
       <StatsSummary />
 
-      {/* Module Grid by Section */}
-      {NAVIGATION.map((section) => {
+      {/* Module Grid by Section (skip standalone pages like Projects) */}
+      {NAVIGATION.filter((s) => s.modules.length > 1).map((section) => {
         const SectionIcon = section.icon
         return (
           <div key={section.id} className="mb-10">
