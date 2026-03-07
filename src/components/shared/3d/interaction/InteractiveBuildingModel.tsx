@@ -22,6 +22,11 @@ const WIREFRAME_MATERIAL = new THREE.LineBasicMaterial({
   linewidth: 1,
 })
 
+const GROUP_COLORS = [
+  '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
+  '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
+]
+
 // ─── 표면 유형 분류 ─────────────────────────────
 
 function classifySurface(worldNormal: THREE.Vector3): SurfaceType {
@@ -96,6 +101,32 @@ export default function InteractiveBuildingModel({
     })
   }, [color, opacity])
 
+  // 그룹별 material 캐시
+  const groupMaterialCache = useMemo(() => {
+    if (!groups || groups.length === 0) return null
+    const cache = new Map<string, THREE.MeshStandardMaterial>()
+    groups.forEach((g, i) => {
+      cache.set(g.name, new THREE.MeshStandardMaterial({
+        color: g.color || GROUP_COLORS[i % GROUP_COLORS.length],
+        roughness: 0.7,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        transparent: opacity !== undefined && opacity < 1,
+        opacity: opacity ?? 1,
+      }))
+    })
+    return cache
+  }, [groups, opacity])
+
+  const prevCacheRef = useRef<Map<string, THREE.MeshStandardMaterial> | null>(null)
+  useEffect(() => {
+    if (prevCacheRef.current && prevCacheRef.current !== groupMaterialCache) {
+      prevCacheRef.current.forEach((mat) => mat.dispose())
+    }
+    prevCacheRef.current = groupMaterialCache
+    return () => { groupMaterialCache?.forEach((mat) => mat.dispose()) }
+  }, [groupMaterialCache])
+
   // 카메라 자동 맞춤
   useEffect(() => {
     if (!autoFitCamera || !bbox || !camera) return
@@ -108,13 +139,21 @@ export default function InteractiveBuildingModel({
     }
   }, [bbox, camera, autoFitCamera])
 
-  // 재질 적용
+  // 재질 적용 (그룹 색상 지원)
   useEffect(() => {
     if (!scene) return
+    const gNames = groups?.map((g) => g.name) ?? []
+
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         if (!preserveOriginalMaterials) {
-          child.material = material
+          if (groupMaterialCache && gNames.length > 0) {
+            const groupName = findGroupNameForMesh(child, gNames)
+            const groupMat = groupName ? groupMaterialCache.get(groupName) : null
+            child.material = groupMat || material
+          } else {
+            child.material = material
+          }
         }
         child.castShadow = true
         child.receiveShadow = true
@@ -130,7 +169,7 @@ export default function InteractiveBuildingModel({
         }
       }
     })
-  }, [scene, material, showWireframe, preserveOriginalMaterials])
+  }, [scene, material, showWireframe, preserveOriginalMaterials, groups, groupMaterialCache])
 
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {
