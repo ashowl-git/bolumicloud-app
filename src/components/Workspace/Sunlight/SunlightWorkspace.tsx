@@ -14,7 +14,7 @@ import { useReportGeneration } from '@/hooks/useReportGeneration'
 import { useGroundAnalysis } from '@/hooks/useGroundAnalysis'
 import { useSolarChart3D } from '@/hooks/useSolarChart3D'
 import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/types/sunlight'
-import type { ModelConfig } from '@/components/shared/3d/types'
+import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
 import type { StatusBarState } from '../WorkspaceStatusBar'
@@ -46,8 +46,10 @@ const ModelTransformControls = dynamic(() => import('@/components/shared/3d/inte
 const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
 const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
 const SolarChart3DOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SolarChart3DOverlay'), { ssr: false })
+const CameraPresetApplier = dynamic(() => import('@/components/shared/3d/CameraPresetBar').then(m => ({ default: m.CameraPresetApplier })), { ssr: false })
 
 import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
+import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
 import { Undo2, Redo2 } from 'lucide-react'
 
 
@@ -84,6 +86,14 @@ export default function SunlightWorkspace() {
 
   // Transform controls
   const [transformMode] = useState<'translate' | 'rotate'>('translate')
+
+  // Camera preset
+  const [activePreset, setActivePreset] = useState<CameraPresetId>('perspective')
+  const [presetTrigger, setPresetTrigger] = useState(0)
+  const handlePresetChange = useCallback((id: CameraPresetId) => {
+    setActivePreset(id)
+    setPresetTrigger(t => t + 1)
+  }, [])
 
   // Layout
   const layout = useWorkspaceLayout({ hasModel })
@@ -602,7 +612,19 @@ export default function SunlightWorkspace() {
         {solarChart.data && (
           <SolarChart3DOverlay data={solarChart.data} />
         )}
+
+        {/* Camera preset controller (R3F) */}
+        <CameraPresetApplier presetId={activePreset} trigger={presetTrigger} bbox={modelBbox} />
       </WorkspaceViewport>
+
+      {/* Camera preset bar (HTML overlay) */}
+      {hasModel && (
+        <CameraPresetBar
+          bbox={modelBbox}
+          activePreset={activePreset}
+          onPresetChange={handlePresetChange}
+        />
+      )}
 
       {/* Legend overlay */}
       {results && results.points.length > 0 && (

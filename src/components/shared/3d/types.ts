@@ -24,7 +24,7 @@ export interface BoundingBox {
 
 // ─── 카메라 프리셋 ─────────────────────────────
 
-export type CameraPresetId = 'perspective' | 'top' | 'south' | 'east' | 'west'
+export type CameraPresetId = 'perspective' | 'top' | 'south' | 'north' | 'east' | 'west'
 
 export interface CameraPreset {
   id: CameraPresetId
@@ -37,6 +37,7 @@ export const CAMERA_PRESETS: CameraPreset[] = [
   { id: 'perspective', label: { ko: '투시', en: 'Perspective' }, position: [1, 0.8, 1] },
   { id: 'top', label: { ko: '평면', en: 'Top' }, position: [0, 1, 0], orthographic: true },
   { id: 'south', label: { ko: '남측', en: 'South' }, position: [0, 0.3, 1] },
+  { id: 'north', label: { ko: '북측', en: 'North' }, position: [0, 0.3, -1] },
   { id: 'east', label: { ko: '동측', en: 'East' }, position: [1, 0.3, 0] },
   { id: 'west', label: { ko: '서측', en: 'West' }, position: [-1, 0.3, 0] },
 ]
