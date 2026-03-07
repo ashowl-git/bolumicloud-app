@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { useState, useCallback, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { LocaleContext } from '@/hooks/useLocalizedText'
 import { ApiProvider, PipelineProvider, ToastProvider, SidebarProvider } from '@/contexts'

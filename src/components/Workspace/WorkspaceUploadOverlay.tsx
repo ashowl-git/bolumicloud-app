@@ -38,7 +38,7 @@ export default function WorkspaceUploadOverlay({
   hint = 'OBJ 또는 Sanalyst SN5F 파일을 드래그하세요 (최대 100MB)',
   maxSizeMB = 100,
   onLoadSample,
-  moduleName,
+  moduleName: _moduleName,
 }: WorkspaceUploadOverlayProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [sizeError, setSizeError] = useState<string | null>(null)
