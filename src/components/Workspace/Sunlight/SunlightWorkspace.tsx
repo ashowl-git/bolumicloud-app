@@ -218,6 +218,50 @@ export default function SunlightWorkspace() {
     setLayers(prev => prev.map(l => ({ ...l, visible })))
   }, [])
 
+  // 레이어에서 측정점 자동 생성
+  const handleGenerateGroupPoints = useCallback(async (layerId: string): Promise<number> => {
+    if (!modelMeta?.model_id) return 0
+    try {
+      const res = await fetch(`${apiUrl}/import/${modelMeta.model_id}/generate-group-points`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_name: layerId, offset: 0.1 }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        console.error('측정점 생성 실패:', err.detail || res.statusText)
+        return 0
+      }
+      const data = await res.json()
+      if (data.count === 0) return 0
+
+      // 측정점 그룹에 추가
+      const prevActiveGroup = pointGroups.activeGroupId
+      pointGroups.importGroups([{
+        groupName: layerId,
+        points: data.points.map((p: { id: string; x: number; y: number; z: number; name: string }) => ({
+          id: p.id, x: p.x, y: p.y, z: p.z, name: p.name,
+        })),
+      }])
+      // 이전 활성 그룹 복원 (sync가 새 그룹을 덮어쓰지 않도록)
+      if (prevActiveGroup) pointGroups.setActiveGroup(prevActiveGroup)
+
+      // 3D 표시용으로 placement에도 추가
+      for (const p of data.points) {
+        placement.addPointDirect({
+          id: p.id,
+          name: p.name,
+          position: { x: p.x, y: p.y, z: p.z },
+        })
+      }
+
+      return data.count
+    } catch (err) {
+      console.error('측정점 생성 오류:', err)
+      return 0
+    }
+  }, [modelMeta, apiUrl, pointGroups, placement])
+
   // 숨겨진 그룹 세트 (3D 가시성 + 분석 제외)
   const hiddenGroups = useMemo(() => {
     const set = new Set<string>()
@@ -455,6 +499,7 @@ export default function SunlightWorkspace() {
           onToggleLayerVisibility={handleToggleLayerVisibility}
           onToggleAnalysisTarget={handleToggleAnalysisTarget}
           onToggleAllLayers={handleToggleAllLayers}
+          onGenerateGroupPoints={handleGenerateGroupPoints}
           solarChart={solarChart}
         />
       }

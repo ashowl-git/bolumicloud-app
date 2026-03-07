@@ -74,6 +74,7 @@ interface SunlightSidePanelProps {
   onToggleLayerVisibility?: (layerId: string) => void
   onToggleAnalysisTarget?: (layerId: string) => void
   onToggleAllLayers?: (visible: boolean) => void
+  onGenerateGroupPoints?: (layerId: string) => Promise<number>
   // Solar chart 3D
   solarChart?: ReturnType<typeof useSolarChart3D>
 }
@@ -115,6 +116,7 @@ export default function SunlightSidePanel({
   onToggleLayerVisibility,
   onToggleAnalysisTarget,
   onToggleAllLayers,
+  onGenerateGroupPoints,
   solarChart,
 }: SunlightSidePanelProps) {
   const noPoints = points.length === 0
@@ -164,6 +166,7 @@ export default function SunlightSidePanel({
             onToggleVisibility={onToggleLayerVisibility || (() => {})}
             onToggleAnalysisTarget={onToggleAnalysisTarget || (() => {})}
             onToggleAll={onToggleAllLayers}
+            onGenerateGroupPoints={onGenerateGroupPoints}
           />
         </WorkspacePanelSection>
       )}

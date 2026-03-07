@@ -1,6 +1,7 @@
 'use client'
 
-import { Eye, EyeOff, Target } from 'lucide-react'
+import { Eye, EyeOff, Target, MapPin, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import type { LayerConfig } from '@/lib/types/sunlight'
 
 interface LayerPanelProps {
@@ -8,6 +9,7 @@ interface LayerPanelProps {
   onToggleVisibility: (layerId: string) => void
   onToggleAnalysisTarget: (layerId: string) => void
   onToggleAll?: (visible: boolean) => void
+  onGenerateGroupPoints?: (layerId: string) => Promise<number>
 }
 
 export default function LayerPanel({
@@ -15,9 +17,11 @@ export default function LayerPanel({
   onToggleVisibility,
   onToggleAnalysisTarget,
   onToggleAll,
+  onGenerateGroupPoints,
 }: LayerPanelProps) {
   const allVisible = layers.every(l => l.visible)
   const targetCount = layers.filter(l => l.isAnalysisTarget).length
+  const [generatingId, setGeneratingId] = useState<string | null>(null)
 
   if (layers.length === 0) {
     return (
@@ -62,6 +66,28 @@ export default function LayerPanel({
           {/* Face count */}
           {layer.faceCount != null && (
             <span className="text-[9px] text-gray-300 tabular-nums">{layer.faceCount.toLocaleString()}</span>
+          )}
+
+          {/* Generate measurement points */}
+          {onGenerateGroupPoints && (
+            <button
+              onClick={async () => {
+                setGeneratingId(layer.id)
+                try {
+                  await onGenerateGroupPoints(layer.id)
+                } finally {
+                  setGeneratingId(null)
+                }
+              }}
+              disabled={generatingId === layer.id}
+              className="p-0.5 rounded transition-colors text-gray-300 hover:text-blue-500 disabled:opacity-50"
+              title="측정점 자동 생성"
+            >
+              {generatingId === layer.id
+                ? <Loader2 size={12} className="animate-spin" />
+                : <MapPin size={12} />
+              }
+            </button>
           )}
 
           {/* Analysis target toggle */}
