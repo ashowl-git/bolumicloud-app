@@ -218,6 +218,13 @@ export default function SunlightWorkspace() {
     setLayers(prev => prev.map(l => ({ ...l, visible })))
   }, [])
 
+  // 숨겨진 그룹 세트 (3D 가시성 + 분석 제외)
+  const hiddenGroups = useMemo(() => {
+    const set = new Set<string>()
+    layers.forEach(l => { if (!l.visible) set.add(l.id) })
+    return set
+  }, [layers])
+
   // 포인트 변경 시 활성 그룹에 동기화
   useEffect(() => {
     pointGroups.syncPointsToGroup(placement.points)
@@ -302,9 +309,10 @@ export default function SunlightWorkspace() {
       resolution: config.resolution,
       solar_time_mode: config.solarTimeMode,
       measurement_points: measurementPoints,
+      excluded_groups: layers.filter(l => !l.isAnalysisTarget).map(l => l.id),
     }
     await runAnalysis(analysisConfig)
-  }, [config, runAnalysis, pointGroups.allMeasurementPoints])
+  }, [config, runAnalysis, pointGroups.allMeasurementPoints, layers])
 
   // ── Status bar state ──
   const statusBarState = useMemo((): StatusBarState => {
@@ -506,6 +514,7 @@ export default function SunlightWorkspace() {
             onSurfaceHover={placement.setHoverHit}
             onSurfaceClick={placement.handleSurfaceClick}
             groups={importData?.groups}
+            hiddenGroups={hiddenGroups}
           />
         )}
 

@@ -66,6 +66,7 @@ interface InteractiveBuildingModelProps {
   allowedSurfaces?: SurfaceType[]
   opacity?: number
   groups?: BuildingGroupInfo[]
+  hiddenGroups?: Set<string>
   preserveOriginalMaterials?: boolean
 }
 
@@ -82,6 +83,7 @@ export default function InteractiveBuildingModel({
   allowedSurfaces,
   opacity,
   groups,
+  hiddenGroups,
   preserveOriginalMaterials = false,
 }: InteractiveBuildingModelProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -139,13 +141,21 @@ export default function InteractiveBuildingModel({
     }
   }, [bbox, camera, autoFitCamera])
 
-  // 재질 적용 (그룹 색상 지원)
+  // 재질 적용 (그룹 색상 + 가시성 지원)
   useEffect(() => {
     if (!scene) return
     const gNames = groups?.map((g) => g.name) ?? []
 
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        // 그룹 가시성 처리
+        if (hiddenGroups && hiddenGroups.size > 0 && gNames.length > 0) {
+          const groupName = findGroupNameForMesh(child, gNames)
+          child.visible = !(groupName && hiddenGroups.has(groupName))
+        } else {
+          child.visible = true
+        }
+
         if (!preserveOriginalMaterials) {
           if (groupMaterialCache && gNames.length > 0) {
             const groupName = findGroupNameForMesh(child, gNames)
@@ -169,7 +179,7 @@ export default function InteractiveBuildingModel({
         }
       }
     })
-  }, [scene, material, showWireframe, preserveOriginalMaterials, groups, groupMaterialCache])
+  }, [scene, material, showWireframe, preserveOriginalMaterials, groups, groupMaterialCache, hiddenGroups])
 
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {

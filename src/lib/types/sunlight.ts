@@ -43,6 +43,7 @@ export interface SunlightConfig {
   resolution: AnalysisResolution
   solar_time_mode: SolarTimeMode
   measurement_points: MeasurementPoint[]
+  excluded_groups?: string[]
 }
 
 export interface MeasurementPoint {
