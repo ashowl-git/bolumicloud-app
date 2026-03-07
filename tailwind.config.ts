@@ -11,6 +11,25 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // Semantic color tokens for consistent UI
+        accent: {
+          DEFAULT: '#dc2626', // red-600
+          hover: '#b91c1c',   // red-700
+          light: '#fef2f2',   // red-50
+          border: 'rgba(220,38,38,0.3)', // red-600/30
+        },
+        muted: {
+          DEFAULT: '#6b7280', // gray-500 (WCAG AA on white)
+          light: '#9ca3af',   // gray-400 (icons/decorative only)
+        },
+        success: {
+          DEFAULT: '#16a34a', // green-600
+          light: '#f0fdf4',   // green-50
+        },
+        danger: {
+          DEFAULT: '#dc2626', // red-600
+          light: '#fef2f2',   // red-50
+        },
       },
       keyframes: {
         'status-pulse': {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { MousePointer2, Trash2 } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { InteractionMode } from '@/components/shared/3d/interaction/types'
 
 export interface ToolbarModeConfig {
@@ -103,6 +104,8 @@ export default function WorkspaceToolbar({
             <div key={id} className="relative group">
               <button
                 onClick={() => onModeChange(id)}
+                aria-label={label}
+                aria-pressed={isActive}
                 className={`
                   relative flex flex-col items-center gap-0
                   rounded-md transition-all duration-150
@@ -155,6 +158,7 @@ export default function WorkspaceToolbar({
               <div className="relative group">
                 <button
                   onClick={onClearAll}
+                  aria-label="전체 삭제"
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
                 >
                   <Trash2 size={14} />
@@ -197,6 +201,9 @@ export function KeyboardShortcutOverlay({
   modes: ToolbarModeConfig[]
   onClose: () => void
 }) {
+  const overlayRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(overlayRef, true)
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === '?') {
@@ -210,8 +217,12 @@ export function KeyboardShortcutOverlay({
 
   return (
     <div
+      ref={overlayRef}
       className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="단축키 안내"
     >
       <div
         className="bg-white rounded-xl shadow-2xl p-5 max-w-xs w-full mx-4"

@@ -68,7 +68,7 @@ export default function PrivacySidePanel({
       <WorkspacePanelSection title="분석 파라미터" icon={<Ruler size={14} />}>
         <div className="space-y-3">
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">거리 임계값 (m)</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">거리 임계값 (m)</label>
             <input
               type="number" step="10" min="10" max="500"
               value={config.distanceThreshold}
@@ -79,7 +79,7 @@ export default function PrivacySidePanel({
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-1">서브그리드 해상도</label>
+            <label className="text-[10px] text-gray-500 block mb-1">서브그리드 해상도</label>
             <div className="grid grid-cols-2 gap-1.5">
               {(Object.entries(SUB_GRID_LABELS) as [string, { ko: string; description: string }][]).map(
                 ([value, info]) => {
@@ -103,7 +103,7 @@ export default function PrivacySidePanel({
                           {value}
                         </span>
                       </div>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{info.description}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{info.description}</p>
                     </button>
                   )
                 }
@@ -111,7 +111,7 @@ export default function PrivacySidePanel({
             </div>
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">PII 임계값</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">PII 임계값</label>
             <input
               type="number" step="0.0001" min="0"
               value={config.piiThreshold}
@@ -139,7 +139,7 @@ export default function PrivacySidePanel({
             <p className="text-xs text-gray-400">
               도구 모음에서 <span className="text-orange-600 font-medium">대상</span> 역할을 선택한 후
             </p>
-            <p className="text-xs text-gray-400">벽면을 클릭하여 피관찰 창문을 배치하세요</p>
+            <p className="text-xs text-gray-500">벽면을 클릭하여 피관찰 창문을 배치하세요</p>
           </div>
         ) : (
           <div className="max-h-32 overflow-y-auto space-y-1">
@@ -168,7 +168,7 @@ export default function PrivacySidePanel({
             <p className="text-xs text-gray-400">
               도구 모음에서 <span className="text-blue-600 font-medium">관찰</span> 역할로 전환한 후
             </p>
-            <p className="text-xs text-gray-400">벽면을 클릭하여 관찰자 창문을 배치하세요</p>
+            <p className="text-xs text-gray-500">벽면을 클릭하여 관찰자 창문을 배치하세요</p>
           </div>
         ) : (
           <div className="max-h-32 overflow-y-auto space-y-1">

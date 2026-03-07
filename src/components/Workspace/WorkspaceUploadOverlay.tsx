@@ -13,6 +13,8 @@ interface WorkspaceUploadOverlayProps {
   onLoadSample?: () => void
   /** Optional: module name for contextual guidance */
   moduleName?: string
+  /** Upload progress 0-100, null if not tracking */
+  uploadProgress?: number | null
 }
 
 const UNSUPPORTED_HINTS: Record<string, string> = {
@@ -39,6 +41,7 @@ export default function WorkspaceUploadOverlay({
   maxSizeMB = 100,
   onLoadSample,
   moduleName: _moduleName,
+  uploadProgress = null,
 }: WorkspaceUploadOverlayProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [sizeError, setSizeError] = useState<string | null>(null)
@@ -166,8 +169,22 @@ export default function WorkspaceUploadOverlay({
           {isUploading ? (
             <div className="space-y-4">
               <div className="w-10 h-10 border-[2.5px] border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm font-medium text-gray-600">업로드 중...</p>
-              <p className="text-xs text-gray-400">잠시만 기다려 주세요</p>
+              <p className="text-sm font-medium text-gray-600">
+                {uploadProgress != null && uploadProgress < 100
+                  ? `업로드 중... ${uploadProgress}%`
+                  : uploadProgress === 100
+                    ? '서버에서 처리 중...'
+                    : '업로드 중...'}
+              </p>
+              {uploadProgress != null && (
+                <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-red-500 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(uploadProgress, 100)}%` }}
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-500">잠시만 기다려 주세요</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -178,17 +195,17 @@ export default function WorkspaceUploadOverlay({
                 <p className="text-sm font-semibold text-gray-800">
                   3D 모델 파일을 드래그하거나 클릭하세요
                 </p>
-                <p className="text-xs text-gray-400 mt-1.5">{hint}</p>
+                <p className="text-xs text-gray-500 mt-1.5">{hint}</p>
               </div>
               {/* Supported formats */}
-              <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400">
+              <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500">
                 <span className="px-2 py-0.5 bg-gray-100 rounded font-mono">.obj</span>
                 <span className="px-2 py-0.5 bg-gray-100 rounded font-mono">.sn5f</span>
                 <span className="text-gray-300">|</span>
                 <span className="px-2 py-0.5 bg-blue-50 text-blue-500 rounded font-mono">.mtl</span>
                 <span className="text-gray-400">(선택)</span>
               </div>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-gray-500">
                 MTL 파일이 있으면 OBJ와 함께 선택하세요 (드래그 또는 Ctrl/Cmd+클릭)
               </p>
               {/* Errors */}

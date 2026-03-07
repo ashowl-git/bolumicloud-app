@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { List, FolderPlus, Grid3X3, ArrowUpDown, ArrowRightLeft, X, Crosshair } from 'lucide-react'
 import type { MeasurementPointGroup } from '@/lib/types/sunlight'
 import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
@@ -8,6 +8,40 @@ import type { BatchPointParams } from '@/components/Workspace/Sunlight/hooks/use
 import BatchPointCreationDialog from './BatchPointCreationDialog'
 
 import WorkspacePanelSection from '../Workspace/WorkspacePanelSection'
+
+interface PointListItemProps {
+  pt: { id: string; name: string; x: number; y: number; z: number; row?: number; column?: number }
+  isSelected: boolean
+  sorted: boolean
+  onSelect: (id: string) => void
+}
+
+const PointListItem = memo(function PointListItem({ pt, isSelected, sorted, onSelect }: PointListItemProps) {
+  return (
+    <button
+      onClick={() => onSelect(pt.id)}
+      className={`w-full flex items-center gap-1 text-left px-2 py-1 text-xs
+        rounded transition-colors ${
+        isSelected
+          ? 'bg-red-50 text-red-600'
+          : 'text-gray-600 hover:bg-gray-50'
+      }`}
+    >
+      {sorted && (
+        <>
+          <span className="w-8 text-center tabular-nums text-[10px]">{pt.row}</span>
+          <span className="w-8 text-center tabular-nums text-[10px]">{pt.column}</span>
+        </>
+      )}
+      <span className="flex-1 truncate">{pt.name}</span>
+      <span className={`text-[10px] tabular-nums ${
+        isSelected ? 'text-red-400' : 'text-gray-500'
+      }`}>
+        {pt.x.toFixed(1)}, {pt.y.toFixed(1)}, {pt.z.toFixed(1)}
+      </span>
+    </button>
+  )
+})
 
 interface PointGroupManagerProps {
   points: BaseAnalysisPoint[]
@@ -62,6 +96,10 @@ export default function PointGroupManager({
     if (mag < 0.01) return null  // 수평 법선이 거의 없으면 (지면 등)
     return { x: -dy / mag, y: dx / mag }
   }, [selectedPoint])
+
+  const handlePointSelect = useCallback((id: string) => {
+    onPointSelect?.(id)
+  }, [onPointSelect])
 
   return (
     <>
@@ -169,52 +207,34 @@ export default function PointGroupManager({
             {activeGroup.points.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-3 text-center">
                 <Crosshair size={18} className="text-gray-300" />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   3D 뷰에서 지면/건물을 클릭하여<br />측정점을 배치하세요
                 </p>
               </div>
             ) : (
-              <div className="max-h-48 overflow-y-auto">
+              <div>
                 {/* 헤더 */}
                 {activeGroup.sorted && (
-                  <div className="flex items-center gap-1 px-2 py-1 text-[10px] text-gray-400
+                  <div className="flex items-center gap-1 px-2 py-1 text-[10px] text-gray-500
                     border-b border-gray-100 sticky top-0 bg-white">
                     <span className="w-8 text-center">행</span>
                     <span className="w-8 text-center">열</span>
                     <span className="flex-1">이름</span>
                     <span className="text-right">좌표</span>
+
                   </div>
                 )}
                 {/* 포인트 목록 */}
                 <div className="space-y-0.5">
-                  {activeGroup.points.map((pt) => {
-                    const isSelected = selectedPointId === pt.id
-                    return (
-                      <button
-                        key={pt.id}
-                        onClick={() => onPointSelect?.(pt.id)}
-                        className={`w-full flex items-center gap-1 text-left px-2 py-1 text-xs
-                          rounded transition-colors ${
-                          isSelected
-                            ? 'bg-red-50 text-red-600'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        {activeGroup.sorted && (
-                          <>
-                            <span className="w-8 text-center tabular-nums text-[10px]">{pt.row}</span>
-                            <span className="w-8 text-center tabular-nums text-[10px]">{pt.column}</span>
-                          </>
-                        )}
-                        <span className="flex-1 truncate">{pt.name}</span>
-                        <span className={`text-[10px] tabular-nums ${
-                          isSelected ? 'text-red-400' : 'text-gray-400'
-                        }`}>
-                          {pt.x.toFixed(1)}, {pt.y.toFixed(1)}, {pt.z.toFixed(1)}
-                        </span>
-                      </button>
-                    )
-                  })}
+                  {activeGroup.points.map((pt) => (
+                    <PointListItem
+                      key={pt.id}
+                      pt={pt}
+                      isSelected={selectedPointId === pt.id}
+                      sorted={!!activeGroup.sorted}
+                      onSelect={handlePointSelect}
+                    />
+                  ))}
                 </div>
               </div>
             )}

@@ -100,7 +100,7 @@ export default function ViewSidePanel({
         </div>
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">위도</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">위도</label>
             <input
               type="number" step="0.001" value={config.latitude}
               onChange={(e) => onConfigChange({ latitude: Number(e.target.value) })}
@@ -109,7 +109,7 @@ export default function ViewSidePanel({
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">경도</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">경도</label>
             <input
               type="number" step="0.001" value={config.longitude}
               onChange={(e) => onConfigChange({ longitude: Number(e.target.value) })}
@@ -118,7 +118,7 @@ export default function ViewSidePanel({
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">자오선</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">자오선</label>
             <input
               type="number" step="1" value={config.timezone}
               onChange={(e) => onConfigChange({ timezone: Number(e.target.value) })}
@@ -132,7 +132,7 @@ export default function ViewSidePanel({
       {/* ── 반구 해상도/투영 ── */}
       <WorkspacePanelSection title="반구 설정" icon={<Eye size={14} />}>
         <div className="mb-3">
-          <label className="text-[10px] text-gray-400 block mb-1">반구 해상도</label>
+          <label className="text-[10px] text-gray-500 block mb-1">반구 해상도</label>
           <div className="grid grid-cols-2 gap-1.5">
             {(Object.entries(HEMISPHERE_RESOLUTION_LABELS) as [string, { ko: string; description: string }][]).map(
               ([value, info]) => {
@@ -156,7 +156,7 @@ export default function ViewSidePanel({
                         {value}
                       </span>
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{info.description}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{info.description}</p>
                   </button>
                 )
               }
@@ -164,7 +164,7 @@ export default function ViewSidePanel({
           </div>
         </div>
         <div>
-          <label className="text-[10px] text-gray-400 block mb-1">투영 방식</label>
+          <label className="text-[10px] text-gray-500 block mb-1">투영 방식</label>
           <div className="flex gap-1.5">
             {(Object.entries(PROJECTION_TYPE_LABELS) as [ProjectionType, { ko: string }][]).map(
               ([value, label]) => {
@@ -194,7 +194,7 @@ export default function ViewSidePanel({
       <WorkspacePanelSection title="관찰점" icon={<List size={14} />} badge={points.length} defaultOpen={points.length > 0}>
         {points.length === 0 ? (
           <div className="py-3 text-center">
-            <p className="text-xs text-gray-400">벽면 또는 지붕을 클릭하여 관찰점을 배치하세요</p>
+            <p className="text-xs text-gray-500">벽면 또는 지붕을 클릭하여 관찰점을 배치하세요</p>
             <p className="text-[10px] text-gray-300 mt-1">도구 모음에서 배치 모드(P)를 선택한 후 클릭</p>
           </div>
         ) : (

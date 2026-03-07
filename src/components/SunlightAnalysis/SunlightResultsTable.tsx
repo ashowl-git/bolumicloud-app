@@ -69,6 +69,7 @@ export default function SunlightResultsTable({
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [filter, setFilter] = useState<'all' | 'compliant' | 'non-compliant'>('all')
   const [activeGroupTab, setActiveGroupTab] = useState<string | null>(null)
+  const [visibleCount, setVisibleCount] = useState(100)
 
   // Build group name lookup from result points (using the name prefix [floor,unit] or group field)
   const groupNames = useMemo(() => {
@@ -218,7 +219,7 @@ export default function SunlightResultsTable({
             >
               {f === 'all' ? '전체' : f === 'compliant' ? '적합' : '부적합'}
               {f !== 'all' && (
-                <span className="ml-1 text-gray-400">
+                <span className="ml-1 text-gray-500">
                   ({f === 'compliant'
                     ? groupFiltered.filter((p) => p.compliant).length
                     : groupFiltered.filter((p) => !p.compliant).length})
@@ -256,7 +257,7 @@ export default function SunlightResultsTable({
             </tr>
           </thead>
           <tbody>
-            {sorted.map((point) => {
+            {sorted.slice(0, visibleCount).map((point) => {
               const info = pointGroupMap.get(point.id)
               return (
                 <tr
@@ -315,8 +316,17 @@ export default function SunlightResultsTable({
         </table>
       </div>
 
-      <p className="text-xs text-gray-400">
-        {sorted.length}개 측정점 표시 (전체 {points.length}개)
+      {sorted.length > visibleCount && (
+        <button
+          onClick={() => setVisibleCount((c) => c + 100)}
+          className="w-full py-1.5 text-xs text-gray-500 border border-gray-200
+            hover:border-red-600/30 hover:text-red-600 transition-colors"
+        >
+          더 보기 ({Math.min(visibleCount, sorted.length)}/{sorted.length})
+        </button>
+      )}
+      <p className="text-xs text-gray-500">
+        {Math.min(visibleCount, sorted.length)}개 측정점 표시 (전체 {points.length}개)
       </p>
     </div>
   )

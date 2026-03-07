@@ -10,7 +10,7 @@ import { usePrivacySingleUpload } from './hooks/usePrivacySingleUpload'
 import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { WindowSpec } from '@/lib/types/privacy'
 import type { ModelConfig } from '@/components/shared/3d/types'
-import type { StatusBarState } from '../WorkspaceStatusBar'
+import { useStatusBarState } from '@/hooks/useStatusBarState'
 import { Undo2, Redo2 } from 'lucide-react'
 
 import AnalysisWorkspace from '../AnalysisWorkspace'
@@ -101,13 +101,7 @@ export default function PrivacyWorkspace() {
     await run()
   }, [run])
 
-  const statusBarState = useMemo((): StatusBarState => {
-    if (error) return 'error'
-    if (phase === 'uploading') return 'uploading'
-    if (phase === 'running' || phase === 'polling') return 'running'
-    if (phase === 'completed') return 'completed'
-    return 'idle'
-  }, [phase, error])
+  const statusBarState = useStatusBarState({ phase, error })
 
   const isRunning = phase === 'running' || phase === 'polling'
 

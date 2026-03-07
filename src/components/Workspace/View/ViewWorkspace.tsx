@@ -11,7 +11,7 @@ import type { ViewConfig, ViewConfigState } from '@/lib/types/view'
 import type { ModelConfig } from '@/components/shared/3d/types'
 import { DEFAULT_VIEW_CONFIG } from '@/lib/defaults/view'
 import { formatDuration, formatEta } from '@/lib/utils/format'
-import type { StatusBarState } from '../WorkspaceStatusBar'
+import { useStatusBarState } from '@/hooks/useStatusBarState'
 import { Undo2, Redo2 } from 'lucide-react'
 
 import { useToast } from '@/contexts/ToastContext'
@@ -118,13 +118,7 @@ export default function ViewWorkspace() {
     await runAnalysis(analysisConfig)
   }, [config, runAnalysis, placement.points])
 
-  const statusBarState = useMemo((): StatusBarState => {
-    if (error) return 'error'
-    if (phase === 'uploading') return 'uploading'
-    if (phase === 'running' || phase === 'polling') return 'running'
-    if (phase === 'completed') return 'completed'
-    return 'idle'
-  }, [phase, error])
+  const statusBarState = useStatusBarState({ phase, error })
 
   const isRunning = phase === 'running' || phase === 'polling'
 

@@ -216,7 +216,7 @@ export default function BatchPointCreationDialog({
             </label>
             <div className="grid grid-cols-3 gap-1.5">
               <div>
-                <label className="text-[10px] text-gray-400 block mb-0.5">X</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">X</label>
                 <input
                   type="number"
                   step={0.1}
@@ -226,7 +226,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-400 block mb-0.5">Y</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Y</label>
                 <input
                   type="number"
                   step={0.1}
@@ -236,7 +236,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-400 block mb-0.5">Z</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Z</label>
                 <input
                   type="number"
                   step={0.1}
@@ -268,7 +268,7 @@ export default function BatchPointCreationDialog({
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <label className="text-[10px] text-gray-400 block mb-0.5">X</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">X</label>
                 <input
                   type="number"
                   step={0.1}
@@ -278,7 +278,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-400 block mb-0.5">Y</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Y</label>
                 <input
                   type="number"
                   step={0.1}

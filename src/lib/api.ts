@@ -110,7 +110,42 @@ export function useApiClient() {
     }
   }
 
-  const postFormData = async (path: string, formData: FormData) => {
+  const postFormData = async (
+    path: string,
+    formData: FormData,
+    options?: { onProgress?: (percent: number) => void },
+  ) => {
+    // Use XMLHttpRequest for upload progress tracking when callback provided
+    if (options?.onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', `${apiUrl}${path}`)
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            options.onProgress!(Math.round((e.loaded / e.total) * 100))
+          }
+        }
+        xhr.onload = () => {
+          try {
+            const data = JSON.parse(xhr.responseText)
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(data)
+            } else {
+              const err = new ApiError(xhr.status, xhr.statusText, data)
+              logger.error(`POST FormData ${path} failed`, err)
+              reject(err)
+            }
+          } catch {
+            reject(new ApiError(xhr.status, xhr.statusText))
+          }
+        }
+        xhr.onerror = () => {
+          reject(new TypeError('Failed to fetch'))
+        }
+        xhr.send(formData)
+      })
+    }
+
     try {
       const res = await fetch(`${apiUrl}${path}`, {
         method: 'POST',

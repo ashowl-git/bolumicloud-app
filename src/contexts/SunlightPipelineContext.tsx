@@ -14,6 +14,9 @@ interface SunlightPipelineProviderProps {
 export function SunlightPipelineProvider({ children, apiUrl }: SunlightPipelineProviderProps) {
   const pipeline = useSunlightPipeline({ apiUrl })
 
+  // Functions (uploadFile, runAnalysis, cancelAnalysis, reset) are excluded from deps
+  // because they change on every state update via base dependency chain.
+  // Consumers access them through the stable pipeline object reference.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => pipeline, [
     pipeline.phase,
@@ -27,11 +30,8 @@ export function SunlightPipelineProvider({ children, apiUrl }: SunlightPipelineP
     pipeline.isCancelled,
     pipeline.estimatedRemainingSec,
     pipeline.importData,
+    pipeline.uploadProgress,
     pipeline.windowPoints,
-    pipeline.uploadFile,
-    pipeline.runAnalysis,
-    pipeline.cancelAnalysis,
-    pipeline.reset,
   ])
 
   return (

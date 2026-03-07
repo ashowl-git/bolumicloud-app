@@ -32,7 +32,7 @@ export default function AnalysisResultsSection({
       </WorkspacePanelSection>
 
       <WorkspacePanelSection title="결과 테이블" icon={<List size={14} />} defaultOpen={false}>
-        <div className="max-h-60 overflow-y-auto">
+        <div>
           <SunlightResultsTable
             points={results.points}
             selectedPointId={selectedPointId}
@@ -50,7 +50,7 @@ export default function AnalysisResultsSection({
             stepMinutes={results.time_window.step_minutes}
           />
         ) : (
-          <div className="flex items-center gap-2 py-3 text-xs text-gray-400">
+          <div className="flex items-center gap-2 py-3 text-xs text-gray-500">
             <Crosshair size={14} className="text-gray-300" />
             결과 테이블에서 측정점을 선택하세요
           </div>

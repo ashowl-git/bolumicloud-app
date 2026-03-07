@@ -22,6 +22,14 @@ export default function AnalysisControlSection({
 }: AnalysisControlSectionProps) {
   const footerDisabled = isRunning || disabled || noPoints
 
+  const disabledReason = isRunning
+    ? '분석이 진행 중입니다'
+    : noPoints
+    ? '측정점을 먼저 배치하세요'
+    : disabled
+    ? '모델이 처리 중입니다'
+    : undefined
+
   return (
     <div className="space-y-1.5">
       {/* 인라인 오류 표시 */}
@@ -36,6 +44,7 @@ export default function AnalysisControlSection({
       <button
         onClick={onStartAnalysis}
         disabled={footerDisabled}
+        title={disabledReason}
         className={`w-full flex items-center justify-center gap-2 border py-2.5 text-sm
           transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
           disabled:hover:border-gray-200 disabled:hover:text-gray-900
@@ -47,14 +56,14 @@ export default function AnalysisControlSection({
         {isRunning && <Loader2 size={14} className="animate-spin" />}
         {isRunning ? '분석 중...' : error ? '재시도' : results ? '재분석' : '분석 시작'}
       </button>
-      {results && !isRunning && !error && (
-        <p className="text-[10px] text-gray-400 text-center">
-          측정점을 수정한 후 재분석할 수 있습니다
+      {footerDisabled && !isRunning && !error && disabledReason && (
+        <p className="text-[10px] text-gray-500 text-center">
+          {disabledReason}
         </p>
       )}
-      {noPoints && !isRunning && !results && !error && (
-        <p className="text-[10px] text-gray-400 text-center">
-          측정점을 먼저 배치하세요
+      {results && !isRunning && !error && !footerDisabled && (
+        <p className="text-[10px] text-gray-500 text-center">
+          측정점을 수정한 후 재분석할 수 있습니다
         </p>
       )}
     </div>

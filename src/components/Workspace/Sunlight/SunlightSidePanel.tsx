@@ -1,6 +1,7 @@
 'use client'
 
-import { Grid3X3, Sun } from 'lucide-react'
+import { Grid3X3, Sun, Settings, BarChart3 } from 'lucide-react'
+import type { PanelTab } from '../hooks/useWorkspaceLayout'
 import type {
   SunlightConfigState,
   SunlightAnalysisResult,
@@ -16,6 +17,7 @@ import WorkspaceSidePanel from '../WorkspaceSidePanel'
 import WorkspacePanelSection from '../WorkspacePanelSection'
 import LayerPanel from './LayerPanel'
 
+import OnboardingChecklist from '@/components/SunlightAnalysis/OnboardingChecklist'
 import LocationConfigSection from '@/components/SunlightAnalysis/LocationConfigSection'
 import DateTimeConfigSection from '@/components/SunlightAnalysis/DateTimeConfigSection'
 import PointGroupManager from '@/components/SunlightAnalysis/PointGroupManager'
@@ -78,6 +80,9 @@ interface SunlightSidePanelProps {
   onGenerateGroupPoints?: (layerId: string) => Promise<number>
   // Solar chart 3D
   solarChart?: ReturnType<typeof useSolarChart3D>
+  // Panel tab
+  activeTab?: PanelTab
+  onTabChange?: (tab: PanelTab) => void
 }
 
 export default function SunlightSidePanel({
@@ -120,6 +125,8 @@ export default function SunlightSidePanel({
   onToggleAllLayers,
   onGenerateGroupPoints,
   solarChart,
+  activeTab = 'settings',
+  onTabChange,
 }: SunlightSidePanelProps) {
   const noPoints = points.length === 0
 
@@ -142,57 +149,97 @@ export default function SunlightSidePanel({
       onOpen={onOpen}
       footer={footer}
     >
-      {/* ── 위치 설정 ── */}
-      <LocationConfigSection
-        config={config}
-        onConfigChange={onConfigChange}
-        disabled={disabled}
-      />
-
-      {/* ── 날짜/해상도 ── */}
-      <DateTimeConfigSection
-        config={config}
-        onConfigChange={onConfigChange}
-        disabled={disabled}
-      />
-
-      {/* ── 레이어 관리 ── */}
-      {layers.length > 0 && (
-        <WorkspacePanelSection
-          title="레이어"
-          icon={<Grid3X3 size={14} />}
-          badge={layers.length}
-          defaultOpen={true}
-        >
-          <LayerPanel
-            layers={layers}
-            onToggleVisibility={onToggleLayerVisibility || (() => {})}
-            onToggleAnalysisTarget={onToggleAnalysisTarget || (() => {})}
-            onToggleAll={onToggleAllLayers}
-            onGenerateGroupPoints={onGenerateGroupPoints}
-          />
-        </WorkspacePanelSection>
+      {/* ── 탭 바 (결과 있을 때만) ── */}
+      {results && onTabChange && (
+        <div className="flex border border-gray-200 rounded overflow-hidden mb-2">
+          <button
+            onClick={() => onTabChange('settings')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs transition-colors
+              ${activeTab === 'settings'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+          >
+            <Settings size={12} />
+            설정
+          </button>
+          <button
+            onClick={() => onTabChange('results')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs transition-colors
+              ${activeTab === 'results'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+          >
+            <BarChart3 size={12} />
+            결과
+          </button>
+        </div>
       )}
 
-      {/* ── 측정점 그룹 ── */}
-      <PointGroupManager
-        points={points}
-        selectedPointId={selectedPointId}
-        onPointSelect={onPointSelect}
-        groups={groups}
-        activeGroupId={activeGroupId}
-        onAddGroup={onAddGroup}
-        onRemoveGroup={onRemoveGroup}
-        onRenameGroup={onRenameGroup}
-        onSetActiveGroup={onSetActiveGroup}
-        onSortGroup={onSortGroup}
-        onToggleReverseColumns={onToggleReverseColumns}
-        onBatchCreate={onBatchCreate}
-        disabled={disabled}
-      />
+      {/* ── 설정 탭 ── */}
+      {(activeTab === 'settings' || !results) && (
+        <>
+          {/* 온보딩 체크리스트 */}
+          <OnboardingChecklist
+            hasLocation={config.latitude !== 0 && config.longitude !== 0}
+            hasPoints={points.length > 0}
+            hasResults={!!results}
+          />
 
-      {/* ── 결과 (분석 완료 후) ── */}
-      {results && (
+          {/* 위치 설정 */}
+          <LocationConfigSection
+            config={config}
+            onConfigChange={onConfigChange}
+            disabled={disabled}
+          />
+
+          {/* 날짜/해상도 */}
+          <DateTimeConfigSection
+            config={config}
+            onConfigChange={onConfigChange}
+            disabled={disabled}
+          />
+
+          {/* 레이어 관리 */}
+          {layers.length > 0 && (
+            <WorkspacePanelSection
+              title="레이어"
+              icon={<Grid3X3 size={14} />}
+              badge={layers.length}
+              defaultOpen={true}
+            >
+              <LayerPanel
+                layers={layers}
+                onToggleVisibility={onToggleLayerVisibility || (() => {})}
+                onToggleAnalysisTarget={onToggleAnalysisTarget || (() => {})}
+                onToggleAll={onToggleAllLayers}
+                onGenerateGroupPoints={onGenerateGroupPoints}
+              />
+            </WorkspacePanelSection>
+          )}
+
+          {/* 측정점 그룹 */}
+          <PointGroupManager
+            points={points}
+            selectedPointId={selectedPointId}
+            onPointSelect={onPointSelect}
+            groups={groups}
+            activeGroupId={activeGroupId}
+            onAddGroup={onAddGroup}
+            onRemoveGroup={onRemoveGroup}
+            onRenameGroup={onRenameGroup}
+            onSetActiveGroup={onSetActiveGroup}
+            onSortGroup={onSortGroup}
+            onToggleReverseColumns={onToggleReverseColumns}
+            onBatchCreate={onBatchCreate}
+            disabled={disabled}
+          />
+        </>
+      )}
+
+      {/* ── 결과 탭 ── */}
+      {results && activeTab === 'results' && (
         <>
           <AnalysisResultsSection
             results={results}

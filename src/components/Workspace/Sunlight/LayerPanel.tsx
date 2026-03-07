@@ -25,7 +25,7 @@ export default function LayerPanel({
 
   if (layers.length === 0) {
     return (
-      <div className="text-xs text-gray-400 text-center py-3">
+      <div className="text-xs text-gray-500 text-center py-3">
         레이어 정보 없음
       </div>
     )
@@ -34,7 +34,7 @@ export default function LayerPanel({
   return (
     <div className="space-y-1">
       {/* Header with toggle all */}
-      <div className="flex items-center justify-between text-[10px] text-gray-400 px-1 mb-1">
+      <div className="flex items-center justify-between text-[10px] text-gray-500 px-1 mb-1">
         <span>{layers.length}개 레이어 (분석 대상: {targetCount})</span>
         {onToggleAll && (
           <button

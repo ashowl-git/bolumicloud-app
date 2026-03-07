@@ -34,6 +34,7 @@ export interface UseSunlightPipelineReturn {
   estimatedRemainingSec: number | null
   importData: Sn5fImportData | null
 
+  uploadProgress: number | null
   windowPoints: Array<{ id: string; x: number; y: number; z: number; name: string; group: string }>
   uploadFile: (objFile: File, mtlFile?: File) => Promise<void>
   runAnalysis: (config: SunlightConfig) => Promise<void>
@@ -95,6 +96,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
   const [sceneUrl, setSceneUrl] = useState<string | null>(null)
   const [modelMeta, setModelMeta] = useState<ModelMetadata | null>(null)
   const [importData, setImportData] = useState<Sn5fImportData | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [windowPoints, setWindowPoints] = useState<Array<{ id: string; x: number; y: number; z: number; name: string; group: string }>>([])
 
   // Restore model info on mount when session is being resumed
@@ -126,6 +128,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     base.setError(null)
     setImportData(null)
     setWindowPoints([])
+    setUploadProgress(0)
 
     const ext = objFile.name.split('.').pop()?.toLowerCase()
 
@@ -135,7 +138,9 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
         const formData = new FormData()
         formData.append('file', objFile)
 
-        const data = await api.postFormData('/import/sn5f', formData)
+        const data = await api.postFormData('/import/sn5f', formData, {
+          onProgress: setUploadProgress,
+        })
 
         const rawGroups = Array.isArray(data.groups) ? data.groups : []
         const groups: BuildingGroupInfo[] = (rawGroups as string[]).map((name: string, i: number) => ({
@@ -209,7 +214,9 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
           formData.append('mtl_file', mtlFile)
         }
 
-        const importDataRes = await api.postFormData('/import/obj', formData)
+        const importDataRes = await api.postFormData('/import/obj', formData, {
+          onProgress: setUploadProgress,
+        })
         setModelId(importDataRes.model_id)
         const fullSceneUrl = `${contextApiUrl}${importDataRes.scene_url}`
         setSceneUrl(fullSceneUrl)
@@ -340,6 +347,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     isCancelled: base.isCancelled,
     estimatedRemainingSec: base.estimatedRemainingSec,
     importData,
+    uploadProgress,
     windowPoints,
     uploadFile,
     runAnalysis,

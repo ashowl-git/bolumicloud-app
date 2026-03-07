@@ -37,7 +37,7 @@ const stateStyles: Record<StatusBarState, string> = {
   uploading: 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-600 text-white',
   running: 'bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-700 text-white animate-status-pulse',
   completed: 'bg-emerald-500 border-emerald-600 text-white',
-  error: 'bg-red-500 border-red-600 text-white',
+  error: 'bg-red-50 border-red-200 text-red-700',
 }
 
 export default function WorkspaceStatusBar({
@@ -140,8 +140,8 @@ export default function WorkspaceStatusBar({
               {onRetry && (
                 <button
                   onClick={onRetry}
-                  className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
-                    font-medium transition-colors"
+                  className="px-3 py-1 bg-red-100 hover:bg-red-200 rounded text-[11px]
+                    font-medium transition-colors text-red-700"
                 >
                   재시도
                 </button>
@@ -149,8 +149,8 @@ export default function WorkspaceStatusBar({
               {onReset && (
                 <button
                   onClick={onReset}
-                  className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-[11px]
-                    font-medium transition-colors"
+                  className="px-3 py-1 bg-red-50 hover:bg-red-100 rounded text-[11px]
+                    font-medium transition-colors text-red-600"
                 >
                   초기화
                 </button>

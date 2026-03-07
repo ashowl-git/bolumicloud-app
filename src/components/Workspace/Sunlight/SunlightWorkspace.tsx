@@ -17,7 +17,7 @@ import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/typ
 import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
-import type { StatusBarState } from '../WorkspaceStatusBar'
+import { useStatusBarState } from '@/hooks/useStatusBarState'
 
 import { useToast } from '@/contexts/ToastContext'
 import AnalysisWorkspace from '../AnalysisWorkspace'
@@ -26,6 +26,7 @@ import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
 import WorkspaceStatusBar from '../WorkspaceStatusBar'
 import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
+import ViewportGuideOverlay from '../ViewportGuideOverlay'
 import SunlightSidePanel from './SunlightSidePanel'
 import SunlightShadowControls from './SunlightShadowControls'
 import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
@@ -53,6 +54,12 @@ import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
 import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
 import { Undo2, Redo2 } from 'lucide-react'
 
+const VIEWPORT_GUIDE_STEPS = [
+  { key: 'mode', label: 'P 키를 눌러 측정점 모드 전환' },
+  { key: 'click', label: '건물 표면을 클릭하여 측정점 배치' },
+  { key: 'analyze', label: '사이드 패널에서 분석 실행' },
+]
+
 
 // ─── 컴포넌트 ─────────────────────────────
 export default function SunlightWorkspace() {
@@ -68,6 +75,7 @@ export default function SunlightWorkspace() {
     error,
     estimatedRemainingSec,
     importData,
+    uploadProgress,
     uploadFile,
     runAnalysis,
     cancelAnalysis,
@@ -369,13 +377,7 @@ export default function SunlightWorkspace() {
   }, [config, runAnalysis, pointGroups.allMeasurementPoints, layers])
 
   // ── Status bar state ──
-  const statusBarState = useMemo((): StatusBarState => {
-    if (error) return 'error'
-    if (phase === 'uploading') return 'uploading'
-    if (phase === 'running' || phase === 'polling') return 'running'
-    if (phase === 'completed') return 'completed'
-    return 'idle'
-  }, [phase, error])
+  const statusBarState = useStatusBarState({ phase, error })
 
   // ── Progress stepper step ──
   const currentStep = useMemo((): WorkspaceStep => {
@@ -512,6 +514,8 @@ export default function SunlightWorkspace() {
           onToggleAllLayers={handleToggleAllLayers}
           onGenerateGroupPoints={handleGenerateGroupPoints}
           solarChart={solarChart}
+          activeTab={layout.activePanelTab}
+          onTabChange={layout.setActivePanelTab}
         />
       }
       bottomControls={
@@ -550,6 +554,7 @@ export default function SunlightWorkspace() {
           <WorkspaceUploadOverlay
             onFileSelect={handleFileSelect}
             isUploading={phase === 'uploading'}
+            uploadProgress={uploadProgress}
           />
         ) : undefined
       }
@@ -691,10 +696,18 @@ export default function SunlightWorkspace() {
         />
       )}
 
-      {/* Legend overlay */}
-      {results && results.points.length > 0 && (
-        <div className="absolute bottom-16 left-3 z-10">
-          <SunlightLegend />
+      {/* Mode indicator + Legend overlay */}
+      {hasModel && (
+        <div className="absolute bottom-16 left-3 z-10 space-y-2">
+          {results && results.points.length > 0 && <SunlightLegend />}
+          {placement.mode !== 'navigate' && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-sm
+              text-white text-[11px] rounded-full shadow-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              {SUNLIGHT_TOOLBAR_MODES.find(m => m.id === placement.mode)?.label ?? placement.mode}
+              <span className="text-white/40 ml-1">ESC로 해제</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -705,6 +718,12 @@ export default function SunlightWorkspace() {
           onClose={layout.closeShortcutOverlay}
         />
       )}
+
+      {/* Viewport guide — shown after model load, before first point */}
+      <ViewportGuideOverlay
+        visible={hasModel && placement.points.length === 0 && !results && !isRunning}
+        steps={VIEWPORT_GUIDE_STEPS}
+      />
     </AnalysisWorkspace>
   )
 }

@@ -16,6 +16,7 @@ import type {
 } from '@/lib/types/sunlight'
 
 import WorkspacePanelSection from '../Workspace/WorkspacePanelSection'
+import HelpTooltip from '@/components/shared/HelpTooltip'
 
 const DEFAULTS_STORAGE_KEY = 'bolumicloud-sunlight-defaults'
 
@@ -66,7 +67,7 @@ export default function DateTimeConfigSection({
   }, [])
 
   return (
-    <WorkspacePanelSection title="날짜 / 해상도" icon={<Calendar size={14} />}>
+    <WorkspacePanelSection title="날짜 / 해상도" icon={<Calendar size={14} />} defaultOpen={false}>
       {/* Date presets */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {SUNLIGHT_DATE_PRESETS.map((preset) => {
@@ -145,7 +146,10 @@ export default function DateTimeConfigSection({
 
       {/* Solar time mode */}
       <div className="mb-3">
-        <label className="text-[10px] font-medium text-gray-500 block mb-1.5">기준시</label>
+        <label className="text-[10px] font-medium text-gray-500 block mb-1.5">
+          기준시
+          <HelpTooltip text="진태양시: 해시계 기준 시각. 표준시: 시계 기준 시각. 법규 판정은 진태양시가 원칙" />
+        </label>
         <div className="flex gap-1.5">
           {(Object.entries(SOLAR_TIME_MODE_LABELS) as [SolarTimeMode, { ko: string }][]).map(
             ([value, label]) => {
@@ -172,11 +176,15 @@ export default function DateTimeConfigSection({
 
       {/* Total sunlight threshold */}
       <div className="mb-3 border border-gray-200 rounded p-2.5">
-        <label className="text-[10px] font-semibold text-gray-600 block mb-2">총일조시간 계산</label>
+        <label className="text-[10px] font-semibold text-gray-600 block mb-2">
+          총일조시간 계산
+          <HelpTooltip text="지정 시간대 내 햇빛이 비치는 누적 시간. 법규: 동지 기준 4시간 이상" />
+        </label>
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">시작</label>
+            <label htmlFor="dt-total-start" className="text-[10px] text-gray-500 block mb-0.5">시작</label>
             <select
+              id="dt-total-start"
               value={config.totalThreshold.startHour}
               onChange={(e) => onConfigChange({
                 totalThreshold: { ...config.totalThreshold, startHour: Number(e.target.value) }
@@ -191,8 +199,9 @@ export default function DateTimeConfigSection({
             </select>
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">끝</label>
+            <label htmlFor="dt-total-end" className="text-[10px] text-gray-500 block mb-0.5">끝</label>
             <select
+              id="dt-total-end"
               value={config.totalThreshold.endHour}
               onChange={(e) => onConfigChange({
                 totalThreshold: { ...config.totalThreshold, endHour: Number(e.target.value) }
@@ -207,8 +216,12 @@ export default function DateTimeConfigSection({
             </select>
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">수인한도</label>
+            <label htmlFor="dt-total-req" className="text-[10px] text-gray-500 block mb-0.5">
+              수인한도
+              <HelpTooltip text="이 시간 미만이면 일조권 침해 판정" />
+            </label>
             <select
+              id="dt-total-req"
               value={config.totalThreshold.requiredHours}
               onChange={(e) => onConfigChange({
                 totalThreshold: { ...config.totalThreshold, requiredHours: Number(e.target.value) }
@@ -227,11 +240,15 @@ export default function DateTimeConfigSection({
 
       {/* Continuous sunlight threshold */}
       <div className="mb-3 border border-gray-200 rounded p-2.5">
-        <label className="text-[10px] font-semibold text-gray-600 block mb-2">연속일조시간 계산</label>
+        <label className="text-[10px] font-semibold text-gray-600 block mb-2">
+          연속일조시간 계산
+          <HelpTooltip text="끊기지 않고 연속으로 햇빛이 비치는 시간. 법규: 동지 기준 2시간 이상" />
+        </label>
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">시작</label>
+            <label htmlFor="dt-cont-start" className="text-[10px] text-gray-500 block mb-0.5">시작</label>
             <select
+              id="dt-cont-start"
               value={config.continuousThreshold.startHour}
               onChange={(e) => onConfigChange({
                 continuousThreshold: { ...config.continuousThreshold, startHour: Number(e.target.value) }
@@ -246,8 +263,9 @@ export default function DateTimeConfigSection({
             </select>
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">끝</label>
+            <label htmlFor="dt-cont-end" className="text-[10px] text-gray-500 block mb-0.5">끝</label>
             <select
+              id="dt-cont-end"
               value={config.continuousThreshold.endHour}
               onChange={(e) => onConfigChange({
                 continuousThreshold: { ...config.continuousThreshold, endHour: Number(e.target.value) }
@@ -262,8 +280,12 @@ export default function DateTimeConfigSection({
             </select>
           </div>
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">수인한도</label>
+            <label htmlFor="dt-cont-req" className="text-[10px] text-gray-500 block mb-0.5">
+              수인한도
+              <HelpTooltip text="이 시간 미만이면 일조권 침해 판정" />
+            </label>
             <select
+              id="dt-cont-req"
               value={config.continuousThreshold.requiredHours}
               onChange={(e) => onConfigChange({
                 continuousThreshold: { ...config.continuousThreshold, requiredHours: Number(e.target.value) }
