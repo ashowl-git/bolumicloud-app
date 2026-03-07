@@ -157,7 +157,7 @@ export default function SunlightSidePanel({
           title="레이어"
           icon={<Grid3X3 size={14} />}
           badge={layers.length}
-          defaultOpen={false}
+          defaultOpen={true}
         >
           <LayerPanel
             layers={layers}
