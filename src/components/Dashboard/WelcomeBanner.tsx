@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { X, Sun, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { X, ScanEye, Sun, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -11,12 +11,20 @@ const STORAGE_KEY = 'bolumicloud-welcome-dismissed'
 const txt = {
   greeting: { ko: 'BoLumiCloud에 오신 것을 환영합니다', en: 'Welcome to BoLumiCloud' } as LocalizedText,
   subtitle: {
-    ko: 'Radiance 기반 빛환경 분석 플랫폼입니다. 아래 분석 중 하나를 선택하여 시작하세요.',
-    en: 'A Radiance-based lighting analysis platform. Choose an analysis below to get started.',
+    ko: '건축 빛환경 시뮬레이션 플랫폼입니다. 아래 분석 중 하나를 선택하여 시작하세요.',
+    en: 'An architectural lighting simulation platform. Choose an analysis below to get started.',
   } as LocalizedText,
 }
 
 const GUIDES = [
+  {
+    icon: ScanEye,
+    name: { ko: '현휘 분석', en: 'Glare Analysis' } as LocalizedText,
+    desc: { ko: 'Radiance 기반 DGP/DGI 현휘 분석', en: 'Radiance-based DGP/DGI glare analysis' } as LocalizedText,
+    href: '/analysis/glare',
+    color: 'border-red-200 bg-red-50/50',
+    iconColor: 'text-red-600',
+  },
   {
     icon: Sun,
     name: { ko: '일조 분석', en: 'Sunlight Analysis' } as LocalizedText,
@@ -75,7 +83,7 @@ export default function WelcomeBanner() {
       <h2 className="text-base font-medium text-gray-900 mb-1">{t(txt.greeting)}</h2>
       <p className="text-sm text-gray-500 mb-5 max-w-lg">{t(txt.subtitle)}</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {GUIDES.map((guide) => {
           const Icon = guide.icon
           return (

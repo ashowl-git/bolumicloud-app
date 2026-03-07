@@ -26,7 +26,7 @@ export default function DashboardGrid() {
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm text-gray-500">
-            {t({ ko: 'Radiance 기반 빛환경 분석 플랫폼', en: 'Radiance-based lighting analysis platform' })}
+            {t({ ko: '건축 빛환경 시뮬레이션 플랫폼', en: 'Architectural lighting simulation platform' })}
           </p>
           <div className="flex items-center gap-1.5">
             <div

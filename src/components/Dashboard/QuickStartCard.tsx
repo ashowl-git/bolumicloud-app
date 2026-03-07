@@ -26,6 +26,11 @@ const QUICK_LINKS: { name: LocalizedText; href: string; accent: string }[] = [
     href: '/analysis/view',
     accent: 'border-blue-200 hover:border-blue-400',
   },
+  {
+    name: { ko: '사생활 분석', en: 'Privacy Analysis' },
+    href: '/analysis/privacy',
+    accent: 'border-purple-200 hover:border-purple-400',
+  },
 ]
 
 export default function QuickStartCard() {

@@ -185,8 +185,12 @@ export default function WorkspaceUploadOverlay({
                 <span className="px-2 py-0.5 bg-gray-100 rounded font-mono">.obj</span>
                 <span className="px-2 py-0.5 bg-gray-100 rounded font-mono">.sn5f</span>
                 <span className="text-gray-300">|</span>
-                <span>+ .mtl (선택)</span>
+                <span className="px-2 py-0.5 bg-blue-50 text-blue-500 rounded font-mono">.mtl</span>
+                <span className="text-gray-400">(선택)</span>
               </div>
+              <p className="text-[11px] text-gray-400">
+                MTL 파일이 있으면 OBJ와 함께 선택하세요 (드래그 또는 Ctrl/Cmd+클릭)
+              </p>
               {/* Errors */}
               {sizeError && (
                 <p className="text-xs text-red-500 font-medium">{sizeError}</p>
