@@ -44,6 +44,7 @@ const SunlightHeatmapOverlay = dynamic(() => import('@/components/SunlightAnalys
 const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
 const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
 const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3d/ViolationHighlight'), { ssr: false })
+const BuildingLabels3D = dynamic(() => import('@/components/SunlightAnalysis/3d/BuildingLabels3D'), { ssr: false })
 const ModelTransformControls = dynamic(() => import('@/components/shared/3d/interaction/ModelTransformControls'), { ssr: false })
 const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
 const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
@@ -670,7 +671,16 @@ export default function SunlightWorkspace() {
           />
         )}
 
-        {/* Violation highlight (cause analysis) */}
+        {/* Building labels + Violation highlight (cause analysis) */}
+        {report.causeResult && report.causeResult.buildings.length > 0 && (
+          <BuildingLabels3D
+            buildings={report.causeResult.buildings}
+            selectedBuildingId={selectedBuildingId}
+            onBuildingClick={(id) => setSelectedBuildingId(
+              selectedBuildingId === id ? null : id
+            )}
+          />
+        )}
         {report.causeResult && report.causeResult.point_causes.length > 0 && (
           <ViolationHighlight
             blockers={report.causeResult.point_causes.flatMap((pc) => pc.blockers)}
