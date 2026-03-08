@@ -42,20 +42,14 @@ export interface SolarPosition {
 
 // ─── 시간 유틸 ─────────────────────────────
 
-export function minuteToTime(minute: number): string {
-  const totalMin = 480 + minute  // 08:00 = 480분
+export function minuteToTime(minute: number, baseMinute: number = 480): string {
+  const totalMin = baseMinute + minute
   const h = Math.floor(totalMin / 60)
   const m = totalMin % 60
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
 }
 
-export function timeToMinute(time: string): number {
+export function timeToMinute(time: string, baseMinute: number = 480): number {
   const [h, m] = time.split(':').map(Number)
-  return h * 60 + m - 480  // 08:00 기준
+  return h * 60 + m - baseMinute
 }
-
-export const SHADOW_TIME_RANGE = {
-  startHour: 8,
-  endHour: 16,
-  totalMinutes: 480,
-} as const

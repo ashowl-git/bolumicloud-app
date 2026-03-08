@@ -52,6 +52,7 @@ const ModelTransformControls = dynamic(() => import('@/components/shared/3d/inte
 const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
 const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
 const SolarChart3DOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SolarChart3DOverlay'), { ssr: false })
+const ShadowAccumulationOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowAccumulationOverlay'), { ssr: false })
 const CameraPresetApplier = dynamic(() => import('@/components/shared/3d/CameraPresetBar').then(m => ({ default: m.CameraPresetApplier })), { ssr: false })
 
 import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
@@ -319,6 +320,8 @@ export default function SunlightWorkspace() {
         day: config.date.day,
         timezoneOffset: config.timezone / 15,
         stepMinutes: 10,
+        startHour: Math.floor(sunrise / 60),
+        endHour: Math.ceil(sunset / 60),
       })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -544,11 +547,13 @@ export default function SunlightWorkspace() {
             onPlay={shadow.play}
             onPause={shadow.pause}
             onSpeedChange={shadow.setSpeed}
+            startMinuteBase={shadow.startMinuteBase}
           />
         ) : hasModel ? (
           <SunTimeSlider
             timeMinute={sliderTimeMinute}
             month={sliderMonth}
+            day={sliderDay}
             sunrise={sunrise}
             sunset={sunset}
             altitude={clientSun.altitude}
@@ -717,6 +722,15 @@ export default function SunlightWorkspace() {
         {/* Solar chart 3D overlay */}
         {solarChart.data && (
           <SolarChart3DOverlay data={solarChart.data} />
+        )}
+
+        {/* Shadow accumulation heatmap */}
+        {shadow.accumulation && shadow.accumulation.cells.length > 0 && (
+          <ShadowAccumulationOverlay
+            cells={shadow.accumulation.cells}
+            cellSize={shadow.accumulation.cell_size}
+            maxShadowHours={shadow.accumulation.max_shadow_hours}
+          />
         )}
 
         {/* Camera preset controller (R3F) */}

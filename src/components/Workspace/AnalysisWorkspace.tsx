@@ -58,7 +58,7 @@ export default function AnalysisWorkspace({
 
       {/* Bottom Controls (shadow slider etc.) — bottom center, above status bar */}
       {bottomControls && (
-        <div className="absolute bottom-14 left-0 right-0 z-10 flex justify-center pointer-events-none">
+        <div className="absolute bottom-24 left-0 right-0 z-10 flex justify-center pointer-events-none">
           <div className="pointer-events-auto">
             {bottomControls}
           </div>

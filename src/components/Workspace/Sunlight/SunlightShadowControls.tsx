@@ -16,6 +16,7 @@ interface SunlightShadowControlsProps {
   onPause: () => void
   onSpeedChange: (speed: PlaybackSpeed) => void
   visible?: boolean
+  startMinuteBase?: number
 }
 
 export default function SunlightShadowControls({
@@ -27,6 +28,7 @@ export default function SunlightShadowControls({
   onPause,
   onSpeedChange,
   visible = true,
+  startMinuteBase = 480,
 }: SunlightShadowControlsProps) {
   const handleSliderChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,22 +39,25 @@ export default function SunlightShadowControls({
     [stepSize, onMinuteChange],
   )
 
-  const currentTime = minuteToTime(playback.currentMinute)
+  const currentTime = minuteToTime(playback.currentMinute, startMinuteBase)
 
-  // Compute time label positions for 08:00, 12:00, 16:00
+  // Compute dynamic time labels: start, midpoint, end
   const timeLabels = useMemo(() => {
+    const startTime = minuteToTime(0, startMinuteBase)
+    const midMinute = Math.round(maxMinute / 2)
+    const midTime = minuteToTime(midMinute, startMinuteBase)
+    const endTime = minuteToTime(maxMinute, startMinuteBase)
+
     const labels = [
-      { minute: 0, label: '08:00' },
-      { minute: 240, label: '12:00' },
-      { minute: 480, label: '16:00' },
+      { minute: 0, label: startTime },
+      { minute: midMinute, label: midTime },
+      { minute: maxMinute, label: endTime },
     ]
-    return labels
-      .filter((l) => l.minute <= maxMinute)
-      .map((l) => ({
-        ...l,
-        pct: maxMinute > 0 ? (l.minute / maxMinute) * 100 : 0,
-      }))
-  }, [maxMinute])
+    return labels.map((l) => ({
+      ...l,
+      pct: maxMinute > 0 ? (l.minute / maxMinute) * 100 : 0,
+    }))
+  }, [maxMinute, startMinuteBase])
 
   if (!visible) return null
 

@@ -9,6 +9,19 @@ interface UseShadowAnimationOptions {
   apiUrl: string
 }
 
+export interface ShadowAccumulationCell {
+  x: number
+  y: number
+  shadow_hours: number
+}
+
+export interface ShadowAccumulation {
+  cell_size: number
+  total_cells: number
+  max_shadow_hours: number
+  cells: ShadowAccumulationCell[]
+}
+
 export interface UseShadowAnimationReturn {
   // 상태
   shadowId: string | null
@@ -18,6 +31,8 @@ export interface UseShadowAnimationReturn {
   isComputing: boolean
   computeProgress: number
   error: string | null
+  startMinuteBase: number
+  accumulation: ShadowAccumulation | null
 
   // 액션
   computeShadows: (params: ShadowComputeParams) => Promise<void>
@@ -36,6 +51,8 @@ interface ShadowComputeParams {
   day: number
   timezoneOffset?: number
   stepMinutes?: number
+  startHour?: number
+  endHour?: number
 }
 
 export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOptions): UseShadowAnimationReturn {
@@ -50,6 +67,8 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
   const [isComputing, setIsComputing] = useState(false)
   const [computeProgress, setComputeProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [startMinuteBase, setStartMinuteBase] = useState(480) // 08:00 default
+  const [accumulation, setAccumulation] = useState<ShadowAccumulation | null>(null)
 
   const rafRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number>(0)
@@ -86,9 +105,16 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
         month: params.month,
         day: params.day,
         step_minutes: params.stepMinutes ?? 10,
+        start_hour: params.startHour ?? 5,
+        end_hour: params.endHour ?? 20,
       })
       const sid = data.shadow_id
       setShadowId(sid)
+
+      // Parse time_start to compute startMinuteBase
+      const timeStart = data.time_start as string  // e.g. "05:00"
+      const [sh, sm] = timeStart.split(':').map(Number)
+      setStartMinuteBase(sh * 60 + (sm || 0))
 
       // 폴링으로 완료 대기
       await new Promise<void>((resolve, reject) => {
@@ -105,6 +131,14 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
               const framesData = await api.get(`/shadows/${sid}/frames`)
               setFrames(framesData.frames)
               setIsComputing(false)
+
+              // 누적 영역도 자동 fetch
+              api.get(`/shadows/${sid}/accumulation`).then((accData) => {
+                setAccumulation(accData as ShadowAccumulation)
+              }).catch((e) => {
+                logger.warn('Accumulation fetch failed', { error: String(e) })
+              })
+
               resolve()
             } else if (status.status === 'error') {
               if (pollRef.current) clearInterval(pollRef.current)
@@ -203,6 +237,8 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
     setIsComputing(false)
     setComputeProgress(0)
     setError(null)
+    setStartMinuteBase(480)
+    setAccumulation(null)
   }, [])
 
   return {
@@ -213,6 +249,8 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
     isComputing,
     computeProgress,
     error,
+    startMinuteBase,
+    accumulation,
     computeShadows,
     setCurrentMinute,
     play,
