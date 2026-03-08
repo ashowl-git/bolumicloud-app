@@ -28,11 +28,10 @@ function ShadowAccumulationOverlayInner({
 }: ShadowAccumulationOverlayProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
-  const { count, matrices, colors, opacities } = useMemo(() => {
+  const { count, matrices, colors } = useMemo(() => {
     const count = cells.length
     const matrices = new Float32Array(count * 16)
     const colors = new Float32Array(count * 3)
-    const opacities = new Float32Array(count)
 
     const mat4 = new THREE.Matrix4()
     const scale = new THREE.Vector3(cellSize * 0.95, cellSize * 0.95, 1)
@@ -50,15 +49,13 @@ function ShadowAccumulationOverlayInner({
       )
       mat4.toArray(matrices, i * 16)
 
-      const t = maxShadowHours > 0 ? Math.min(cell.shadow_hours / maxShadowHours, 1) : 0
       const color = shadowToColor(cell.shadow_hours, maxShadowHours)
       colors[i * 3] = color.r
       colors[i * 3 + 1] = color.g
       colors[i * 3 + 2] = color.b
-      opacities[i] = 0.15 + t * 0.45 // 0.15 → 0.6
     }
 
-    return { count, matrices, colors, opacities }
+    return { count, matrices, colors }
   }, [cells, cellSize, maxShadowHours])
 
   useEffect(() => {
