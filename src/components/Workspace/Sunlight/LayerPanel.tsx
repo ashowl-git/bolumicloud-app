@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, EyeOff, Target, MapPin, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Target, MapPin, Loader2, Zap } from 'lucide-react'
 import { useState } from 'react'
 import type { LayerConfig } from '@/lib/types/sunlight'
 
@@ -10,6 +10,7 @@ interface LayerPanelProps {
   onToggleAnalysisTarget: (layerId: string) => void
   onToggleAll?: (visible: boolean) => void
   onGenerateGroupPoints?: (layerId: string) => Promise<number>
+  onTogglePanelLayer?: (layerId: string) => void
 }
 
 export default function LayerPanel({
@@ -18,9 +19,11 @@ export default function LayerPanel({
   onToggleAnalysisTarget,
   onToggleAll,
   onGenerateGroupPoints,
+  onTogglePanelLayer,
 }: LayerPanelProps) {
   const allVisible = layers.every(l => l.visible)
   const targetCount = layers.filter(l => l.isAnalysisTarget).length
+  const panelCount = onTogglePanelLayer ? layers.filter(l => l.isPanelLayer).length : 0
   const [generatingId, setGeneratingId] = useState<string | null>(null)
 
   if (layers.length === 0) {
@@ -35,7 +38,10 @@ export default function LayerPanel({
     <div className="space-y-1">
       {/* Header with toggle all */}
       <div className="flex items-center justify-between text-[10px] text-gray-500 px-1 mb-1">
-        <span>{layers.length}개 레이어 (분석 대상: {targetCount})</span>
+        <span>
+          {layers.length}개 레이어 (분석 대상: {targetCount})
+          {onTogglePanelLayer && <> | 패널: {panelCount}</>}
+        </span>
         {onToggleAll && (
           <button
             onClick={() => onToggleAll(!allVisible)}
@@ -90,7 +96,22 @@ export default function LayerPanel({
             </button>
           )}
 
-          {/* Analysis target toggle */}
+          {/* PV Panel layer toggle (Solar PV only) */}
+          {onTogglePanelLayer && (
+            <button
+              onClick={() => onTogglePanelLayer(layer.id)}
+              className={`p-0.5 rounded transition-colors ${
+                layer.isPanelLayer
+                  ? 'text-amber-500 hover:text-amber-600'
+                  : 'text-gray-300 hover:text-gray-400'
+              }`}
+              title={layer.isPanelLayer ? 'PV 패널 해제' : 'PV 패널 지정'}
+            >
+              <Zap size={12} />
+            </button>
+          )}
+
+          {/* Analysis target toggle (shadow inclusion) */}
           <button
             onClick={() => onToggleAnalysisTarget(layer.id)}
             className={`p-0.5 rounded transition-colors ${
@@ -98,7 +119,7 @@ export default function LayerPanel({
                 ? 'text-red-500 hover:text-red-600'
                 : 'text-gray-300 hover:text-gray-400'
             }`}
-            title={layer.isAnalysisTarget ? '분석 대상 해제' : '분석 대상 지정'}
+            title={layer.isAnalysisTarget ? '그림자 영향 해제' : '그림자 영향 포함'}
           >
             <Target size={12} />
           </button>

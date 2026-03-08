@@ -53,6 +53,7 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
 
   const rafRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number>(0)
+  const accMinuteRef = useRef<number>(0)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const framesRef = useRef<ShadowFrame[]>([])
 
@@ -128,7 +129,10 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
   // ─── 재생 제어 ─────────────────────────────
 
   const play = useCallback(() => {
-    setPlayback((prev) => ({ ...prev, isPlaying: true }))
+    setPlayback((prev) => {
+      accMinuteRef.current = prev.currentMinute
+      return { ...prev, isPlaying: true }
+    })
     lastTimeRef.current = performance.now()
 
     const animate = (now: number) => {
@@ -140,23 +144,23 @@ export function useShadowAnimation({ apiUrl: _apiUrl }: UseShadowAnimationOption
       setPlayback((prev) => {
         if (!prev.isPlaying) return prev
 
-        // speed = minutes per second
-        const minuteIncrement = (prev.speed * delta) / 1000
-        const newMinute = prev.currentMinute + minuteIncrement
+        // speed = minutes per second, accumulate in ref to preserve fractional progress
+        accMinuteRef.current += (prev.speed * delta) / 1000
 
-        // 최대 분 (step 단위로 snap)
         const maxMinute = currentFrames.length > 0
           ? currentFrames[currentFrames.length - 1].minute
           : 479
 
-        if (newMinute >= maxMinute) {
+        if (accMinuteRef.current >= maxMinute) {
+          accMinuteRef.current = maxMinute
           return { ...prev, currentMinute: maxMinute, isPlaying: false }
         }
 
-        // step 단위로 snap
+        // snap to step for frame lookup, only update state when step changes
         const stepSize = currentFrames.length > 1 ? currentFrames[1].minute - currentFrames[0].minute : 10
-        const snapped = Math.round(newMinute / stepSize) * stepSize
+        const snapped = Math.round(accMinuteRef.current / stepSize) * stepSize
 
+        if (snapped === prev.currentMinute) return prev
         return { ...prev, currentMinute: snapped }
       })
 

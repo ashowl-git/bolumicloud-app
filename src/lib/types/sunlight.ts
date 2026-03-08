@@ -369,7 +369,8 @@ export interface LayerConfig {
   id: string
   name: string           // e.g., "101동", "기존건물"
   visible: boolean
-  isAnalysisTarget: boolean  // 분석 대상 여부
+  isAnalysisTarget: boolean  // 그림자 영향 포함 여부 (과녁)
+  isPanelLayer?: boolean     // PV 패널 레이어 여부 (태양광 전용)
   color: string          // Hex color
   vertexCount?: number
   faceCount?: number

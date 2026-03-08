@@ -92,6 +92,12 @@ export default function SolarPVWorkspace() {
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
 
+  // autoCenter offset: model was translated by scene.position, shadow overlays need the same offset
+  const modelOffset = useMemo((): [number, number, number] => {
+    if (!modelScene) return [0, 0, 0]
+    return [modelScene.position.x, 0, modelScene.position.z]
+  }, [modelScene])
+
   // Layout
   const layout = useWorkspaceLayout({ hasModel })
 
@@ -173,19 +179,27 @@ export default function SolarPVWorkspace() {
     setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isAnalysisTarget: !l.isAnalysisTarget } : l))
   }, [])
 
+  const handleTogglePanelLayer = useCallback((layerId: string) => {
+    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isPanelLayer: !l.isPanelLayer } : l))
+  }, [])
+
   const handleToggleAllLayers = useCallback((visible: boolean) => {
     setLayers(prev => prev.map(l => ({ ...l, visible })))
   }, [])
 
   const handleStartAnalysis = useCallback(async () => {
     const panelLayerIds = layers
-      .filter(l => l.isAnalysisTarget)
+      .filter(l => l.isPanelLayer)
+      .map(l => l.name)
+
+    const excludedGroups = layers
+      .filter(l => !l.isAnalysisTarget)
       .map(l => l.name)
 
     const runConfig: SolarPVRunConfig = {
       ...config,
       panel_layer_ids: panelLayerIds,
-      excluded_groups: layers.filter(l => !l.visible).map(l => l.name),
+      excluded_groups: excludedGroups,
     }
 
     await runAnalysis(runConfig)
@@ -362,6 +376,7 @@ export default function SolarPVWorkspace() {
           layers={layers}
           onToggleLayerVisibility={handleToggleLayerVisibility}
           onToggleAnalysisTarget={handleToggleAnalysisTarget}
+          onTogglePanelLayer={handleTogglePanelLayer}
           onToggleAllLayers={handleToggleAllLayers}
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
@@ -474,27 +489,30 @@ export default function SolarPVWorkspace() {
         <GroundGrid bbox={modelBbox} />
         <CompassRose bbox={modelBbox} />
 
-        {/* Shadow accumulation heatmap */}
-        {showShadowHeatmap && shadowAccumulation && (
-          <SolarPVShadowHeatmap
-            cells={shadowAccumulation.cells}
-            cellSize={shadowAccumulation.cellSize}
-            maxShadowHours={shadowAccumulation.maxShadowHours}
-          />
-        )}
+        {/* Shadow/Heatmap/Reflection overlays — offset to match autoCenter'd model */}
+        <group position={modelOffset}>
+          {/* Shadow accumulation heatmap */}
+          {showShadowHeatmap && shadowAccumulation && (
+            <SolarPVShadowHeatmap
+              cells={shadowAccumulation.cells}
+              cellSize={shadowAccumulation.cellSize}
+              maxShadowHours={shadowAccumulation.maxShadowHours}
+            />
+          )}
 
-        {/* Reflection overlay (synced with shadow playback) */}
-        {showReflection && currentReflectionFrame && (
-          <ReflectionOverlay frame={currentReflectionFrame} />
-        )}
+          {/* Reflection overlay (synced with shadow playback) */}
+          {showReflection && currentReflectionFrame && (
+            <ReflectionOverlay frame={currentReflectionFrame} />
+          )}
 
-        {/* Shadow overlay */}
-        {shadow.frames.length > 0 && (
-          <>
-            <ShadowOverlay frame={shadow.currentFrame} />
-            <SunPositionIndicator solarPosition={solarPosition} />
-          </>
-        )}
+          {/* Shadow overlay */}
+          {shadow.frames.length > 0 && (
+            <>
+              <ShadowOverlay frame={shadow.currentFrame} />
+              <SunPositionIndicator solarPosition={solarPosition} />
+            </>
+          )}
+        </group>
       </WorkspaceViewport>
 
       {/* Legend overlay (HTML) */}

@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import {
   Settings, BarChart3,
   Zap, Sun, DollarSign, AlertCircle, Loader2,
-  TrendingUp, Battery, MapPin,
+  TrendingUp, Battery, MapPin, Target, Eye,
   Leaf, Award, TreePine, FileDown, Grid3X3,
 } from 'lucide-react'
 import type {
@@ -27,6 +27,7 @@ interface SolarPVSidePanelProps {
   layers: LayerConfig[]
   onToggleLayerVisibility: (id: string) => void
   onToggleAnalysisTarget: (id: string) => void
+  onTogglePanelLayer: (id: string) => void
   onToggleAllLayers?: (visible: boolean) => void
   isRunning: boolean
   onStartAnalysis: () => void
@@ -108,7 +109,7 @@ function ShadowCalendarMini({ calendar }: { calendar: ShadowCalendar }) {
 export default function SolarPVSidePanel({
   open, onClose, onOpen,
   config, onConfigChange,
-  layers, onToggleLayerVisibility, onToggleAnalysisTarget, onToggleAllLayers,
+  layers, onToggleLayerVisibility, onToggleAnalysisTarget, onTogglePanelLayer, onToggleAllLayers,
   isRunning, onStartAnalysis, onCancelAnalysis,
   results, error, progress: _progress,
   selectedSurface, onSelectSurface,
@@ -126,7 +127,7 @@ export default function SolarPVSidePanel({
     [results, selectedSurface],
   )
 
-  const noPanelSelected = layers.length > 0 && !layers.some(l => l.isAnalysisTarget)
+  const noPanelSelected = layers.length > 0 && !layers.some(l => l.isPanelLayer)
 
   const footer = (
     <div className="space-y-1.5">
@@ -163,7 +164,7 @@ export default function SolarPVSidePanel({
       )}
       {noPanelSelected && !isRunning && !error && (
         <p className="text-[10px] text-gray-500 text-center">
-          패널 레이어를 1개 이상 선택하세요
+          PV 패널 레이어를 1개 이상 지정하세요 (번개 아이콘)
         </p>
       )}
     </div>
@@ -271,12 +272,14 @@ export default function SolarPVSidePanel({
                 layers={layers}
                 onToggleVisibility={onToggleLayerVisibility}
                 onToggleAnalysisTarget={onToggleAnalysisTarget}
+                onTogglePanelLayer={onTogglePanelLayer}
                 onToggleAll={onToggleAllLayers}
               />
-              <p className="text-[9px] text-gray-400 mt-2">
-                <span className="text-red-500">*</span> = 패널 레이어 (발전량 분석 대상) &nbsp;|&nbsp;
-                <span className="text-gray-500">눈</span> = 3D 표시 + 그림자 포함
-              </p>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-gray-400 mt-2">
+                <span className="flex items-center gap-0.5"><Zap size={9} className="text-amber-500" /> PV 패널</span>
+                <span className="flex items-center gap-0.5"><Target size={9} className="text-red-500" /> 그림자 영향</span>
+                <span className="flex items-center gap-0.5"><Eye size={9} className="text-gray-500" /> 3D 표시</span>
+              </div>
             </WorkspacePanelSection>
           )}
 
