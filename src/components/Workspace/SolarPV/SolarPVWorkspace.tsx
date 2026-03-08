@@ -65,15 +65,16 @@ export default function SolarPVWorkspace() {
   // Layout
   const layout = useWorkspaceLayout({ hasModel })
 
-  // Initialize layers from importData groups
+  // Initialize layers from importData groups (8-color palette)
   useEffect(() => {
+    const LAYER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316']
     if (!importData?.groups || importData.groups.length === 0) return
-    setLayers(importData.groups.map((g) => ({
+    setLayers(importData.groups.map((g, i) => ({
       id: g.name,
       name: g.name,
       visible: g.visible ?? true,
       isAnalysisTarget: true,
-      color: g.color || '#3b82f6',
+      color: g.color || LAYER_COLORS[i % LAYER_COLORS.length],
     })))
   }, [importData?.groups])
 
@@ -118,6 +119,10 @@ export default function SolarPVWorkspace() {
 
   const handleToggleAnalysisTarget = useCallback((layerId: string) => {
     setLayers(prev => prev.map(l => l.id === layerId ? { ...l, isAnalysisTarget: !l.isAnalysisTarget } : l))
+  }, [])
+
+  const handleToggleAllLayers = useCallback((visible: boolean) => {
+    setLayers(prev => prev.map(l => ({ ...l, visible })))
   }, [])
 
   const handleStartAnalysis = useCallback(async () => {
@@ -202,6 +207,7 @@ export default function SolarPVWorkspace() {
           layers={layers}
           onToggleLayerVisibility={handleToggleLayerVisibility}
           onToggleAnalysisTarget={handleToggleAnalysisTarget}
+          onToggleAllLayers={handleToggleAllLayers}
           isRunning={isRunning}
           onStartAnalysis={handleStartAnalysis}
           onCancelAnalysis={cancelAnalysis}
