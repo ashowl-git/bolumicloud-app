@@ -69,6 +69,23 @@ export default function SunShadowLight({
 
     const maxCamSize = Math.max(horizDiag * 3, horizDiag + buildingHeight * shadowFactor)
     maxCamSizeRef.current = maxCamSize
+    currentCamSizeRef.current = maxCamSize
+
+    // Set initial frustum (useFrame will dynamically adjust from here)
+    const cam = lightRef.current.shadow.camera
+    cam.left = -maxCamSize
+    cam.right = maxCamSize
+    cam.top = maxCamSize
+    cam.bottom = -maxCamSize
+
+    const diag = Math.sqrt(
+      modelBbox.size[0] ** 2 +
+      modelBbox.size[1] ** 2 +
+      modelBbox.size[2] ** 2
+    )
+    cam.near = 0.5
+    cam.far = Math.max(diag * 6, maxCamSize * 4)
+    cam.updateProjectionMatrix()
 
     // Point light target at model center
     lightRef.current.target.position.set(
