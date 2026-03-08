@@ -39,18 +39,21 @@ export interface ShadowAccumulationCell {
   x: number
   y: number
   shadow_hours: number
+  shadow_ratio?: number
 }
 
 interface SolarPVShadowHeatmapProps {
   cells: ShadowAccumulationCell[]
   cellSize: number
   maxShadowHours: number
+  mode?: 'hours' | 'ratio'
 }
 
 function SolarPVShadowHeatmapInner({
   cells,
   cellSize,
   maxShadowHours,
+  mode = 'hours',
 }: SolarPVShadowHeatmapProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const [hoveredCell, setHoveredCell] = useState<ShadowAccumulationCell | null>(null)
@@ -79,14 +82,17 @@ function SolarPVShadowHeatmapInner({
       )
       mat4.toArray(matrices, i * 16)
 
-      const color = shadowHoursToColor(cell.shadow_hours, effectiveMax)
+      const colorValue = mode === 'ratio'
+        ? (cell.shadow_ratio ?? 0) * effectiveMax
+        : cell.shadow_hours
+      const color = shadowHoursToColor(colorValue, effectiveMax)
       colors[i * 3] = color.r
       colors[i * 3 + 1] = color.g
       colors[i * 3 + 2] = color.b
     }
 
     return { count, matrices, colors }
-  }, [cells, cellSize, maxShadowHours])
+  }, [cells, cellSize, maxShadowHours, mode])
 
   useEffect(() => {
     const mesh = meshRef.current
@@ -149,7 +155,11 @@ function SolarPVShadowHeatmapInner({
       {hoveredCell && (
         <Html position={tooltipPos} center style={{ pointerEvents: 'none' }}>
           <div className="bg-gray-900/90 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
-            그림자: <span className="font-semibold">{hoveredCell.shadow_hours.toFixed(1)}h</span>
+            {mode === 'ratio' ? (
+              <>그림자 빈도: <span className="font-semibold">{((hoveredCell.shadow_ratio ?? 0) * 100).toFixed(0)}%</span></>
+            ) : (
+              <>그림자: <span className="font-semibold">{hoveredCell.shadow_hours.toFixed(1)}h</span></>
+            )}
           </div>
         </Html>
       )}
@@ -161,7 +171,8 @@ const SolarPVShadowHeatmap = React.memo(SolarPVShadowHeatmapInner, (prev, next) 
   return (
     prev.cells === next.cells &&
     prev.cellSize === next.cellSize &&
-    prev.maxShadowHours === next.maxShadowHours
+    prev.maxShadowHours === next.maxShadowHours &&
+    prev.mode === next.mode
   )
 })
 

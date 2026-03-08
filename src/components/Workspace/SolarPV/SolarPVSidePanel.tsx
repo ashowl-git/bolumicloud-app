@@ -56,6 +56,21 @@ interface SolarPVSidePanelProps {
   showShadowHeatmap: boolean
   onToggleShadowHeatmap: () => void
   shadowHeatmapLoading: boolean
+  // Range accumulation (date range)
+  shadowDateRange: {
+    startMonth: number; startDay: number
+    endMonth: number; endDay: number
+    startHour: number; endHour: number
+    sampleCount: number
+  }
+  onShadowDateRangeChange: (range: {
+    startMonth: number; startDay: number
+    endMonth: number; endDay: number
+    startHour: number; endHour: number
+    sampleCount: number
+  }) => void
+  onComputeRangeAccumulation: () => void
+  rangeAccumLoading: boolean
   // Reflection overlay
   showReflection: boolean
   onToggleReflection: () => void
@@ -121,6 +136,7 @@ export default function SolarPVSidePanel({
   shadowDate, onShadowDateChange, onComputeShadows,
   shadowIsComputing, shadowComputeProgress, shadowFrameCount,
   showShadowHeatmap, onToggleShadowHeatmap, shadowHeatmapLoading,
+  shadowDateRange, onShadowDateRangeChange, onComputeRangeAccumulation, rangeAccumLoading,
   showReflection, onToggleReflection, reflectionLoading,
 }: SolarPVSidePanelProps) {
   const presetInfo = modulePresets.find(p => p.id === config.module_preset)
@@ -394,6 +410,8 @@ export default function SolarPVSidePanel({
           {/* Shadow Visualization */}
           <WorkspacePanelSection title="그림자 시각화" icon={<Sun size={14} />} defaultOpen={false}>
             <div className="space-y-2">
+              {/* Single-day shadow animation */}
+              <p className="text-[10px] text-gray-400 font-medium">애니메이션 (단일 날짜)</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] text-gray-500">월</label>
@@ -462,12 +480,130 @@ export default function SolarPVSidePanel({
                     ) : (
                       <>
                         <Grid3X3 size={12} />
-                        {showShadowHeatmap ? '그림자 영역도 끄기' : '그림자 영역도'}
+                        {showShadowHeatmap ? '단일일 영역도 끄기' : '단일일 영역도'}
                       </>
                     )}
                   </button>
                 </>
               )}
+
+              {/* Range accumulation (date range) */}
+              <div className="border-t border-gray-100 pt-2 mt-2" />
+              <p className="text-[10px] text-gray-400 font-medium">누적 영역도 (날짜 범위)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500">시작월</label>
+                  <select
+                    value={shadowDateRange.startMonth}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startMonth: parseInt(e.target.value) })}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}월</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">시작일</label>
+                  <input
+                    type="number"
+                    value={shadowDateRange.startDay}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startDay: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
+                    min={1} max={31}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">끝월</label>
+                  <select
+                    value={shadowDateRange.endMonth}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endMonth: parseInt(e.target.value) })}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}월</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">끝일</label>
+                  <input
+                    type="number"
+                    value={shadowDateRange.endDay}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endDay: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
+                    min={1} max={31}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500">시작시</label>
+                  <select
+                    value={shadowDateRange.startHour}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startHour: parseInt(e.target.value) })}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {Array.from({ length: 16 }, (_, i) => i + 5).map(h => (
+                      <option key={h} value={h}>{h}시</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">끝시</label>
+                  <select
+                    value={shadowDateRange.endHour}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endHour: parseInt(e.target.value) })}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {Array.from({ length: 16 }, (_, i) => i + 5).map(h => (
+                      <option key={h} value={h}>{h}시</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">샘플</label>
+                  <select
+                    value={shadowDateRange.sampleCount}
+                    onChange={e => onShadowDateRangeChange({ ...shadowDateRange, sampleCount: parseInt(e.target.value) })}
+                    disabled={isRunning || rangeAccumLoading}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {[6, 12, 24].map(n => (
+                      <option key={n} value={n}>{n}일</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                onClick={onComputeRangeAccumulation}
+                disabled={rangeAccumLoading || isRunning}
+                className={`w-full flex items-center justify-center gap-2 border py-2 text-xs
+                  transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
+                  ${showShadowHeatmap
+                    ? 'border-purple-400 bg-purple-50 text-purple-700'
+                    : 'border-gray-200 hover:border-purple-500/50 hover:text-purple-700'
+                  }`}
+              >
+                {rangeAccumLoading ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    영역도 계산 중...
+                  </>
+                ) : (
+                  <>
+                    <Grid3X3 size={12} />
+                    누적 영역도 계산
+                  </>
+                )}
+              </button>
+
               {/* 반사영역도 — PV 분석 결과 필요 */}
               {!!results && (
                 <button

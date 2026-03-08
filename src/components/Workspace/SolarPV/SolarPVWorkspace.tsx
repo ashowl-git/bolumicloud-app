@@ -100,6 +100,16 @@ export default function SolarPVWorkspace() {
     maxShadowHours: number
   } | null>(null)
   const [shadowHeatmapLoading, setShadowHeatmapLoading] = useState(false)
+  const [shadowHeatmapMode, setShadowHeatmapMode] = useState<'hours' | 'ratio'>('hours')
+
+  // Range accumulation (date range)
+  const [shadowDateRange, setShadowDateRange] = useState({
+    startMonth: 1, startDay: 1,
+    endMonth: 12, endDay: 31,
+    startHour: 8, endHour: 16,
+    sampleCount: 12,
+  })
+  const [rangeAccumLoading, setRangeAccumLoading] = useState(false)
 
   // Reflection overlay
   const [showReflection, setShowReflection] = useState(false)
@@ -313,8 +323,67 @@ export default function SolarPVWorkspace() {
         setShadowHeatmapLoading(false)
       }
     }
+    setShadowHeatmapMode('hours')
     setShowShadowHeatmap(true)
   }, [showShadowHeatmap, shadow.shadowId, shadowAccumulation, api])
+
+  const handleComputeRangeAccumulation = useCallback(async () => {
+    if (!sessionId) return
+    setRangeAccumLoading(true)
+    try {
+      const startResp = await api.post('/shadows/range-accumulation', {
+        session_id: sessionId,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        timezone_offset: config.timezone_offset,
+        start_month: shadowDateRange.startMonth,
+        start_day: shadowDateRange.startDay,
+        end_month: shadowDateRange.endMonth,
+        end_day: shadowDateRange.endDay,
+        start_hour: shadowDateRange.startHour,
+        end_hour: shadowDateRange.endHour,
+        cell_size: 2.0,
+        sample_count: shadowDateRange.sampleCount,
+      })
+
+      const rangeId = startResp.range_shadow_id
+
+      // Poll for completion
+      let done = false
+      const pollStart = Date.now()
+      const POLL_TIMEOUT_MS = 300_000 // 5 minutes
+      while (!done) {
+        if (Date.now() - pollStart > POLL_TIMEOUT_MS) {
+          throw new Error('영역도 계산 시간 초과 (5분)')
+        }
+        await new Promise(r => setTimeout(r, 2000))
+        const status = await api.get(`/shadows/range-accumulation/${rangeId}/status`)
+        if (status.status === 'completed') {
+          done = true
+        } else if (status.status === 'error') {
+          throw new Error(status.error || '영역도 계산 오류')
+        }
+      }
+
+      const result = await api.get(`/shadows/range-accumulation/${rangeId}/result`)
+      setShadowAccumulation({
+        cells: result.cells.map((c: { x: number; y: number; shadow_ratio: number }) => ({
+          x: c.x,
+          y: c.y,
+          shadow_hours: c.shadow_ratio * result.max_shadow_ratio, // normalized for color scale
+          shadow_ratio: c.shadow_ratio,
+        })),
+        cellSize: result.cell_size,
+        maxShadowHours: result.max_shadow_ratio,
+      })
+      setShadowHeatmapMode('ratio')
+      setShowShadowHeatmap(true)
+    } catch (err) {
+      console.error('Range accumulation error:', err)
+    } finally {
+      setRangeAccumLoading(false)
+    }
+  }, [sessionId, api, config.latitude, config.longitude, config.timezone_offset, shadowDateRange])
 
   // Current reflection frame synced with shadow playback
   const currentReflectionFrame = useMemo(() => {
@@ -459,6 +528,10 @@ export default function SolarPVWorkspace() {
           showShadowHeatmap={showShadowHeatmap}
           onToggleShadowHeatmap={handleToggleShadowHeatmap}
           shadowHeatmapLoading={shadowHeatmapLoading}
+          shadowDateRange={shadowDateRange}
+          onShadowDateRangeChange={setShadowDateRange}
+          onComputeRangeAccumulation={handleComputeRangeAccumulation}
+          rangeAccumLoading={rangeAccumLoading}
           showReflection={showReflection}
           onToggleReflection={handleToggleReflection}
           reflectionLoading={reflectionLoading}
@@ -568,6 +641,7 @@ export default function SolarPVWorkspace() {
             cells={shadowAccumulation.cells}
             cellSize={shadowAccumulation.cellSize}
             maxShadowHours={shadowAccumulation.maxShadowHours}
+            mode={shadowHeatmapMode}
           />
         )}
 

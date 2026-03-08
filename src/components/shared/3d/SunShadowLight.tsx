@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useMemo } from 'react'
-import { useThree } from '@react-three/fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
 
@@ -19,7 +19,12 @@ export default function SunShadowLight({
   directionalIntensity = 0.8,
 }: SunShadowLightProps) {
   const lightRef = useRef<THREE.DirectionalLight>(null)
-  const { invalidate } = useThree()
+  const { invalidate, camera } = useThree()
+
+  // Dynamic frustum sizing refs
+  const maxCamSizeRef = useRef(600)
+  const currentCamSizeRef = useRef(600)
+  const horizDiagRef = useRef(200)
 
   // Normalize sunDirection and scale to bbox diagonal × 2,
   // offset from model center so the light is always far enough
@@ -43,17 +48,14 @@ export default function SunShadowLight({
     ] as [number, number, number]
   }, [sunDirection, modelBbox])
 
-  // Dynamically fit shadow camera frustum to model bounding box + sun altitude
+  // Compute max frustum size from sun altitude + store in ref for useFrame
   useEffect(() => {
     if (!lightRef.current || !modelBbox) return
 
-    const cam = lightRef.current.shadow.camera
-    // Use horizontal diagonal (not single-axis max) — model may extend diagonally
     const horizDiag = Math.sqrt(modelBbox.size[0] ** 2 + modelBbox.size[2] ** 2)
     const buildingHeight = modelBbox.size[1]
+    horizDiagRef.current = horizDiag
 
-    // Compute dynamic shadow factor from sun altitude
-    // At 5° → factor 11.4, 10° → 5.7, 30° → 1.7, capped at 15
     let shadowFactor = 6
     if (sunDirection) {
       const [sx, sy, sz] = sunDirection
@@ -63,27 +65,10 @@ export default function SunShadowLight({
         shadowFactor = altRad > 0.01 ? Math.min(1 / Math.tan(altRad), 15) : 15
       }
     }
-    // Never shrink below 3 — even at high noon, need adequate ground coverage
     shadowFactor = Math.max(shadowFactor, 3)
 
-    // Frustum must cover: full model extent + shadow extension on all sides
-    // Lower-bound: horizDiag*3 matches ground plane (horizDiag*6) half-extent
-    const camSize = Math.max(horizDiag * 3, horizDiag + buildingHeight * shadowFactor)
-
-    const diag = Math.sqrt(
-      modelBbox.size[0] ** 2 +
-      modelBbox.size[1] ** 2 +
-      modelBbox.size[2] ** 2
-    )
-
-    cam.left = -camSize
-    cam.right = camSize
-    cam.top = camSize
-    cam.bottom = -camSize
-    cam.near = 0.5
-    cam.far = Math.max(diag * 6, camSize * 4)
-
-    cam.updateProjectionMatrix()
+    const maxCamSize = Math.max(horizDiag * 3, horizDiag + buildingHeight * shadowFactor)
+    maxCamSizeRef.current = maxCamSize
 
     // Point light target at model center
     lightRef.current.target.position.set(
@@ -97,6 +82,54 @@ export default function SunShadowLight({
     lightRef.current.shadow.needsUpdate = true
     invalidate()
   }, [modelBbox, sunDirection, invalidate])
+
+  // Dynamic frustum: adjust shadow camera size based on camera distance each frame
+  useFrame(() => {
+    if (!lightRef.current || !modelBbox) return
+
+    const horizDiag = horizDiagRef.current
+    const maxCamSize = maxCamSizeRef.current
+    const minFrustum = Math.max(horizDiag * 0.15, 10)
+
+    const orbitTarget = new THREE.Vector3(
+      modelBbox.center[0], modelBbox.center[1], modelBbox.center[2]
+    )
+
+    const dist = camera.position.distanceTo(orbitTarget)
+    const t = Math.max(0, Math.min(1, (dist - horizDiag * 0.05) / (horizDiag * 2.5)))
+    const desiredSize = minFrustum + t * (maxCamSize - minFrustum)
+
+    // Skip update if change < 2%
+    if (Math.abs(desiredSize - currentCamSizeRef.current) / (currentCamSizeRef.current || 1) < 0.02) {
+      return
+    }
+
+    // Smooth lerp toward desired size
+    const newSize = currentCamSizeRef.current + (desiredSize - currentCamSizeRef.current) * 0.3
+    currentCamSizeRef.current = newSize
+
+    const cam = lightRef.current.shadow.camera
+    cam.left = -newSize
+    cam.right = newSize
+    cam.top = newSize
+    cam.bottom = -newSize
+
+    const diag = Math.sqrt(
+      modelBbox.size[0] ** 2 +
+      modelBbox.size[1] ** 2 +
+      modelBbox.size[2] ** 2
+    )
+    cam.near = 0.5
+    cam.far = Math.max(diag * 6, newSize * 4)
+    cam.updateProjectionMatrix()
+
+    // Dynamic bias: larger frustum = larger texels = more bias needed
+    const biasScale = newSize / 600
+    lightRef.current.shadow.bias = -0.0003 * Math.max(biasScale, 0.3)
+
+    lightRef.current.shadow.needsUpdate = true
+    invalidate()
+  })
 
   return (
     <>
