@@ -42,6 +42,21 @@ interface SolarPVSidePanelProps {
   onGenerateReport?: () => Promise<void>
   reportDownloadUrl?: string | null
   isGeneratingReport?: boolean
+  // Shadow visualization
+  shadowDate: { month: number; day: number }
+  onShadowDateChange: (date: { month: number; day: number }) => void
+  onComputeShadows: () => void
+  shadowIsComputing: boolean
+  shadowComputeProgress: number
+  shadowFrameCount: number
+  // Shadow accumulation heatmap
+  showShadowHeatmap: boolean
+  onToggleShadowHeatmap: () => void
+  shadowHeatmapLoading: boolean
+  // Reflection overlay
+  showReflection: boolean
+  onToggleReflection: () => void
+  reflectionLoading: boolean
 }
 
 // --- Surface Score 색상 (라이트 테마) ---
@@ -100,6 +115,10 @@ export default function SolarPVSidePanel({
   modulePresets,
   activeTab, onTabChange,
   onGenerateReport, reportDownloadUrl, isGeneratingReport,
+  shadowDate, onShadowDateChange, onComputeShadows,
+  shadowIsComputing, shadowComputeProgress, shadowFrameCount,
+  showShadowHeatmap, onToggleShadowHeatmap, shadowHeatmapLoading,
+  showReflection, onToggleReflection, reflectionLoading,
 }: SolarPVSidePanelProps) {
   const presetInfo = modulePresets.find(p => p.id === config.module_preset)
   const selectedSurfaceData = useMemo(
@@ -375,6 +394,111 @@ export default function SolarPVSidePanel({
                 </div>
               </div>
             )}
+          </WorkspacePanelSection>
+
+          {/* Shadow Visualization */}
+          <WorkspacePanelSection title="그림자 시각화" icon={<Sun size={14} />} defaultOpen={false}>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500">월</label>
+                  <select
+                    value={shadowDate.month}
+                    onChange={e => onShadowDateChange({ ...shadowDate, month: parseInt(e.target.value) })}
+                    disabled={isRunning || shadowIsComputing}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}월</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">일</label>
+                  <input
+                    type="number"
+                    value={shadowDate.day}
+                    onChange={e => onShadowDateChange({ ...shadowDate, day: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
+                    min={1} max={31}
+                    disabled={isRunning || shadowIsComputing}
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={onComputeShadows}
+                disabled={shadowIsComputing || isRunning}
+                className="w-full flex items-center justify-center gap-2 border border-gray-200 py-2 text-xs
+                  transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
+                  hover:border-amber-500/50 hover:text-amber-700"
+              >
+                {shadowIsComputing ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    그림자 계산 중 ({Math.round(shadowComputeProgress)}%)
+                  </>
+                ) : (
+                  <>
+                    <Sun size={12} />
+                    {shadowFrameCount > 0 ? '그림자 재계산' : '그림자 계산'}
+                  </>
+                )}
+              </button>
+              {shadowFrameCount > 0 && (
+                <>
+                  <p className="text-[10px] text-green-600 text-center">
+                    {shadowFrameCount}프레임 로드됨 -- 하단 슬라이더로 시간 조절
+                  </p>
+                  <button
+                    onClick={onToggleShadowHeatmap}
+                    disabled={shadowHeatmapLoading}
+                    className={`w-full flex items-center justify-center gap-2 border py-2 text-xs
+                      transition-all duration-300 disabled:opacity-40
+                      ${showShadowHeatmap
+                        ? 'border-amber-400 bg-amber-50 text-amber-700'
+                        : 'border-gray-200 hover:border-amber-500/50 hover:text-amber-700'
+                      }`}
+                  >
+                    {shadowHeatmapLoading ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin" />
+                        영역도 계산 중...
+                      </>
+                    ) : (
+                      <>
+                        <Grid3X3 size={12} />
+                        {showShadowHeatmap ? '그림자 영역도 끄기' : '그림자 영역도'}
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+              {/* 반사영역도 — PV 분석 결과 필요 */}
+              {!!results && (
+                <button
+                  onClick={onToggleReflection}
+                  disabled={reflectionLoading}
+                  className={`w-full flex items-center justify-center gap-2 border py-2 text-xs
+                    transition-all duration-300 disabled:opacity-40
+                    ${showReflection
+                      ? 'border-yellow-400 bg-yellow-50 text-yellow-700'
+                      : 'border-gray-200 hover:border-yellow-500/50 hover:text-yellow-700'
+                    }`}
+                >
+                  {reflectionLoading ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      반사 계산 중...
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={12} />
+                      {showReflection ? '반사영역도 끄기' : '반사영역도'}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </WorkspacePanelSection>
         </>
       )}
