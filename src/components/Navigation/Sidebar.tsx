@@ -47,7 +47,7 @@ export default function Sidebar() {
           {isOpen && <span className="text-xs">Collapse</span>}
         </button>
         {isOpen && (
-          <p className="text-[10px] text-gray-400 px-2 mt-1">v0.3.0</p>
+          <p className="text-[10px] text-gray-400 px-2 mt-1">v0.4.0</p>
         )}
       </div>
     </aside>

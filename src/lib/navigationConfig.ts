@@ -3,6 +3,7 @@ import {
   Wrench, ArrowRightLeft, Palette, SunDim, CloudSun,
   Box, GlassWater, Clapperboard, Film,
   ShieldCheck, AlertTriangle, Award, Building2, Star,
+  Zap,
 } from 'lucide-react'
 import type { NavigationConfig } from './types/navigation'
 
@@ -52,6 +53,14 @@ export const NAVIGATION: NavigationConfig = [
         description: { ko: 'Sanalyst 기반 일조 시뮬레이션', en: 'Sanalyst-based sunlight simulation' },
         icon: Telescope,
         status: 'active',
+      },
+      {
+        id: 'solar-pv',
+        slug: 'solar-pv',
+        name: { ko: '태양광 발전', en: 'Solar PV' },
+        description: { ko: '3D 그림자 기반 태양광 발전량 예측', en: '3D shadow-aware solar PV generation prediction' },
+        icon: Zap,
+        status: 'active' as const,
       },
       {
         id: 'view',

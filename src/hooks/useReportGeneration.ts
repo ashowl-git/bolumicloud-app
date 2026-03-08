@@ -5,7 +5,7 @@ import { useApiClient } from '@/lib/api'
 import { useApi } from '@/contexts/ApiContext'
 import type { CauseAnalysisResult } from '@/lib/types/sunlight'
 
-type AnalysisType = 'sunlight' | 'view' | 'privacy'
+type AnalysisType = 'sunlight' | 'view' | 'privacy' | 'solar_pv'
 
 interface UseReportGenerationOptions {
   sessionId: string | null
