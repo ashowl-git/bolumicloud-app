@@ -43,16 +43,27 @@ export default function SunShadowLight({
     ] as [number, number, number]
   }, [sunDirection, modelBbox])
 
-  // Dynamically fit shadow camera frustum to model bounding box
+  // Dynamically fit shadow camera frustum to model bounding box + sun altitude
   useEffect(() => {
     if (!lightRef.current || !modelBbox) return
 
     const cam = lightRef.current.shadow.camera
     const maxSpan = Math.max(modelBbox.size[0], modelBbox.size[2])
     const buildingHeight = modelBbox.size[1]
-    // Low sun angles (< 10deg) produce shadows ~6x building height.
-    // Frustum must cover model span + long shadows on both sides.
-    const camSize = Math.max(maxSpan * 1.5, maxSpan + buildingHeight * 6)
+
+    // Compute dynamic shadow factor from sun altitude
+    // At 5° → factor 11.4, 10° → 5.7, 30° → 1.7, capped at 15
+    let shadowFactor = 6
+    if (sunDirection) {
+      const [sx, sy, sz] = sunDirection
+      const mag = Math.sqrt(sx * sx + sy * sy + sz * sz)
+      if (mag > 0.01) {
+        const altRad = Math.asin(Math.abs(sy) / mag)
+        shadowFactor = altRad > 0.01 ? Math.min(1 / Math.tan(altRad), 15) : 15
+      }
+    }
+
+    const camSize = Math.max(maxSpan * 1.5, maxSpan + buildingHeight * shadowFactor)
 
     const diag = Math.sqrt(
       modelBbox.size[0] ** 2 +
@@ -65,7 +76,7 @@ export default function SunShadowLight({
     cam.top = camSize
     cam.bottom = -camSize
     cam.near = 0.5
-    cam.far = diag * 5
+    cam.far = Math.max(diag * 5, camSize * 3)
 
     cam.updateProjectionMatrix()
 
@@ -80,21 +91,7 @@ export default function SunShadowLight({
 
     lightRef.current.shadow.needsUpdate = true
     invalidate()
-  }, [modelBbox, invalidate])
-
-  // Invalidate on sun direction change (frameloop="demand" compatibility)
-  useEffect(() => {
-    if (!lightRef.current || !modelBbox) return
-
-    // Update target on every sun direction change
-    lightRef.current.target.position.set(
-      modelBbox.center[0], modelBbox.center[1], modelBbox.center[2]
-    )
-    lightRef.current.target.updateMatrixWorld()
-
-    lightRef.current.shadow.needsUpdate = true
-    invalidate()
-  }, [sunDirection, modelBbox, invalidate])
+  }, [modelBbox, sunDirection, invalidate])
 
   return (
     <>

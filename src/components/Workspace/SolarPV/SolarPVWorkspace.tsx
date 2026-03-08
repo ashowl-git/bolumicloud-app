@@ -27,7 +27,6 @@ import WorkspaceStatusBar from '../WorkspaceStatusBar'
 import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
 import SolarPVSidePanel from './SolarPVSidePanel'
-import SunlightShadowControls from '../Sunlight/SunlightShadowControls'
 import SunTimeSlider from '@/components/shared/SunTimeSlider'
 
 // 3D components (dynamic import for SSR safety)
@@ -249,6 +248,37 @@ export default function SolarPVWorkspace() {
     ? { altitude: shadow.currentFrame.solar_altitude, azimuth: shadow.currentFrame.solar_azimuth }
     : { altitude: clientSun.altitude, azimuth: clientSun.azimuth }
 
+  // Shadow frame absolute minutes (for SunTimeSlider snapping)
+  const shadowFrameMinutes = useMemo(() =>
+    shadow.frames.map(f => shadow.startMinuteBase + f.minute),
+  [shadow.frames, shadow.startMinuteBase])
+
+  // Sync shadow playback → sliderTimeMinute
+  useEffect(() => {
+    if (hasShadowFrames) {
+      setSliderTimeMinute(shadow.startMinuteBase + shadow.playback.currentMinute)
+    }
+  }, [hasShadowFrames, shadow.playback.currentMinute, shadow.startMinuteBase])
+
+  // Time change handler: snaps to nearest shadow frame when available
+  const handleTimeChange = useCallback((absoluteMinute: number) => {
+    if (hasShadowFrames) {
+      const offset = absoluteMinute - shadow.startMinuteBase
+      let closestMinute = 0
+      let minDiff = Infinity
+      for (const f of shadow.frames) {
+        const diff = Math.abs(f.minute - offset)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestMinute = f.minute
+        }
+      }
+      shadow.setCurrentMinute(closestMinute)
+    } else {
+      setSliderTimeMinute(absoluteMinute)
+    }
+  }, [hasShadowFrames, shadow.frames, shadow.startMinuteBase, shadow.setCurrentMinute])
+
   const handleComputeShadows = useCallback(() => {
     if (!sessionId) return
     shadow.computeShadows({
@@ -460,25 +490,24 @@ export default function SolarPVWorkspace() {
         />
       }
       bottomControls={
-        hasShadowFrames ? (
-          <SunlightShadowControls
-            playback={shadow.playback}
-            maxMinute={shadow.frames[shadow.frames.length - 1].minute}
-            stepSize={shadow.frames.length > 1 ? shadow.frames[1].minute - shadow.frames[0].minute : 10}
-            onMinuteChange={shadow.setCurrentMinute}
-            onPlay={shadow.play}
-            onPause={shadow.pause}
-            onSpeedChange={shadow.setSpeed}
-          />
-        ) : hasModel ? (
+        hasModel ? (
           <SunTimeSlider
             timeMinute={sliderTimeMinute}
             month={sliderMonth}
+            day={sliderDay}
             sunrise={sunrise}
             sunset={sunset}
-            altitude={clientSun.altitude}
-            onTimeChange={setSliderTimeMinute}
+            altitude={solarPosition.altitude}
+            onTimeChange={handleTimeChange}
             onMonthChange={(m, d) => { setSliderMonth(m); setSliderDay(d) }}
+            shadowPlayback={hasShadowFrames ? {
+              isPlaying: shadow.playback.isPlaying,
+              speed: shadow.playback.speed,
+              frameMinutes: shadowFrameMinutes,
+            } : undefined}
+            onPlay={shadow.play}
+            onPause={shadow.pause}
+            onSpeedChange={shadow.setSpeed}
           />
         ) : undefined
       }

@@ -29,7 +29,6 @@ import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
 import ViewportGuideOverlay from '../ViewportGuideOverlay'
 import SunlightSidePanel from './SunlightSidePanel'
-import SunlightShadowControls from './SunlightShadowControls'
 import SunTimeSlider from '@/components/shared/SunTimeSlider'
 import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
 
@@ -183,6 +182,7 @@ export default function SunlightWorkspace() {
   const [sliderTimeMinute, setSliderTimeMinute] = useState(720) // noon
   const [sliderMonth, setSliderMonth] = useState(config.date.month)
   const [sliderDay, setSliderDay] = useState(config.date.day)
+  const [showAccumulation, setShowAccumulation] = useState(false)
   const clientSun = useSunDirection(
     config.latitude, config.longitude, sliderMonth, sliderDay, sliderTimeMinute, config.timezone / 15,
   )
@@ -432,6 +432,37 @@ export default function SunlightWorkspace() {
 
   const isRunning = phase === 'running' || phase === 'polling'
 
+  // Shadow frame absolute minutes (for SunTimeSlider snapping)
+  const shadowFrameMinutes = useMemo(() =>
+    shadow.frames.map(f => shadow.startMinuteBase + f.minute),
+  [shadow.frames, shadow.startMinuteBase])
+
+  // Sync shadow playback → sliderTimeMinute
+  useEffect(() => {
+    if (hasShadowFrames) {
+      setSliderTimeMinute(shadow.startMinuteBase + shadow.playback.currentMinute)
+    }
+  }, [hasShadowFrames, shadow.playback.currentMinute, shadow.startMinuteBase])
+
+  // Time change handler: snaps to nearest shadow frame when available
+  const handleTimeChange = useCallback((absoluteMinute: number) => {
+    if (hasShadowFrames) {
+      const offset = absoluteMinute - shadow.startMinuteBase
+      let closestMinute = 0
+      let minDiff = Infinity
+      for (const f of shadow.frames) {
+        const diff = Math.abs(f.minute - offset)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestMinute = f.minute
+        }
+      }
+      shadow.setCurrentMinute(closestMinute)
+    } else {
+      setSliderTimeMinute(absoluteMinute)
+    }
+  }, [hasShadowFrames, shadow.frames, shadow.startMinuteBase, shadow.setCurrentMinute])
+
   // Undo/Redo keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -538,27 +569,26 @@ export default function SunlightWorkspace() {
         />
       }
       bottomControls={
-        hasShadowFrames ? (
-          <SunlightShadowControls
-            playback={shadow.playback}
-            maxMinute={shadow.frames[shadow.frames.length - 1].minute}
-            stepSize={shadow.frames.length > 1 ? shadow.frames[1].minute - shadow.frames[0].minute : 10}
-            onMinuteChange={shadow.setCurrentMinute}
-            onPlay={shadow.play}
-            onPause={shadow.pause}
-            onSpeedChange={shadow.setSpeed}
-            startMinuteBase={shadow.startMinuteBase}
-          />
-        ) : hasModel ? (
+        hasModel ? (
           <SunTimeSlider
             timeMinute={sliderTimeMinute}
             month={sliderMonth}
             day={sliderDay}
             sunrise={sunrise}
             sunset={sunset}
-            altitude={clientSun.altitude}
-            onTimeChange={setSliderTimeMinute}
+            altitude={solarPosition.altitude}
+            onTimeChange={handleTimeChange}
             onMonthChange={(m, d) => { setSliderMonth(m); setSliderDay(d) }}
+            shadowPlayback={hasShadowFrames ? {
+              isPlaying: shadow.playback.isPlaying,
+              speed: shadow.playback.speed,
+              frameMinutes: shadowFrameMinutes,
+            } : undefined}
+            onPlay={shadow.play}
+            onPause={shadow.pause}
+            onSpeedChange={shadow.setSpeed}
+            showAccumulation={showAccumulation}
+            onToggleAccumulation={() => setShowAccumulation(prev => !prev)}
           />
         ) : undefined
       }
@@ -724,8 +754,8 @@ export default function SunlightWorkspace() {
           <SolarChart3DOverlay data={solarChart.data} />
         )}
 
-        {/* Shadow accumulation heatmap */}
-        {shadow.accumulation && shadow.accumulation.cells.length > 0 && (
+        {/* Shadow accumulation heatmap (toggled via 영역도 button) */}
+        {showAccumulation && shadow.accumulation && shadow.accumulation.cells.length > 0 && (
           <ShadowAccumulationOverlay
             cells={shadow.accumulation.cells}
             cellSize={shadow.accumulation.cell_size}
