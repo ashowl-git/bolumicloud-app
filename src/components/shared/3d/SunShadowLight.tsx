@@ -49,7 +49,10 @@ export default function SunShadowLight({
 
     const cam = lightRef.current.shadow.camera
     const maxSpan = Math.max(modelBbox.size[0], modelBbox.size[2])
-    const camSize = maxSpan * 1.5
+    const buildingHeight = modelBbox.size[1]
+    // Low sun angles (< 10deg) produce shadows ~6x building height.
+    // Frustum must cover model span + long shadows on both sides.
+    const camSize = Math.max(maxSpan * 1.5, maxSpan + buildingHeight * 6)
 
     const diag = Math.sqrt(
       modelBbox.size[0] ** 2 +
@@ -62,7 +65,7 @@ export default function SunShadowLight({
     cam.top = camSize
     cam.bottom = -camSize
     cam.near = 0.5
-    cam.far = diag * 4
+    cam.far = diag * 5
 
     cam.updateProjectionMatrix()
 
