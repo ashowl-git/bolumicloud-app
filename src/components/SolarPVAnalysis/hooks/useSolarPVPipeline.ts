@@ -72,7 +72,7 @@ export function useSolarPVPipeline({ apiUrl }: { apiUrl: string }): UseSolarPVPi
 
     try {
       const formData = new FormData()
-      formData.append('obj_file', objFile)
+      formData.append('file', objFile)
       if (mtlFile) formData.append('mtl_file', mtlFile)
 
       const uploadResult = await api.postFormData('/import/obj', formData, {
