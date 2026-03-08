@@ -11,12 +11,14 @@ interface WorkspaceViewportProps {
   children: ReactNode
   bbox?: BoundingBox | null
   orbitEnabled?: boolean
+  enableShadows?: boolean
 }
 
 export default function WorkspaceViewport({
   children,
   bbox,
   orbitEnabled = true,
+  enableShadows,
 }: WorkspaceViewportProps) {
   return (
     <div className="w-full h-full" role="region" aria-label="3D Viewer">
@@ -25,6 +27,7 @@ export default function WorkspaceViewport({
           bbox={bbox}
           height="100%"
           orbitEnabled={orbitEnabled}
+          enableShadows={enableShadows}
         >
           {children}
         </ThreeViewer>

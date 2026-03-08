@@ -31,10 +31,9 @@ export default function GroundGrid({
         args={[gridSize, divisions, '#e2e8f0', '#f1f5f9']}
         position={[0, -0.01, 0]}
       />
-      {/* 지면 그림자 수신 평면 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[gridSize, gridSize]} />
-        <shadowMaterial opacity={0.15} />
+        <shadowMaterial opacity={0.45} />
       </mesh>
     </group>
   )

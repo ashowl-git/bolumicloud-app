@@ -15,6 +15,7 @@ import { formatDuration, formatEta } from '@/lib/utils/format'
 import { useApi } from '@/contexts/ApiContext'
 import { useApiClient } from '@/lib/api'
 import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
+import { useSunDirection, useSunriseSunset } from '@/hooks/useSunDirection'
 import type { ShadowAccumulationCell } from '@/components/SolarPVAnalysis/3d/SolarPVShadowHeatmap'
 import type { ReflectionFrame } from '@/components/SolarPVAnalysis/3d/ReflectionOverlay'
 
@@ -27,15 +28,17 @@ import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
 import SolarPVSidePanel from './SolarPVSidePanel'
 import SunlightShadowControls from '../Sunlight/SunlightShadowControls'
+import SunTimeSlider from '@/components/shared/SunTimeSlider'
 
 // 3D components (dynamic import for SSR safety)
-const SceneLighting = dynamic(() => import('@/components/shared/3d/SceneLighting'), { ssr: false })
+const SunShadowLight = dynamic(() => import('@/components/shared/3d/SunShadowLight'), { ssr: false })
 const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
 const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
 const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
 const PanelSurfaceHighlight = dynamic(() => import('@/components/SolarPVAnalysis/3d/PanelSurfaceHighlight'), { ssr: false })
 const IrradianceHeatmap = dynamic(() => import('@/components/SolarPVAnalysis/3d/IrradianceHeatmap'), { ssr: false })
-const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
+// ShadowOverlay disabled — GPU shadow maps handle ground/building shadows
+// const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
 const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
 const SolarPVShadowHeatmap = dynamic(() => import('@/components/SolarPVAnalysis/3d/SolarPVShadowHeatmap'), { ssr: false })
 const ReflectionOverlay = dynamic(() => import('@/components/SolarPVAnalysis/3d/ReflectionOverlay'), { ssr: false })
@@ -79,6 +82,17 @@ export default function SolarPVWorkspace() {
   const [selectedSurface, setSelectedSurface] = useState<string | null>(null)
   const [shadowDate, setShadowDate] = useState({ month: 6, day: 21 })
 
+  // Client-side sun position (real-time slider)
+  const [sliderTimeMinute, setSliderTimeMinute] = useState(720)
+  const [sliderMonth, setSliderMonth] = useState(6)
+  const [sliderDay, setSliderDay] = useState(21)
+  const clientSun = useSunDirection(
+    config.latitude, config.longitude, sliderMonth, sliderDay, sliderTimeMinute, config.timezone_offset,
+  )
+  const { sunrise, sunset } = useSunriseSunset(
+    config.latitude, config.longitude, sliderMonth, sliderDay, config.timezone_offset,
+  )
+
   // Shadow accumulation heatmap
   const [showShadowHeatmap, setShowShadowHeatmap] = useState(false)
   const [shadowAccumulation, setShadowAccumulation] = useState<{
@@ -105,14 +119,17 @@ export default function SolarPVWorkspace() {
   const layout = useWorkspaceLayout({ hasModel })
 
   // Initialize layers from importData groups (8-color palette)
+  // Auto-detect panel layers by keyword matching (roof, 지붕, panel, etc.)
   useEffect(() => {
     const LAYER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316']
+    const PANEL_KEYWORDS = ['roof', '지붕', 'panel', '패널', 'top', '옥상', 'solar', 'pv']
     if (!importData?.groups || importData.groups.length === 0) return
     setLayers(importData.groups.map((g, i) => ({
       id: g.name,
       name: g.name,
       visible: g.visible ?? true,
       isAnalysisTarget: true,
+      isPanelLayer: PANEL_KEYWORDS.some(kw => g.name.toLowerCase().includes(kw)),
       color: g.color || LAYER_COLORS[i % LAYER_COLORS.length],
     })))
   }, [importData?.groups])
@@ -195,6 +212,11 @@ export default function SolarPVWorkspace() {
       .filter(l => l.isPanelLayer)
       .map(l => l.name)
 
+    if (panelLayerIds.length === 0) {
+      console.warn('[SolarPV] panel_layer_ids is empty — aborting analysis')
+      return
+    }
+
     const excludedGroups = layers
       .filter(l => !l.isAnalysisTarget)
       .map(l => l.name)
@@ -208,23 +230,24 @@ export default function SolarPVWorkspace() {
     await runAnalysis(runConfig)
   }, [config, layers, runAnalysis])
 
-  // Sun direction for SceneLighting
+  // Sun direction: backend frames take priority, otherwise client-side
+  const hasShadowFrames = shadow.frames.length > 0
   const sunDirection = useMemo((): [number, number, number] => {
-    if (!shadow.currentFrame || shadow.currentFrame.solar_altitude <= 0) {
-      return [50, 80, 30]
+    if (hasShadowFrames && shadow.currentFrame && shadow.currentFrame.solar_altitude > 0) {
+      const altRad = (shadow.currentFrame.solar_altitude * Math.PI) / 180
+      const aziRad = (shadow.currentFrame.solar_azimuth * Math.PI) / 180
+      return [
+        Math.cos(altRad) * Math.sin(aziRad) * 100,
+        Math.sin(altRad) * 100,
+        -Math.cos(altRad) * Math.cos(aziRad) * 100,
+      ]
     }
-    const altRad = (shadow.currentFrame.solar_altitude * Math.PI) / 180
-    const aziRad = (shadow.currentFrame.solar_azimuth * Math.PI) / 180
-    return [
-      Math.cos(altRad) * Math.sin(aziRad) * 100,
-      Math.sin(altRad) * 100,
-      Math.cos(altRad) * Math.cos(aziRad) * 100,
-    ]
-  }, [shadow.currentFrame])
+    return clientSun.direction
+  }, [hasShadowFrames, shadow.currentFrame, clientSun.direction])
 
-  const solarPosition = shadow.currentFrame
+  const solarPosition = hasShadowFrames && shadow.currentFrame
     ? { altitude: shadow.currentFrame.solar_altitude, azimuth: shadow.currentFrame.solar_azimuth }
-    : null
+    : { altitude: clientSun.altitude, azimuth: clientSun.azimuth }
 
   const handleComputeShadows = useCallback(() => {
     if (!sessionId) return
@@ -288,9 +311,14 @@ export default function SolarPVWorkspace() {
           step_minutes: 10,
         })
 
-        // Poll for completion
+        // Poll for completion (60s timeout)
         let done = false
+        const pollStart = Date.now()
+        const POLL_TIMEOUT_MS = 60_000
         while (!done) {
+          if (Date.now() - pollStart > POLL_TIMEOUT_MS) {
+            throw new Error('반사 계산 시간 초과 (60초)')
+          }
           await new Promise(r => setTimeout(r, 1000))
           const status = await api.get(`/solar-pv/${sessionId}/reflection/status`)
           if (status.status === 'completed') {
@@ -432,7 +460,7 @@ export default function SolarPVWorkspace() {
         />
       }
       bottomControls={
-        shadow.frames.length > 0 ? (
+        hasShadowFrames ? (
           <SunlightShadowControls
             playback={shadow.playback}
             maxMinute={shadow.frames[shadow.frames.length - 1].minute}
@@ -441,6 +469,16 @@ export default function SolarPVWorkspace() {
             onPlay={shadow.play}
             onPause={shadow.pause}
             onSpeedChange={shadow.setSpeed}
+          />
+        ) : hasModel ? (
+          <SunTimeSlider
+            timeMinute={sliderTimeMinute}
+            month={sliderMonth}
+            sunrise={sunrise}
+            sunset={sunset}
+            altitude={clientSun.altitude}
+            onTimeChange={setSliderTimeMinute}
+            onMonthChange={(m, d) => { setSliderMonth(m); setSliderDay(d) }}
           />
         ) : undefined
       }
@@ -455,8 +493,11 @@ export default function SolarPVWorkspace() {
       }
     >
       {/* 3D Viewport */}
-      <WorkspaceViewport bbox={modelBbox}>
-        <SceneLighting sunDirection={shadow.frames.length > 0 ? sunDirection : undefined} />
+      <WorkspaceViewport bbox={modelBbox} enableShadows>
+        <SunShadowLight
+          sunDirection={sunDirection}
+          modelBbox={modelBbox}
+        />
 
         {modelScene && (
           <InteractiveBuildingModel
@@ -506,12 +547,9 @@ export default function SolarPVWorkspace() {
           <ReflectionOverlay frame={currentReflectionFrame} />
         )}
 
-        {/* Shadow overlay */}
-        {shadow.frames.length > 0 && (
-          <>
-            <ShadowOverlay frame={shadow.currentFrame} />
-            <SunPositionIndicator solarPosition={solarPosition} />
-          </>
+        {/* Sun position indicator */}
+        {hasModel && solarPosition && solarPosition.altitude > 0 && (
+          <SunPositionIndicator solarPosition={solarPosition} />
         )}
 
         {/* Camera preset controller (R3F) */}

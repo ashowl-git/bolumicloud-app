@@ -5,6 +5,7 @@ interface SceneLightingProps {
   ambientIntensity?: number
   directionalIntensity?: number
   enableShadow?: boolean
+  shadowCameraSize?: number
 }
 
 export default function SceneLighting({
@@ -12,7 +13,9 @@ export default function SceneLighting({
   ambientIntensity = 0.6,
   directionalIntensity = 0.8,
   enableShadow = false,
+  shadowCameraSize,
 }: SceneLightingProps) {
+  const camSize = shadowCameraSize || 100
   return (
     <>
       <ambientLight intensity={ambientIntensity} color="#ffffff" />
@@ -21,14 +24,16 @@ export default function SceneLighting({
         intensity={directionalIntensity}
         color="#ffffff"
         castShadow={enableShadow}
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
         shadow-camera-near={0.5}
-        shadow-camera-far={500}
-        shadow-camera-left={-100}
-        shadow-camera-right={100}
-        shadow-camera-top={100}
-        shadow-camera-bottom={-100}
+        shadow-camera-far={camSize * 5}
+        shadow-camera-left={-camSize}
+        shadow-camera-right={camSize}
+        shadow-camera-top={camSize}
+        shadow-camera-bottom={-camSize}
       />
       <hemisphereLight
         args={['#87ceeb', '#f5f5f0', 0.3]}

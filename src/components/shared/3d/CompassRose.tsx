@@ -9,10 +9,11 @@ interface CompassRoseProps {
   offset?: number
 }
 
+// 좌표계: +X=East, +Z=South (카메라 프리셋 south=[0,0.3,+1] 기준)
 const DIRECTIONS = [
-  { label: 'N', angle: 0, color: '#dc2626' },
+  { label: 'N', angle: Math.PI, color: '#dc2626' },
   { label: 'E', angle: Math.PI / 2, color: '#64748b' },
-  { label: 'S', angle: Math.PI, color: '#64748b' },
+  { label: 'S', angle: 0, color: '#64748b' },
   { label: 'W', angle: -Math.PI / 2, color: '#64748b' },
 ] as const
 
@@ -45,13 +46,13 @@ export default function CompassRose({ bbox, offset = 5 }: CompassRoseProps) {
           </Text>
         )
       })}
-      {/* 북쪽 방향 화살표 선 */}
+      {/* 북쪽 방향 화살표 선 (-Z = North) */}
       <line>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
             count={2}
-            array={new Float32Array([0, 0.1, 0, 0, 0.1, radius - 4])}
+            array={new Float32Array([0, 0.1, 0, 0, 0.1, -(radius - 4)])}
             itemSize={3}
           />
         </bufferGeometry>

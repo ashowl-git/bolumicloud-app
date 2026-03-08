@@ -21,10 +21,10 @@ export default function SunPositionIndicator({
     const altRad = (solarPosition.altitude * Math.PI) / 180
     const aziRad = (solarPosition.azimuth * Math.PI) / 180
 
-    // Three.js: X=동, Y=위, Z=북
+    // Three.js: X=East, Y=Up, Z=South (카메라 프리셋 기준: south=[0,0.3,+1])
     const x = Math.cos(altRad) * Math.sin(aziRad) * distance
     const y = Math.sin(altRad) * distance
-    const z = Math.cos(altRad) * Math.cos(aziRad) * distance
+    const z = -Math.cos(altRad) * Math.cos(aziRad) * distance
 
     return new THREE.Vector3(x, y, z)
   }, [solarPosition, distance])

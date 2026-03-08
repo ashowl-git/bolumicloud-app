@@ -18,6 +18,7 @@ import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
 import { useStatusBarState } from '@/hooks/useStatusBarState'
+import { useSunDirection, useSunriseSunset } from '@/hooks/useSunDirection'
 
 import { useToast } from '@/contexts/ToastContext'
 import AnalysisWorkspace from '../AnalysisWorkspace'
@@ -29,10 +30,11 @@ import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgre
 import ViewportGuideOverlay from '../ViewportGuideOverlay'
 import SunlightSidePanel from './SunlightSidePanel'
 import SunlightShadowControls from './SunlightShadowControls'
+import SunTimeSlider from '@/components/shared/SunTimeSlider'
 import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
 
 // 3D components (dynamic import for SSR safety)
-const SceneLighting = dynamic(() => import('@/components/shared/3d/SceneLighting'), { ssr: false })
+const SunShadowLight = dynamic(() => import('@/components/shared/3d/SunShadowLight'), { ssr: false })
 const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
 const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
 const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
@@ -41,7 +43,8 @@ const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interactio
 const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
 const AreaGridPreview = dynamic(() => import('@/components/shared/3d/interaction/AreaGridPreview'), { ssr: false })
 const SunlightHeatmapOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SunlightHeatmapOverlay'), { ssr: false })
-const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
+// ShadowOverlay disabled — GPU shadow maps handle ground/building shadows
+// const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
 const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
 const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3d/ViolationHighlight'), { ssr: false })
 const BuildingLabels3D = dynamic(() => import('@/components/SunlightAnalysis/3d/BuildingLabels3D'), { ssr: false })
@@ -174,6 +177,17 @@ export default function SunlightWorkspace() {
 
   // Shadow animation
   const shadow = useShadowAnimation({ apiUrl })
+
+  // Client-side sun position (real-time slider, pre-analysis)
+  const [sliderTimeMinute, setSliderTimeMinute] = useState(720) // noon
+  const [sliderMonth, setSliderMonth] = useState(config.date.month)
+  const [sliderDay, setSliderDay] = useState(config.date.day)
+  const clientSun = useSunDirection(
+    config.latitude, config.longitude, sliderMonth, sliderDay, sliderTimeMinute, config.timezone / 15,
+  )
+  const { sunrise, sunset } = useSunriseSunset(
+    config.latitude, config.longitude, sliderMonth, sliderDay, config.timezone / 15,
+  )
 
   // Report generation (extracted hook — auto-generates on completion)
   const report = useReportGeneration({
@@ -394,23 +408,24 @@ export default function SunlightWorkspace() {
 
   const statusStageName = progress?.stages.find((s) => s.status === 'processing')?.name
 
-  // ── Sun direction for SceneLighting ──
+  // ── Sun direction: backend frames take priority, otherwise client-side ──
+  const hasShadowFrames = shadow.frames.length > 0
   const sunDirection = useMemo((): [number, number, number] => {
-    if (!shadow.currentFrame || shadow.currentFrame.solar_altitude <= 0) {
-      return [50, 80, 30]
+    if (hasShadowFrames && shadow.currentFrame && shadow.currentFrame.solar_altitude > 0) {
+      const altRad = (shadow.currentFrame.solar_altitude * Math.PI) / 180
+      const aziRad = (shadow.currentFrame.solar_azimuth * Math.PI) / 180
+      return [
+        Math.cos(altRad) * Math.sin(aziRad) * 100,
+        Math.sin(altRad) * 100,
+        -Math.cos(altRad) * Math.cos(aziRad) * 100,
+      ]
     }
-    const altRad = (shadow.currentFrame.solar_altitude * Math.PI) / 180
-    const aziRad = (shadow.currentFrame.solar_azimuth * Math.PI) / 180
-    return [
-      Math.cos(altRad) * Math.sin(aziRad) * 100,
-      Math.sin(altRad) * 100,
-      Math.cos(altRad) * Math.cos(aziRad) * 100,
-    ]
-  }, [shadow.currentFrame])
+    return clientSun.direction
+  }, [hasShadowFrames, shadow.currentFrame, clientSun.direction])
 
-  const solarPosition = shadow.currentFrame
+  const solarPosition = hasShadowFrames && shadow.currentFrame
     ? { altitude: shadow.currentFrame.solar_altitude, azimuth: shadow.currentFrame.solar_azimuth }
-    : null
+    : { altitude: clientSun.altitude, azimuth: clientSun.azimuth }
 
   const isRunning = phase === 'running' || phase === 'polling'
 
@@ -520,15 +535,25 @@ export default function SunlightWorkspace() {
         />
       }
       bottomControls={
-        shadow.frames.length > 0 ? (
+        hasShadowFrames ? (
           <SunlightShadowControls
             playback={shadow.playback}
-            maxMinute={shadow.frames.length > 0 ? shadow.frames[shadow.frames.length - 1].minute : 479}
+            maxMinute={shadow.frames[shadow.frames.length - 1].minute}
             stepSize={shadow.frames.length > 1 ? shadow.frames[1].minute - shadow.frames[0].minute : 10}
             onMinuteChange={shadow.setCurrentMinute}
             onPlay={shadow.play}
             onPause={shadow.pause}
             onSpeedChange={shadow.setSpeed}
+          />
+        ) : hasModel ? (
+          <SunTimeSlider
+            timeMinute={sliderTimeMinute}
+            month={sliderMonth}
+            sunrise={sunrise}
+            sunset={sunset}
+            altitude={clientSun.altitude}
+            onTimeChange={setSliderTimeMinute}
+            onMonthChange={(m, d) => { setSliderMonth(m); setSliderDay(d) }}
           />
         ) : undefined
       }
@@ -564,8 +589,12 @@ export default function SunlightWorkspace() {
       <WorkspaceViewport
         bbox={modelBbox}
         orbitEnabled={placement.mode === 'navigate'}
+        enableShadows
       >
-        <SceneLighting sunDirection={shadow.frames.length > 0 ? sunDirection : undefined} />
+        <SunShadowLight
+          sunDirection={sunDirection}
+          modelBbox={modelBbox}
+        />
 
         {/* Building model (interactive when placing points) */}
         {modelScene && (
@@ -637,12 +666,9 @@ export default function SunlightWorkspace() {
           />
         ))}
 
-        {/* Shadow overlay */}
-        {shadow.frames.length > 0 && (
-          <>
-            <ShadowOverlay frame={shadow.currentFrame} />
-            <SunPositionIndicator solarPosition={solarPosition} />
-          </>
+        {/* Sun position indicator (always visible when model loaded) */}
+        {hasModel && solarPosition && solarPosition.altitude > 0 && (
+          <SunPositionIndicator solarPosition={solarPosition} />
         )}
 
         {/* Ground heatmap overlay */}

@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import {
   Settings, BarChart3,
   Zap, Sun, DollarSign, AlertCircle, Loader2,
-  TrendingUp, Battery, MapPin, Target, Eye,
+  TrendingUp, Battery, Target, Eye,
   Leaf, Award, TreePine, FileDown, Grid3X3,
 } from 'lucide-react'
 import type {
@@ -14,9 +14,11 @@ import type {
 import { MODULE_PRESET_LABELS, LOSS_PROFILE_LABELS, GROUND_ALBEDO_PRESETS } from '@/lib/types/solar-pv'
 import type { LayerConfig } from '@/lib/types/sunlight'
 import type { PanelTab } from '../hooks/useWorkspaceLayout'
+import type { SunlightConfigState } from '@/lib/types/sunlight'
 import WorkspaceSidePanel from '../WorkspaceSidePanel'
 import WorkspacePanelSection from '../WorkspacePanelSection'
 import LayerPanel from '../Sunlight/LayerPanel'
+import LocationConfigSection from '@/components/SunlightAnalysis/LocationConfigSection'
 
 interface SolarPVSidePanelProps {
   open: boolean
@@ -129,6 +131,31 @@ export default function SolarPVSidePanel({
 
   const noPanelSelected = layers.length > 0 && !layers.some(l => l.isPanelLayer)
 
+  // Adapter: SolarPVRunConfig <-> SunlightConfigState for LocationConfigSection
+  const locationConfig = useMemo((): SunlightConfigState => ({
+    latitude: config.latitude,
+    longitude: config.longitude,
+    timezone: config.standard_meridian,
+    azimuth: 0,
+    date: { month: 6, day: 21, label: '하지' },
+    buildingType: 'apartment',
+    resolution: 'standard',
+    solarTimeMode: 'true_solar',
+    totalThreshold: { startHour: 8, endHour: 16, requiredHours: 2 },
+    continuousThreshold: { startHour: 9, endHour: 15, requiredHours: 2 },
+  }), [config.latitude, config.longitude, config.standard_meridian])
+
+  const handleLocationChange = useCallback((partial: Partial<SunlightConfigState>) => {
+    const updates: Partial<SolarPVRunConfig> = {}
+    if (partial.latitude !== undefined) updates.latitude = partial.latitude
+    if (partial.longitude !== undefined) updates.longitude = partial.longitude
+    if (partial.timezone !== undefined) {
+      updates.standard_meridian = partial.timezone
+      updates.timezone_offset = Math.round(partial.timezone / 15)
+    }
+    onConfigChange(updates)
+  }, [onConfigChange])
+
   const footer = (
     <div className="space-y-1.5">
       {error && !isRunning && (
@@ -209,57 +236,22 @@ export default function SolarPVSidePanel({
       {/* Settings tab */}
       {activeTab === 'settings' && (
         <>
-          {/* Location */}
-          <WorkspacePanelSection title="위치 설정" icon={<MapPin size={14} />}>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-gray-500">위도</label>
-                  <input
-                    type="number"
-                    value={config.latitude}
-                    onChange={e => onConfigChange({ latitude: parseFloat(e.target.value) || 37.5665 })}
-                    step={0.0001}
-                    disabled={isRunning}
-                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-500">경도</label>
-                  <input
-                    type="number"
-                    value={config.longitude}
-                    onChange={e => onConfigChange({ longitude: parseFloat(e.target.value) || 126.978 })}
-                    step={0.0001}
-                    disabled={isRunning}
-                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-gray-500">시간대 오프셋</label>
-                  <input
-                    type="number"
-                    value={config.timezone_offset}
-                    onChange={e => onConfigChange({ timezone_offset: parseInt(e.target.value) || 9 })}
-                    disabled={isRunning}
-                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-500">표준경선</label>
-                  <input
-                    type="number"
-                    value={config.standard_meridian}
-                    onChange={e => onConfigChange({ standard_meridian: parseInt(e.target.value) || 135 })}
-                    disabled={isRunning}
-                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
-                  />
-                </div>
-              </div>
+          {/* Location (reuses sunlight analysis LocationConfigSection) */}
+          <LocationConfigSection
+            config={locationConfig}
+            onConfigChange={handleLocationChange}
+            disabled={isRunning}
+          />
+
+          {/* Panel layer guidance banner */}
+          {noPanelSelected && layers.length > 0 && (
+            <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700 mb-2">
+              <p className="font-medium">PV 패널 레이어를 지정하세요</p>
+              <p className="text-[10px] mt-0.5">
+                각 레이어 옆 번개 아이콘을 클릭하여 태양광 패널 설치 표면(지붕 등)을 선택합니다.
+              </p>
             </div>
-          </WorkspacePanelSection>
+          )}
 
           {/* Layer management */}
           {layers.length > 0 && (

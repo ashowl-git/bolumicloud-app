@@ -4,19 +4,19 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { ShadowFrame } from '@/lib/types/shadow'
 
-// ─── 그림자 색상 ─────────────────────────────
+// ─── 그림자 스타일 ─────────────────────────────
 
-const SHADOW_COLOR = '#475569'  // slate-600
-const SHADOW_OPACITY = 0.4
+const SHADOW_COLOR = '#1a1a1a'
+const SHADOW_OPACITY = 0.55
 
-// ─── 좌표 변환: 백엔드(X=동, Y=북) -> Three.js(X=동, Z=북) ──
+// ─── 좌표 변환: 백엔드(X=동, Y=북) -> Three.js Shape(x, y) ──
 
 function coordsToShape(coordinates: [number, number][]): THREE.Shape | null {
   if (coordinates.length < 3) return null
 
   const shape = new THREE.Shape()
   const [x0, y0] = coordinates[0]
-  shape.moveTo(x0, y0)  // Shape은 2D: (x, y) = (동, 북)
+  shape.moveTo(x0, y0)
 
   for (let i = 1; i < coordinates.length; i++) {
     const [x, y] = coordinates[i]
@@ -54,15 +54,18 @@ export default function ShadowOverlay({ frame }: ShadowOverlayProps) {
           key={`shadow-${item.buildingId}-${idx}`}
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, 0.05, 0]}
-          receiveShadow
+          renderOrder={10}
         >
           <shapeGeometry args={[item.shape]} />
-          <meshStandardMaterial
+          <meshBasicMaterial
             color={SHADOW_COLOR}
             transparent
             opacity={SHADOW_OPACITY}
             side={THREE.DoubleSide}
             depthWrite={false}
+            polygonOffset
+            polygonOffsetFactor={-1}
+            polygonOffsetUnits={-1}
           />
         </mesh>
       ))}

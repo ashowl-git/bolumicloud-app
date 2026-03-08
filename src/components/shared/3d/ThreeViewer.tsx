@@ -108,6 +108,7 @@ interface ThreeViewerProps {
   className?: string
   enableDamping?: boolean
   orbitEnabled?: boolean
+  enableShadows?: boolean
 }
 
 export default function ThreeViewer({
@@ -117,6 +118,7 @@ export default function ThreeViewer({
   className = '',
   enableDamping = true,
   orbitEnabled = true,
+  enableShadows = false,
 }: ThreeViewerProps) {
   const [webglAvailable, setWebglAvailable] = useState(true)
 
@@ -151,6 +153,7 @@ export default function ThreeViewer({
       <Canvas
         frameloop="demand"
         dpr={[1, 1.5]}
+        shadows={enableShadows ? { type: THREE.PCFSoftShadowMap } : undefined}
         camera={{
           position: [20, 15, 20],
           fov: 50,
