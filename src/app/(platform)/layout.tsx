@@ -15,6 +15,7 @@ import type { Locale } from '@/lib/types/i18n'
 
 const WORKSPACE_ROUTES = [
   '/analysis/sunlight',
+  '/analysis/solar-pv',
   '/analysis/view',
   '/analysis/privacy',
 ]
