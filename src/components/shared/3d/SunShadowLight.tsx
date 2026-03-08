@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useMemo } from 'react'
-import { useThree, useFrame } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
 
@@ -19,7 +19,7 @@ export default function SunShadowLight({
   directionalIntensity = 0.8,
 }: SunShadowLightProps) {
   const lightRef = useRef<THREE.DirectionalLight>(null)
-  const { invalidate, camera } = useThree()
+  const { invalidate, camera, controls } = useThree()
 
   // Dynamic frustum sizing refs
   const maxCamSizeRef = useRef(600)
@@ -48,7 +48,7 @@ export default function SunShadowLight({
     ] as [number, number, number]
   }, [sunDirection, modelBbox])
 
-  // Compute max frustum size from sun altitude + store in ref for useFrame
+  // Compute max frustum size from sun altitude + store in refs for change handler
   useEffect(() => {
     if (!lightRef.current || !modelBbox) return
 
@@ -100,53 +100,58 @@ export default function SunShadowLight({
     invalidate()
   }, [modelBbox, sunDirection, invalidate])
 
-  // Dynamic frustum: adjust shadow camera size based on camera distance each frame
-  useFrame(() => {
-    if (!lightRef.current || !modelBbox) return
+  // Dynamic frustum: adjust shadow camera size when camera moves (OrbitControls change)
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ctrl = controls as any
+    if (!ctrl?.addEventListener) return
 
-    const horizDiag = horizDiagRef.current
-    const maxCamSize = maxCamSizeRef.current
-    const minFrustum = Math.max(horizDiag * 0.15, 10)
+    const updateFrustum = () => {
+      if (!lightRef.current || !modelBbox) return
 
-    const orbitTarget = new THREE.Vector3(
-      modelBbox.center[0], modelBbox.center[1], modelBbox.center[2]
-    )
+      const horizDiag = horizDiagRef.current
+      const maxCamSize = maxCamSizeRef.current
+      const minFrustum = Math.max(horizDiag * 0.15, 10)
 
-    const dist = camera.position.distanceTo(orbitTarget)
-    const t = Math.max(0, Math.min(1, (dist - horizDiag * 0.05) / (horizDiag * 2.5)))
-    const desiredSize = minFrustum + t * (maxCamSize - minFrustum)
+      const orbitTarget = new THREE.Vector3(
+        modelBbox.center[0], modelBbox.center[1], modelBbox.center[2]
+      )
+      const dist = camera.position.distanceTo(orbitTarget)
+      const t = Math.max(0, Math.min(1, (dist - horizDiag * 0.05) / (horizDiag * 2.5)))
+      const desiredSize = minFrustum + t * (maxCamSize - minFrustum)
 
-    // Skip update if change < 2%
-    if (Math.abs(desiredSize - currentCamSizeRef.current) / (currentCamSizeRef.current || 1) < 0.02) {
-      return
+      // 5% 미만 변화 무시
+      if (Math.abs(desiredSize - currentCamSizeRef.current) / (currentCamSizeRef.current || 1) < 0.05) {
+        return
+      }
+
+      currentCamSizeRef.current = desiredSize
+
+      const cam = lightRef.current.shadow.camera
+      cam.left = -desiredSize
+      cam.right = desiredSize
+      cam.top = desiredSize
+      cam.bottom = -desiredSize
+
+      const diag = Math.sqrt(
+        modelBbox.size[0] ** 2 +
+        modelBbox.size[1] ** 2 +
+        modelBbox.size[2] ** 2
+      )
+      cam.near = 0.5
+      cam.far = Math.max(diag * 6, desiredSize * 4)
+      cam.updateProjectionMatrix()
+
+      const biasScale = desiredSize / 600
+      lightRef.current.shadow.bias = -0.0003 * Math.max(biasScale, 0.3)
+
+      lightRef.current.shadow.needsUpdate = true
+      invalidate()
     }
 
-    // Smooth lerp toward desired size
-    const newSize = currentCamSizeRef.current + (desiredSize - currentCamSizeRef.current) * 0.3
-    currentCamSizeRef.current = newSize
-
-    const cam = lightRef.current.shadow.camera
-    cam.left = -newSize
-    cam.right = newSize
-    cam.top = newSize
-    cam.bottom = -newSize
-
-    const diag = Math.sqrt(
-      modelBbox.size[0] ** 2 +
-      modelBbox.size[1] ** 2 +
-      modelBbox.size[2] ** 2
-    )
-    cam.near = 0.5
-    cam.far = Math.max(diag * 6, newSize * 4)
-    cam.updateProjectionMatrix()
-
-    // Dynamic bias: larger frustum = larger texels = more bias needed
-    const biasScale = newSize / 600
-    lightRef.current.shadow.bias = -0.0003 * Math.max(biasScale, 0.3)
-
-    lightRef.current.shadow.needsUpdate = true
-    invalidate()
-  })
+    ctrl.addEventListener('change', updateFrustum)
+    return () => ctrl.removeEventListener('change', updateFrustum)
+  }, [controls, modelBbox, camera, invalidate])
 
   return (
     <>
