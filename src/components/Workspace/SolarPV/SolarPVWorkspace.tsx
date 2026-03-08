@@ -585,9 +585,9 @@ export default function SolarPVWorkspace() {
         <CameraPresetApplier presetId={activePreset} trigger={presetTrigger} bbox={modelBbox} />
       </WorkspaceViewport>
 
-      {/* Camera preset bar (HTML overlay) — shift up when shadow slider is visible */}
+      {/* Camera preset bar (HTML overlay) — top-left */}
       {hasModel && (
-        <div className={`absolute left-0 right-0 z-20 flex justify-center pointer-events-none ${shadow.frames.length > 0 ? 'bottom-32' : 'bottom-14'}`}>
+        <div className="absolute top-3 left-3 z-20 pointer-events-none">
           <div className="pointer-events-auto flex gap-0.5 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-lg px-1.5 py-1">
             {(['perspective', 'top', 'south', 'north', 'east', 'west'] as CameraPresetId[]).map((id) => (
               <button

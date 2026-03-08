@@ -67,7 +67,8 @@ export default function SunShadowLight({
     shadowFactor = Math.max(shadowFactor, 3)
 
     // Frustum must cover: full model extent + shadow extension on all sides
-    const camSize = horizDiag + buildingHeight * shadowFactor
+    // Lower-bound: horizDiag*3 matches ground plane (horizDiag*6) half-extent
+    const camSize = Math.max(horizDiag * 3, horizDiag + buildingHeight * shadowFactor)
 
     const diag = Math.sqrt(
       modelBbox.size[0] ** 2 +

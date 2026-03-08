@@ -27,17 +27,26 @@ function saveState(state: Partial<WorkspaceLayoutState>) {
 const BREAKPOINT_COLLAPSE = 1024
 
 export function useWorkspaceLayout(options?: { hasModel?: boolean }) {
-  const saved = loadState()
-
-  const [sidePanelOpen, setSidePanelOpen] = useState(saved.sidePanelOpen ?? true)
-  const [activePanelTab, setActivePanelTab] = useState<PanelTab>(saved.activePanelTab ?? 'settings')
+  // Initialize with defaults to match server render, then hydrate from localStorage
+  const [sidePanelOpen, setSidePanelOpen] = useState(true)
+  const [activePanelTab, setActivePanelTab] = useState<PanelTab>('settings')
   const [isUploadOverlayVisible, setIsUploadOverlayVisible] = useState(!options?.hasModel)
   const [isShortcutOverlayVisible, setIsShortcutOverlayVisible] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
-  // Persist panel state
+  // Hydrate from localStorage after mount (avoids SSR mismatch)
   useEffect(() => {
+    const saved = loadState()
+    if (saved.sidePanelOpen !== undefined) setSidePanelOpen(saved.sidePanelOpen)
+    if (saved.activePanelTab) setActivePanelTab(saved.activePanelTab)
+    setHydrated(true)
+  }, [])
+
+  // Persist panel state (only after hydration to avoid overwriting with defaults)
+  useEffect(() => {
+    if (!hydrated) return
     saveState({ sidePanelOpen, activePanelTab })
-  }, [sidePanelOpen, activePanelTab])
+  }, [sidePanelOpen, activePanelTab, hydrated])
 
   // Show upload overlay when no model
   useEffect(() => {
