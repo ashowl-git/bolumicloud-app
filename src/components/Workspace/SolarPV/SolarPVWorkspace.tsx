@@ -10,7 +10,7 @@ import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { SolarPVRunConfig } from '@/lib/types/solar-pv'
 import { DEFAULT_SOLAR_PV_CONFIG } from '@/lib/types/solar-pv'
 import type { LayerConfig } from '@/lib/types/sunlight'
-import type { ModelConfig } from '@/components/shared/3d/types'
+import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
 import { formatDuration, formatEta } from '@/lib/utils/format'
 import { useApi } from '@/contexts/ApiContext'
 import { useApiClient } from '@/lib/api'
@@ -39,6 +39,7 @@ const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/Sha
 const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
 const SolarPVShadowHeatmap = dynamic(() => import('@/components/SolarPVAnalysis/3d/SolarPVShadowHeatmap'), { ssr: false })
 const ReflectionOverlay = dynamic(() => import('@/components/SolarPVAnalysis/3d/ReflectionOverlay'), { ssr: false })
+const CameraPresetApplier = dynamic(() => import('@/components/shared/3d/CameraPresetBar').then(m => ({ default: m.CameraPresetApplier })), { ssr: false })
 
 export default function SolarPVWorkspace() {
   const pipeline = useSolarPVPipelineContext()
@@ -63,6 +64,14 @@ export default function SolarPVWorkspace() {
   const { apiUrl } = useApi()
   const api = useApiClient()
   const shadow = useShadowAnimation({ apiUrl })
+
+  // Camera preset
+  const [activePreset, setActivePreset] = useState<CameraPresetId>('perspective')
+  const [presetTrigger, setPresetTrigger] = useState(0)
+  const handlePresetChange = useCallback((id: CameraPresetId) => {
+    setActivePreset(id)
+    setPresetTrigger(t => t + 1)
+  }, [])
 
   // Config state
   const [config, setConfig] = useState<SolarPVRunConfig>(DEFAULT_SOLAR_PV_CONFIG)
@@ -91,12 +100,6 @@ export default function SolarPVWorkspace() {
   )
   const { state: modelState, scene: modelScene, bbox: modelBbox } = useModelLoader(modelConfig)
   const hasModel = modelState === 'loaded' && !!modelScene
-
-  // autoCenter offset: model was translated by scene.position, shadow overlays need the same offset
-  const modelOffset = useMemo((): [number, number, number] => {
-    if (!modelScene) return [0, 0, 0]
-    return [modelScene.position.x, 0, modelScene.position.z]
-  }, [modelScene])
 
   // Layout
   const layout = useWorkspaceLayout({ hasModel })
@@ -489,31 +492,52 @@ export default function SolarPVWorkspace() {
         <GroundGrid bbox={modelBbox} />
         <CompassRose bbox={modelBbox} />
 
-        {/* Shadow/Heatmap/Reflection overlays — offset to match autoCenter'd model */}
-        <group position={modelOffset}>
-          {/* Shadow accumulation heatmap */}
-          {showShadowHeatmap && shadowAccumulation && (
-            <SolarPVShadowHeatmap
-              cells={shadowAccumulation.cells}
-              cellSize={shadowAccumulation.cellSize}
-              maxShadowHours={shadowAccumulation.maxShadowHours}
-            />
-          )}
+        {/* Shadow accumulation heatmap */}
+        {showShadowHeatmap && shadowAccumulation && (
+          <SolarPVShadowHeatmap
+            cells={shadowAccumulation.cells}
+            cellSize={shadowAccumulation.cellSize}
+            maxShadowHours={shadowAccumulation.maxShadowHours}
+          />
+        )}
 
-          {/* Reflection overlay (synced with shadow playback) */}
-          {showReflection && currentReflectionFrame && (
-            <ReflectionOverlay frame={currentReflectionFrame} />
-          )}
+        {/* Reflection overlay (synced with shadow playback) */}
+        {showReflection && currentReflectionFrame && (
+          <ReflectionOverlay frame={currentReflectionFrame} />
+        )}
 
-          {/* Shadow overlay */}
-          {shadow.frames.length > 0 && (
-            <>
-              <ShadowOverlay frame={shadow.currentFrame} />
-              <SunPositionIndicator solarPosition={solarPosition} />
-            </>
-          )}
-        </group>
+        {/* Shadow overlay */}
+        {shadow.frames.length > 0 && (
+          <>
+            <ShadowOverlay frame={shadow.currentFrame} />
+            <SunPositionIndicator solarPosition={solarPosition} />
+          </>
+        )}
+
+        {/* Camera preset controller (R3F) */}
+        <CameraPresetApplier presetId={activePreset} trigger={presetTrigger} bbox={modelBbox} />
       </WorkspaceViewport>
+
+      {/* Camera preset bar (HTML overlay) — shift up when shadow slider is visible */}
+      {hasModel && (
+        <div className={`absolute left-0 right-0 z-20 flex justify-center pointer-events-none ${shadow.frames.length > 0 ? 'bottom-32' : 'bottom-14'}`}>
+          <div className="pointer-events-auto flex gap-0.5 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-lg px-1.5 py-1">
+            {(['perspective', 'top', 'south', 'north', 'east', 'west'] as CameraPresetId[]).map((id) => (
+              <button
+                key={id}
+                onClick={() => handlePresetChange(id)}
+                className={`px-2.5 py-1.5 text-[11px] rounded transition-all duration-200 ${
+                  activePreset === id
+                    ? 'bg-gray-900 text-white font-medium'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+              >
+                {{ perspective: '3D', top: '탑', south: '남', north: '북', east: '동', west: '서' }[id]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Legend overlay (HTML) */}
       {results && hasModel && (
