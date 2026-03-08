@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import type {
   SolarPVRunConfig, SolarPVResult, SolarPVProgress,
-  PVModulePresetInfo, SurfacePVResult, ShadowCalendar,
+  PVModulePresetInfo, ShadowCalendar,
 } from '@/lib/types/solar-pv'
 import { MODULE_PRESET_LABELS, LOSS_PROFILE_LABELS, GROUND_ALBEDO_PRESETS } from '@/lib/types/solar-pv'
 import type { LayerConfig } from '@/lib/types/sunlight'
@@ -47,13 +47,6 @@ function scoreColor(score: number): string {
   if (score >= 60) return 'text-amber-400'
   if (score >= 40) return 'text-orange-400'
   return 'text-red-400'
-}
-
-function scoreBgColor(score: number): string {
-  if (score >= 80) return 'bg-green-500'
-  if (score >= 60) return 'bg-amber-500'
-  if (score >= 40) return 'bg-orange-500'
-  return 'bg-red-500'
 }
 
 // --- Shadow Calendar 미니 히트맵 ---
@@ -97,14 +90,20 @@ function ShadowCalendarMini({ calendar }: { calendar: ShadowCalendar }) {
 export default function SolarPVSidePanel({
   open, onClose, onOpen,
   config, onConfigChange,
-  layers, onToggleLayerVisibility, onToggleAnalysisTarget,
+  layers, onToggleLayerVisibility: _onToggleLayerVisibility, onToggleAnalysisTarget,
   isRunning, onStartAnalysis, onCancelAnalysis,
-  results, error, progress,
+  results, error, progress: _progress,
   selectedSurface, onSelectSurface,
   modulePresets,
   activeTab, onTabChange,
   onGenerateReport, reportDownloadUrl, isGeneratingReport,
 }: SolarPVSidePanelProps) {
+  const presetInfo = modulePresets.find(p => p.id === config.module_preset)
+  const selectedSurfaceData = useMemo(
+    () => results?.surfaces.find(s => s.surface_id === selectedSurface) ?? null,
+    [results, selectedSurface],
+  )
+
   if (!open) {
     return (
       <button
@@ -115,12 +114,6 @@ export default function SolarPVSidePanel({
       </button>
     )
   }
-
-  const presetInfo = modulePresets.find(p => p.id === config.module_preset)
-  const selectedSurfaceData = useMemo(
-    () => results?.surfaces.find(s => s.surface_id === selectedSurface) ?? null,
-    [results, selectedSurface],
-  )
 
   return (
     <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col h-full overflow-hidden">
