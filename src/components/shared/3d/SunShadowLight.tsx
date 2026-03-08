@@ -34,7 +34,7 @@ export default function SunShadowLight({
       modelBbox.size[1] ** 2 +
       modelBbox.size[2] ** 2
     )
-    const dist = diag * 2
+    const dist = diag * 3
 
     return [
       modelBbox.center[0] + (x / mag) * dist,
@@ -48,7 +48,8 @@ export default function SunShadowLight({
     if (!lightRef.current || !modelBbox) return
 
     const cam = lightRef.current.shadow.camera
-    const maxSpan = Math.max(modelBbox.size[0], modelBbox.size[2])
+    // Use horizontal diagonal (not single-axis max) — model may extend diagonally
+    const horizDiag = Math.sqrt(modelBbox.size[0] ** 2 + modelBbox.size[2] ** 2)
     const buildingHeight = modelBbox.size[1]
 
     // Compute dynamic shadow factor from sun altitude
@@ -62,8 +63,11 @@ export default function SunShadowLight({
         shadowFactor = altRad > 0.01 ? Math.min(1 / Math.tan(altRad), 15) : 15
       }
     }
+    // Never shrink below 3 — even at high noon, need adequate ground coverage
+    shadowFactor = Math.max(shadowFactor, 3)
 
-    const camSize = Math.max(maxSpan * 1.5, maxSpan + buildingHeight * shadowFactor)
+    // Frustum must cover: full model extent + shadow extension on all sides
+    const camSize = horizDiag + buildingHeight * shadowFactor
 
     const diag = Math.sqrt(
       modelBbox.size[0] ** 2 +
@@ -76,7 +80,7 @@ export default function SunShadowLight({
     cam.top = camSize
     cam.bottom = -camSize
     cam.near = 0.5
-    cam.far = Math.max(diag * 5, camSize * 3)
+    cam.far = Math.max(diag * 6, camSize * 4)
 
     cam.updateProjectionMatrix()
 
