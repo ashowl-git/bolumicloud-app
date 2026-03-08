@@ -1,17 +1,14 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useCallback, useEffect, useMemo, Suspense } from 'react'
 import { useSolarPVPipelineContext } from '@/contexts/SolarPVPipelineContext'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout'
-import { useStatusBarState } from '@/hooks/useStatusBarState'
 import { useReportGeneration } from '@/hooks/useReportGeneration'
 import type { SolarPVRunConfig } from '@/lib/types/solar-pv'
 import { DEFAULT_SOLAR_PV_CONFIG } from '@/lib/types/solar-pv'
 import type { LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
-import { formatDuration, formatEta } from '@/lib/utils/format'
 import { useApi } from '@/contexts/ApiContext'
 import { useApiClient } from '@/lib/api'
 import { useShadowAnimation } from '@/components/SunlightAnalysis/hooks/useShadowAnimation'
@@ -19,29 +16,13 @@ import { useSunDirection, useSunriseSunset } from '@/hooks/useSunDirection'
 import type { ShadowAccumulationCell } from '@/components/SolarPVAnalysis/3d/SolarPVShadowHeatmap'
 import type { ReflectionFrame } from '@/components/SolarPVAnalysis/3d/ReflectionOverlay'
 
-import SolarPVLegend from '@/components/SolarPVAnalysis/3d/SolarPVLegend'
-
 import AnalysisWorkspace from '../AnalysisWorkspace'
-import WorkspaceViewport from '../WorkspaceViewport'
-import WorkspaceStatusBar from '../WorkspaceStatusBar'
 import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
 import SolarPVSidePanel from './SolarPVSidePanel'
+import SolarPVViewport from './SolarPVViewport'
+import SolarPVStatusBarContainer from './SolarPVStatusBarContainer'
 import SunTimeSlider from '@/components/shared/SunTimeSlider'
-
-// 3D components (dynamic import for SSR safety)
-const SunShadowLight = dynamic(() => import('@/components/shared/3d/SunShadowLight'), { ssr: false })
-const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
-const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
-const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
-const PanelSurfaceHighlight = dynamic(() => import('@/components/SolarPVAnalysis/3d/PanelSurfaceHighlight'), { ssr: false })
-const IrradianceHeatmap = dynamic(() => import('@/components/SolarPVAnalysis/3d/IrradianceHeatmap'), { ssr: false })
-// ShadowOverlay disabled — GPU shadow maps handle ground/building shadows
-// const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
-const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
-const SolarPVShadowHeatmap = dynamic(() => import('@/components/SolarPVAnalysis/3d/SolarPVShadowHeatmap'), { ssr: false })
-const ReflectionOverlay = dynamic(() => import('@/components/SolarPVAnalysis/3d/ReflectionOverlay'), { ssr: false })
-const CameraPresetApplier = dynamic(() => import('@/components/shared/3d/CameraPresetBar').then(m => ({ default: m.CameraPresetApplier })), { ssr: false })
 
 export default function SolarPVWorkspace() {
   const pipeline = useSolarPVPipelineContext()
@@ -263,7 +244,7 @@ export default function SolarPVWorkspace() {
     shadow.frames.map(f => shadow.startMinuteBase + f.minute),
   [shadow.frames, shadow.startMinuteBase])
 
-  // Sync shadow playback → sliderTimeMinute
+  // Sync shadow playback -> sliderTimeMinute
   useEffect(() => {
     if (hasShadowFrames) {
       setSliderTimeMinute(shadow.startMinuteBase + shadow.playback.currentMinute)
@@ -448,9 +429,6 @@ export default function SolarPVWorkspace() {
     autoGenerate: true,
   })
 
-  // Status bar state
-  const statusBarState = useStatusBarState({ phase, error })
-
   // Progress stepper step
   const currentStep = useMemo((): WorkspaceStep => {
     if (phase === 'completed') return 'results'
@@ -458,8 +436,6 @@ export default function SolarPVWorkspace() {
     if (hasModel) return 'configure'
     return 'upload'
   }, [phase, hasModel])
-
-  const statusStageName = progress?.stages.find((s) => s.status === 'processing')?.name
 
   // Hidden groups for 3D
   const hiddenGroups = useMemo(() => {
@@ -541,18 +517,13 @@ export default function SolarPVWorkspace() {
         />
       }
       statusBar={
-        <WorkspaceStatusBar
-          state={statusBarState}
-          modelInfo={modelMeta
-            ? `${modelMeta.original_name} | V: ${modelMeta.vertices.toLocaleString()} F: ${modelMeta.faces.toLocaleString()}`
-            : undefined}
-          stageName={statusStageName}
-          analysisProgress={progress?.overall_progress}
-          etaText={estimatedRemainingSec ? formatEta(estimatedRemainingSec) : undefined}
-          completionTime={results?.metadata?.computation_time_sec
-            ? `${formatDuration(results.metadata.computation_time_sec as number)}`
-            : undefined}
-          errorMessage={error || undefined}
+        <SolarPVStatusBarContainer
+          phase={phase}
+          error={error}
+          progress={progress}
+          results={results}
+          estimatedRemainingSec={estimatedRemainingSec}
+          modelMeta={modelMeta}
           onViewResults={() => {
             layout.setActivePanelTab('results')
             layout.setSidePanelOpen(true)
@@ -594,99 +565,32 @@ export default function SolarPVWorkspace() {
         ) : undefined
       }
     >
-      {/* 3D Viewport */}
-      <WorkspaceViewport bbox={modelBbox} enableShadows>
-        <SunShadowLight
+      <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400">3D 로딩 중...</div>}>
+        <SolarPVViewport
           sunDirection={sunDirection}
+          modelScene={modelScene}
           modelBbox={modelBbox}
+          importDataGroups={importData?.groups}
+          hiddenGroups={hiddenGroups}
+          hasModel={hasModel}
+          results={results}
+          selectedSurface={selectedSurface}
+          onSelectSurface={setSelectedSurface}
+          surfaceCenters={surfaceCenters}
+          surfaceNormals={surfaceNormals}
+          surfaceAreas={surfaceAreas}
+          panelSurfacesForHighlight={panelSurfacesForHighlight}
+          showShadowHeatmap={showShadowHeatmap}
+          shadowAccumulation={shadowAccumulation}
+          shadowHeatmapMode={shadowHeatmapMode}
+          showReflection={showReflection}
+          currentReflectionFrame={currentReflectionFrame}
+          solarPosition={solarPosition}
+          activePreset={activePreset}
+          presetTrigger={presetTrigger}
+          onPresetChange={handlePresetChange}
         />
-
-        {modelScene && (
-          <InteractiveBuildingModel
-            scene={modelScene}
-            bbox={modelBbox}
-            interactionEnabled={false}
-            groups={importData?.groups}
-            hiddenGroups={hiddenGroups}
-          />
-        )}
-
-        {/* Panel surface highlight (score-based heatmap when results available) */}
-        {results && results.surfaces.length > 0 && (
-          <IrradianceHeatmap
-            surfaces={results.surfaces}
-            selectedSurfaceId={selectedSurface}
-            onSurfaceClick={setSelectedSurface}
-            surfaceCenters={surfaceCenters}
-            surfaceNormals={surfaceNormals}
-            surfaceAreas={surfaceAreas}
-          />
-        )}
-
-        {/* Panel surfaces pre-highlight (before results, if panel info available from config) */}
-        {!results && panelSurfacesForHighlight.length > 0 && (
-          <PanelSurfaceHighlight
-            surfaces={panelSurfacesForHighlight as never}
-            selectedSurfaceId={selectedSurface}
-            onSurfaceClick={setSelectedSurface}
-          />
-        )}
-
-        <GroundGrid bbox={modelBbox} />
-        <CompassRose bbox={modelBbox} />
-
-        {/* Shadow accumulation heatmap */}
-        {showShadowHeatmap && shadowAccumulation && (
-          <SolarPVShadowHeatmap
-            cells={shadowAccumulation.cells}
-            cellSize={shadowAccumulation.cellSize}
-            maxShadowHours={shadowAccumulation.maxShadowHours}
-            mode={shadowHeatmapMode}
-          />
-        )}
-
-        {/* Reflection overlay (synced with shadow playback) */}
-        {showReflection && currentReflectionFrame && (
-          <ReflectionOverlay frame={currentReflectionFrame} />
-        )}
-
-        {/* Sun position indicator */}
-        {hasModel && solarPosition && solarPosition.altitude > 0 && (
-          <SunPositionIndicator solarPosition={solarPosition} />
-        )}
-
-        {/* Camera preset controller (R3F) */}
-        <CameraPresetApplier presetId={activePreset} trigger={presetTrigger} bbox={modelBbox} />
-      </WorkspaceViewport>
-
-      {/* Camera preset bar (HTML overlay) — top-left */}
-      {hasModel && (
-        <div className="absolute top-3 left-3 z-20 pointer-events-none">
-          <div className="pointer-events-auto flex gap-0.5 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-lg px-1.5 py-1">
-            {(['perspective', 'top', 'south', 'north', 'east', 'west'] as CameraPresetId[]).map((id) => (
-              <button
-                key={id}
-                onClick={() => handlePresetChange(id)}
-                className={`px-2.5 py-1.5 text-[11px] rounded transition-all duration-200 ${
-                  activePreset === id
-                    ? 'bg-gray-900 text-white font-medium'
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                {{ perspective: '3D', top: '탑', south: '남', north: '북', east: '동', west: '서' }[id]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Legend overlay (HTML) */}
-      {results && hasModel && (
-        <SolarPVLegend
-          totalCapacityKwp={results.summary.total_capacity_kwp}
-          totalAnnualMwh={results.summary.annual_generation_kwh / 1000}
-        />
-      )}
+      </Suspense>
     </AnalysisWorkspace>
   )
 }

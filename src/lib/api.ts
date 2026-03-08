@@ -73,42 +73,47 @@ async function parseErrorBody(res: Response): Promise<ApiError> {
   return new ApiError(res.status, res.statusText, body, retryAfter)
 }
 
+// ─── 공통 에러 로깅 + 재던지기 ─────────────────────
+
+function logAndThrow(label: string, error: unknown): never {
+  if (error instanceof ApiError) {
+    logger.error(`${label} failed`, error)
+  } else {
+    logger.error(`${label} failed`, error instanceof Error ? error : undefined)
+  }
+  throw error
+}
+
+async function wrapRequest<T>(
+  label: string,
+  fetchFn: () => Promise<Response>,
+  transform: (res: Response) => Promise<T>,
+): Promise<T> {
+  try {
+    const res = await fetchFn()
+    if (!res.ok) throw await parseErrorBody(res)
+    return transform(res)
+  } catch (error) {
+    logAndThrow(label, error)
+  }
+}
+
 export function useApiClient() {
   const { apiUrl } = useApi()
 
-  const get = async (path: string) => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`)
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.json()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`GET ${path} failed`, error)
-      } else {
-        logger.error(`GET ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
-  }
+  const get = (path: string) =>
+    wrapRequest(`GET ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.json())
 
-  const post = async (path: string, body?: unknown) => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`, {
+  const post = (path: string, body?: unknown) =>
+    wrapRequest(
+      `POST ${path}`,
+      () => fetch(`${apiUrl}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         ...(body !== undefined && { body: JSON.stringify(body) }),
-      })
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.json()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`POST ${path} failed`, error)
-      } else {
-        logger.error(`POST ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
-  }
+      }),
+      (r) => r.json(),
+    )
 
   const postFormData = async (
     path: string,
@@ -146,94 +151,49 @@ export function useApiClient() {
       })
     }
 
-    try {
-      const res = await fetch(`${apiUrl}${path}`, {
-        method: 'POST',
-        body: formData,
-      })
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.json()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`POST FormData ${path} failed`, error)
-      } else {
-        logger.error(`POST FormData ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
+    return wrapRequest(
+      `POST FormData ${path}`,
+      () => fetch(`${apiUrl}${path}`, { method: 'POST', body: formData }),
+      (r) => r.json(),
+    )
   }
 
-  const del = async (path: string) => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`, { method: 'DELETE' })
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.json()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`DELETE ${path} failed`, error)
-      } else {
-        logger.error(`DELETE ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
-  }
+  const del = (path: string) =>
+    wrapRequest(
+      `DELETE ${path}`,
+      () => fetch(`${apiUrl}${path}`, { method: 'DELETE' }),
+      (r) => r.json(),
+    )
 
   const downloadBlob = async (path: string, filename: string, method: 'GET' | 'POST' = 'GET') => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`, { method })
-      if (!res.ok) throw await parseErrorBody(res)
-      const blob = await res.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`Download ${path} failed`, error)
-      } else {
-        logger.error(`Download ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
+    const blob = await wrapRequest(
+      `Download ${path}`,
+      () => fetch(`${apiUrl}${path}`, { method }),
+      (r) => r.blob(),
+    )
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
   }
 
-  const getBlob = async (path: string): Promise<Blob> => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`)
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.blob()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`GET Blob ${path} failed`, error)
-      } else {
-        logger.error(`GET Blob ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
-  }
+  const getBlob = (path: string): Promise<Blob> =>
+    wrapRequest(`GET Blob ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.blob())
 
-  const postBlob = async (path: string, body?: unknown): Promise<Blob> => {
-    try {
-      const res = await fetch(`${apiUrl}${path}`, {
+  const postBlob = (path: string, body?: unknown): Promise<Blob> =>
+    wrapRequest(
+      `POST Blob ${path}`,
+      () => fetch(`${apiUrl}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         ...(body !== undefined && { body: JSON.stringify(body) }),
-      })
-      if (!res.ok) throw await parseErrorBody(res)
-      return res.blob()
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.error(`POST Blob ${path} failed`, error)
-      } else {
-        logger.error(`POST Blob ${path} failed`, error instanceof Error ? error : undefined)
-      }
-      throw error
-    }
-  }
+      }),
+      (r) => r.blob(),
+    )
 
   return { get, post, postFormData, del, downloadBlob, getBlob, postBlob }
 }

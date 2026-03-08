@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useCallback, useEffect, useMemo, Suspense } from 'react'
 import { useSunlightPipelineContext } from '@/contexts/SunlightPipelineContext'
 import { useApi } from '@/contexts/ApiContext'
 import { useModelLoader } from '@/components/shared/3d/useModelLoader'
@@ -16,56 +15,22 @@ import { useSolarChart3D } from '@/hooks/useSolarChart3D'
 import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
-import { formatDuration, formatEta } from '@/lib/utils/format'
-import { useStatusBarState } from '@/hooks/useStatusBarState'
 import { useSunDirection, useSunriseSunset } from '@/hooks/useSunDirection'
-
 import { useToast } from '@/contexts/ToastContext'
+
 import AnalysisWorkspace from '../AnalysisWorkspace'
-import WorkspaceViewport from '../WorkspaceViewport'
-import WorkspaceToolbar, { KeyboardShortcutOverlay } from '../WorkspaceToolbar'
-import WorkspaceStatusBar from '../WorkspaceStatusBar'
+import WorkspaceToolbar from '../WorkspaceToolbar'
 import WorkspaceUploadOverlay from '../WorkspaceUploadOverlay'
 import WorkspaceProgressStepper, { type WorkspaceStep } from '../WorkspaceProgressStepper'
-import ViewportGuideOverlay from '../ViewportGuideOverlay'
 import SunlightSidePanel from './SunlightSidePanel'
 import SunTimeSlider from '@/components/shared/SunTimeSlider'
 import { SUNLIGHT_TOOLBAR_MODES } from './SunlightToolbarConfig'
-
-// 3D components (dynamic import for SSR safety)
-const SunShadowLight = dynamic(() => import('@/components/shared/3d/SunShadowLight'), { ssr: false })
-const GroundGrid = dynamic(() => import('@/components/shared/3d/GroundGrid'), { ssr: false })
-const CompassRose = dynamic(() => import('@/components/shared/3d/CompassRose'), { ssr: false })
-const InteractiveBuildingModel = dynamic(() => import('@/components/shared/3d/interaction/InteractiveBuildingModel'), { ssr: false })
-const InteractiveGround = dynamic(() => import('@/components/shared/3d/interaction/InteractiveGround'), { ssr: false })
-const SurfaceHighlight = dynamic(() => import('@/components/shared/3d/interaction/SurfaceHighlight'), { ssr: false })
-const PointMarker3D = dynamic(() => import('@/components/shared/3d/interaction/PointMarker3D'), { ssr: false })
-const AreaGridPreview = dynamic(() => import('@/components/shared/3d/interaction/AreaGridPreview'), { ssr: false })
-const SunlightHeatmapOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SunlightHeatmapOverlay'), { ssr: false })
-// ShadowOverlay disabled — GPU shadow maps handle ground/building shadows
-// const ShadowOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowOverlay'), { ssr: false })
-const SunPositionIndicator = dynamic(() => import('@/components/SunlightAnalysis/3d/SunPositionIndicator'), { ssr: false })
-const ViolationHighlight = dynamic(() => import('@/components/SunlightAnalysis/3d/ViolationHighlight'), { ssr: false })
-const BuildingLabels3D = dynamic(() => import('@/components/SunlightAnalysis/3d/BuildingLabels3D'), { ssr: false })
-const ModelTransformControls = dynamic(() => import('@/components/shared/3d/interaction/ModelTransformControls'), { ssr: false })
-const GroundHeatmap = dynamic(() => import('@/components/SunlightAnalysis/3d/GroundHeatmap'), { ssr: false })
-const ContourLines = dynamic(() => import('@/components/SunlightAnalysis/3d/ContourLines'), { ssr: false })
-const SolarChart3DOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/SolarChart3DOverlay'), { ssr: false })
-const ShadowAccumulationOverlay = dynamic(() => import('@/components/SunlightAnalysis/3d/ShadowAccumulationOverlay'), { ssr: false })
-const CameraPresetApplier = dynamic(() => import('@/components/shared/3d/CameraPresetBar').then(m => ({ default: m.CameraPresetApplier })), { ssr: false })
-
-import SunlightLegend from '@/components/SunlightAnalysis/3d/SunlightLegend'
-import CameraPresetBar from '@/components/shared/3d/CameraPresetBar'
+import SunlightViewport from './SunlightViewport'
+import SunlightStatusBarContainer from './SunlightStatusBarContainer'
 import { Undo2, Redo2 } from 'lucide-react'
 
-const VIEWPORT_GUIDE_STEPS = [
-  { key: 'mode', label: 'P 키를 눌러 측정점 모드 전환' },
-  { key: 'click', label: '건물 표면을 클릭하여 측정점 배치' },
-  { key: 'analyze', label: '사이드 패널에서 분석 실행' },
-]
 
-
-// ─── 컴포넌트 ─────────────────────────────
+// ─── Component ─────────────────────────────
 export default function SunlightWorkspace() {
   const { apiUrl } = useApi()
   const pipeline = useSunlightPipelineContext()
@@ -394,9 +359,6 @@ export default function SunlightWorkspace() {
     await runAnalysis(analysisConfig)
   }, [config, runAnalysis, pointGroups.allMeasurementPoints, layers])
 
-  // ── Status bar state ──
-  const statusBarState = useStatusBarState({ phase, error })
-
   // ── Progress stepper step ──
   const currentStep = useMemo((): WorkspaceStep => {
     if (phase === 'completed') return 'results'
@@ -404,12 +366,6 @@ export default function SunlightWorkspace() {
     if (hasModel) return 'configure'
     return 'upload'
   }, [phase, hasModel])
-
-  const statusModelInfo = modelMeta
-    ? `${modelMeta.original_name} | V: ${modelMeta.vertices.toLocaleString()} F: ${modelMeta.faces.toLocaleString()}`
-    : undefined
-
-  const statusStageName = progress?.stages.find((s) => s.status === 'processing')?.name
 
   // ── Sun direction: backend frames take priority, otherwise client-side ──
   const hasShadowFrames = shadow.frames.length > 0
@@ -481,6 +437,12 @@ export default function SunlightWorkspace() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [placement.undo, placement.redo])
+
+  // ── Status bar callbacks ──
+  const handleViewResults = useCallback(() => {
+    layout.setActivePanelTab('results')
+    layout.setSidePanelOpen(true)
+  }, [layout])
 
   return (
     <AnalysisWorkspace
@@ -593,18 +555,14 @@ export default function SunlightWorkspace() {
         ) : undefined
       }
       statusBar={
-        <WorkspaceStatusBar
-          state={statusBarState}
-          modelInfo={statusModelInfo}
-          stageName={statusStageName}
-          analysisProgress={progress?.overall_progress}
-          etaText={estimatedRemainingSec ? formatEta(estimatedRemainingSec) : undefined}
-          completionTime={results ? `${formatDuration(results.metadata.computation_time_sec)}` : undefined}
-          errorMessage={error || undefined}
-          onViewResults={() => {
-            layout.setActivePanelTab('results')
-            layout.setSidePanelOpen(true)
-          }}
+        <SunlightStatusBarContainer
+          phase={phase}
+          error={error}
+          progress={progress}
+          results={results}
+          estimatedRemainingSec={estimatedRemainingSec}
+          modelMeta={modelMeta}
+          onViewResults={handleViewResults}
           onRetry={handleStartAnalysis}
           onReset={reset}
           onCancel={cancelAnalysis}
@@ -621,189 +579,51 @@ export default function SunlightWorkspace() {
       }
     >
       {/* ── 3D Viewport ── */}
-      <WorkspaceViewport
-        bbox={modelBbox}
-        orbitEnabled={placement.mode === 'navigate'}
-        enableShadows
-      >
-        <SunShadowLight
-          sunDirection={sunDirection}
+      <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400">3D 로딩 중...</div>}>
+        <SunlightViewport
+          modelScene={modelScene}
           modelBbox={modelBbox}
-        />
-
-        {/* Building model (interactive when placing points) */}
-        {modelScene && (
-          <InteractiveBuildingModel
-            scene={modelScene}
-            bbox={modelBbox}
-            interactionEnabled={placement.mode === 'place_point'}
-            onSurfaceHover={placement.setHoverHit}
-            onSurfaceClick={placement.handleSurfaceClick}
-            groups={importData?.groups}
-            hiddenGroups={hiddenGroups}
-          />
-        )}
-
-        {/* Transform controls */}
-        {placement.mode === 'transform' && modelScene && (
-          <ModelTransformControls
-            target={modelScene}
-            mode={transformMode}
-            onTransformEnd={() => {
-              // Transform applied client-side only
-            }}
-          />
-        )}
-
-        {/* Ground interaction */}
-        {modelScene && (
-          <InteractiveGround
-            bbox={modelBbox}
-            enabled={placement.mode === 'place_point' || placement.mode === 'place_area'}
-            onGroundHover={(hit) => {
-              if (placement.mode === 'place_area') areaPlacement.handleAreaHover(hit)
-              else placement.setHoverHit(hit)
-            }}
-            onGroundClick={(hit) => {
-              if (placement.mode === 'place_area') areaPlacement.handleAreaClick(hit)
-              else placement.handleSurfaceClick(hit)
-            }}
-          />
-        )}
-
-        {/* Grid & compass */}
-        <GroundGrid bbox={modelBbox} />
-        <CompassRose bbox={modelBbox} />
-
-        {/* Surface hover highlight */}
-        {placement.mode !== 'place_area' && (
-          <SurfaceHighlight hit={placement.hoverHit} />
-        )}
-
-        {/* Area grid preview */}
-        <AreaGridPreview
-          firstCorner={areaPlacement.firstCorner}
-          previewCorner={areaPlacement.previewCorner}
-          area={areaPlacement.area}
-          gridSpacing={areaPlacement.gridSpacing}
-          gridPointCount={areaPlacement.gridPoints.length}
-        />
-
-        {/* Point markers */}
-        {placement.points.map((point) => (
-          <PointMarker3D
-            key={point.id}
-            point={point}
-            visualType={point.surfaceType === 'ground' ? 'sphere' : 'disc'}
-            isSelected={point.id === placement.selectedPointId}
-            color={point.surfaceType === 'ground' ? '#ffffff' : '#60a5fa'}
-            onClick={() => placement.handlePointClick(point.id)}
-          />
-        ))}
-
-        {/* Sun position indicator (always visible when model loaded) */}
-        {hasModel && solarPosition && solarPosition.altitude > 0 && (
-          <SunPositionIndicator solarPosition={solarPosition} />
-        )}
-
-        {/* Ground heatmap overlay */}
-        {ground.showGroundHeatmap && ground.groundResult && ground.groundResult.grid_data.length > 0 && (
-          <GroundHeatmap
-            gridData={ground.groundResult.grid_data}
-            gridSize={ground.groundResult.grid_size}
-          />
-        )}
-
-        {/* Isochrone / contour lines */}
-        {ground.showGroundHeatmap && ground.groundIsochrones.length > 0 && (
-          <ContourLines lines={ground.groundIsochrones} />
-        )}
-
-        {/* Heatmap overlay (results) */}
-        {results && results.points.length > 0 && (
-          <SunlightHeatmapOverlay
-            points={placement.points.length > 0
-              ? placement.points.map((p) => ({ id: p.id, x: p.position.x, y: p.position.y, z: p.position.z, name: p.name }))
-              : results.points.map((p) => ({ id: p.id, x: p.x, y: p.y, z: p.z, name: p.name }))
-            }
-            results={results.points}
-            selectedPointId={placement.selectedPointId}
-            onPointClick={placement.selectPoint}
-          />
-        )}
-
-        {/* Building labels + Violation highlight (cause analysis) */}
-        {report.causeResult && report.causeResult.buildings.length > 0 && (
-          <BuildingLabels3D
-            buildings={report.causeResult.buildings}
-            selectedBuildingId={selectedBuildingId}
-            onBuildingClick={(id) => setSelectedBuildingId(
-              selectedBuildingId === id ? null : id
-            )}
-          />
-        )}
-        {report.causeResult && report.causeResult.point_causes.length > 0 && (
-          <ViolationHighlight
-            blockers={report.causeResult.point_causes.flatMap((pc) => pc.blockers)}
-            selectedBuildingId={selectedBuildingId}
-          />
-        )}
-
-        {/* Solar chart 3D overlay */}
-        {solarChart.data && (
-          <SolarChart3DOverlay data={solarChart.data} />
-        )}
-
-        {/* Shadow accumulation heatmap (toggled via 영역도 button) */}
-        {showAccumulation && shadow.accumulation && shadow.accumulation.cells.length > 0 && (
-          <ShadowAccumulationOverlay
-            cells={shadow.accumulation.cells}
-            cellSize={shadow.accumulation.cell_size}
-            maxShadowHours={shadow.accumulation.max_shadow_hours}
-          />
-        )}
-
-        {/* Camera preset controller (R3F) */}
-        <CameraPresetApplier presetId={activePreset} trigger={presetTrigger} bbox={modelBbox} />
-      </WorkspaceViewport>
-
-      {/* Camera preset bar (HTML overlay) */}
-      {hasModel && (
-        <CameraPresetBar
-          bbox={modelBbox}
+          hasModel={hasModel}
+          importData={importData}
           activePreset={activePreset}
+          presetTrigger={presetTrigger}
           onPresetChange={handlePresetChange}
-        />
-      )}
-
-      {/* Mode indicator + Legend overlay */}
-      {hasModel && (
-        <div className="absolute bottom-16 left-3 z-10 space-y-2">
-          {results && results.points.length > 0 && <SunlightLegend />}
-          {placement.mode !== 'navigate' && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-sm
-              text-white text-[11px] rounded-full shadow-sm">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-              {SUNLIGHT_TOOLBAR_MODES.find(m => m.id === placement.mode)?.label ?? placement.mode}
-              <span className="text-white/40 ml-1">ESC로 해제</span>
-            </div>
+          placementMode={placement.mode}
+          hoverHit={placement.hoverHit}
+          selectedPointId={placement.selectedPointId}
+          points={placement.points}
+          onSurfaceHover={placement.setHoverHit}
+          onSurfaceClick={placement.handleSurfaceClick}
+          onPointClick={placement.handlePointClick}
+          onSelectPoint={placement.selectPoint}
+          areaFirstCorner={areaPlacement.firstCorner}
+          areaPreviewCorner={areaPlacement.previewCorner}
+          areaArea={areaPlacement.area}
+          areaGridSpacing={areaPlacement.gridSpacing}
+          areaGridPoints={areaPlacement.gridPoints}
+          onAreaHover={areaPlacement.handleAreaHover}
+          onAreaClick={areaPlacement.handleAreaClick}
+          transformMode={transformMode}
+          hiddenGroups={hiddenGroups}
+          sunDirection={sunDirection}
+          solarPosition={solarPosition}
+          results={results}
+          causeResult={report.causeResult}
+          selectedBuildingId={selectedBuildingId}
+          onBuildingClick={(id) => setSelectedBuildingId(
+            selectedBuildingId === id ? null : id
           )}
-        </div>
-      )}
-
-      {/* Keyboard shortcut help overlay */}
-      {layout.isShortcutOverlayVisible && (
-        <KeyboardShortcutOverlay
-          modes={SUNLIGHT_TOOLBAR_MODES}
-          onClose={layout.closeShortcutOverlay}
+          showGroundHeatmap={ground.showGroundHeatmap}
+          groundResult={ground.groundResult}
+          groundIsochrones={ground.groundIsochrones}
+          showAccumulation={showAccumulation}
+          shadowAccumulation={shadow.accumulation}
+          solarChartData={solarChart.data}
+          isShortcutOverlayVisible={layout.isShortcutOverlayVisible}
+          onCloseShortcutOverlay={layout.closeShortcutOverlay}
+          isRunning={isRunning}
         />
-      )}
-
-      {/* Viewport guide — shown after model load, before first point */}
-      <ViewportGuideOverlay
-        visible={hasModel && placement.points.length === 0 && !results && !isRunning}
-        steps={VIEWPORT_GUIDE_STEPS}
-      />
+      </Suspense>
     </AnalysisWorkspace>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useId } from 'react'
 import type { AnalysisDate } from '@/lib/types/pipeline'
 import { DATE_PRESETS } from '@/lib/types/pipeline'
 
@@ -13,6 +13,8 @@ interface DateSelectorProps {
 export default function DateSelector({ selectedDates, onChange, disabled }: DateSelectorProps) {
   const [customMonth, setCustomMonth] = useState(1)
   const [customDay, setCustomDay] = useState(1)
+  const monthId = useId()
+  const dayId = useId()
 
   const isPresetSelected = useCallback(
     (preset: AnalysisDate) =>
@@ -48,8 +50,8 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
     <div className="space-y-4">
       {/* Preset toggles */}
       <div>
-        <label className="text-xs text-gray-500 mb-2 block">날짜 프리셋</label>
-        <div className="flex flex-wrap gap-2">
+        <span className="text-xs text-gray-500 mb-2 block">날짜 프리셋</span>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="날짜 프리셋">
           {DATE_PRESETS.map((preset) => {
             const active = isPresetSelected(preset)
             return (
@@ -58,7 +60,10 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                 type="button"
                 onClick={() => togglePreset(preset)}
                 disabled={disabled}
-                className={`border px-4 py-2 text-sm transition-all duration-300 disabled:opacity-50 ${
+                aria-pressed={active}
+                aria-label={`${preset.label} ${preset.month}월 ${preset.day}일`}
+                className={`border px-4 py-2 text-sm transition-all duration-300 disabled:opacity-50
+                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 ${
                   active
                     ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 hover:border-red-600/30 text-gray-700 hover:text-red-600'
@@ -73,34 +78,46 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
 
       {/* Custom date input */}
       <div>
-        <label className="text-xs text-gray-500 mb-2 block">커스텀 날짜 추가</label>
+        <span className="text-xs text-gray-500 mb-2 block">커스텀 날짜 추가</span>
         <div className="flex items-center gap-2">
-          <select
-            value={customMonth}
-            onChange={(e) => setCustomMonth(Number(e.target.value))}
-            disabled={disabled}
-            className="border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30 disabled:opacity-50"
-          >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={m}>{m}월</option>
-            ))}
-          </select>
-          <input
-            type="number"
-            min={1}
-            max={31}
-            value={customDay}
-            onChange={(e) => setCustomDay(Number(e.target.value))}
-            disabled={disabled}
-            className="w-20 border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30 disabled:opacity-50"
-            placeholder="일"
-          />
+          <div>
+            <label htmlFor={monthId} className="sr-only">월</label>
+            <select
+              id={monthId}
+              value={customMonth}
+              onChange={(e) => setCustomMonth(Number(e.target.value))}
+              disabled={disabled}
+              className="border border-gray-200 px-3 py-2 text-sm
+                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>{m}월</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor={dayId} className="sr-only">일</label>
+            <input
+              id={dayId}
+              type="number"
+              min={1}
+              max={31}
+              value={customDay}
+              onChange={(e) => setCustomDay(Number(e.target.value))}
+              disabled={disabled}
+              className="w-20 border border-gray-200 px-3 py-2 text-sm
+                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+              placeholder="일"
+            />
+          </div>
           <button
             type="button"
             onClick={addCustomDate}
             disabled={disabled}
+            aria-label={`${customMonth}월 ${customDay}일 추가`}
             className="border border-gray-200 hover:border-red-600/30 px-4 py-2
-              text-sm text-gray-700 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300 disabled:opacity-50
+              focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
           >
             추가
           </button>
@@ -110,7 +127,9 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
       {/* Selected dates list */}
       {selectedDates.length > 0 && (
         <div>
-          <label className="text-xs text-gray-500 mb-2 block">선택된 날짜 ({selectedDates.length}개)</label>
+          <span className="text-xs text-gray-500 mb-2 block" aria-live="polite">
+            선택된 날짜 ({selectedDates.length}개)
+          </span>
           <div className="flex flex-wrap gap-2">
             {selectedDates.map((date, idx) => (
               <span
@@ -124,7 +143,9 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                   <button
                     type="button"
                     onClick={() => removeDate(idx)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label={`${date.label !== 'custom' ? date.label + ' ' : ''}${date.month}월 ${date.day}일 제거`}
+                    className="text-gray-400 hover:text-red-500 transition-colors
+                      focus:outline-2 focus:outline-offset-1 focus:outline-blue-500"
                   >
                     x
                   </button>

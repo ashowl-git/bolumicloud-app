@@ -64,6 +64,9 @@ export default function WorkspaceStatusBar({
 
   return (
     <div
+      role="status"
+      aria-live={state === 'error' ? 'assertive' : 'polite'}
+      aria-atomic="true"
       className={`border-t text-xs transition-all duration-500 ${stateStyles[state]}
         ${isExpanded ? 'px-4 py-2.5' : 'px-4 h-10 flex items-center gap-3'}`}
     >
@@ -89,7 +92,7 @@ export default function WorkspaceStatusBar({
               <button
                 onClick={onCancel}
                 className="p-1 bg-white/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
-                title="분석 취소"
+                aria-label="분석 취소"
               >
                 <X size={14} />
               </button>
