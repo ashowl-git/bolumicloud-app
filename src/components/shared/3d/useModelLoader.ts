@@ -31,10 +31,21 @@ function centerModel(object: THREE.Object3D, bbox: BoundingBox): void {
  * draw call을 그룹 수만큼(10-20)으로 감소시킴.
  */
 function mergeByGroup(root: THREE.Object3D): void {
-  // 최상위 children(그룹 노드) 순회 — shallow copy로 안전하게
-  const topChildren = [...root.children]
+  // Fix 1: 중간 래퍼 노드 스킵 (trimesh GLB의 "world" 루트)
+  let groupParent = root
+  while (
+    groupParent.children.length === 1 &&
+    !(groupParent.children[0] instanceof THREE.Mesh)
+  ) {
+    groupParent = groupParent.children[0]
+  }
+
+  const topChildren = [...groupParent.children]
 
   for (const groupNode of topChildren) {
+    // 리프 Mesh는 그 자체가 그룹 — 병합 불필요
+    if (groupNode instanceof THREE.Mesh) continue
+
     const meshes: THREE.Mesh[] = []
     groupNode.traverse((child) => {
       if (child instanceof THREE.Mesh && child.geometry) {
@@ -42,98 +53,66 @@ function mergeByGroup(root: THREE.Object3D): void {
       }
     })
 
-    // 메시 1개 이하면 병합 불필요
     if (meshes.length <= 1) continue
 
-    // 각 메시의 world transform을 geometry에 bake
+    // Fix 2: 상대 변환만 bake (groupNode → mesh), 전체 world 변환 아님
     const geometries: THREE.BufferGeometry[] = []
     let firstMaterial: THREE.Material | THREE.Material[] | null = null
+    const groupWorldInverse = new THREE.Matrix4().copy(groupNode.matrixWorld).invert()
 
     for (const mesh of meshes) {
       mesh.updateWorldMatrix(true, false)
       const geo = mesh.geometry.clone()
-
-      // UV 속성 일관성: 일부 메시에만 uv가 있으면 strip
-      // (mergeGeometries가 속성 불일치 시 실패하므로)
-      geo.applyMatrix4(mesh.matrixWorld)
-
-      if (!firstMaterial) {
-        firstMaterial = mesh.material
-      }
+      const relativeMatrix = new THREE.Matrix4().multiplyMatrices(
+        groupWorldInverse, mesh.matrixWorld
+      )
+      geo.applyMatrix4(relativeMatrix)
+      if (!firstMaterial) firstMaterial = mesh.material
       geometries.push(geo)
     }
 
-    // UV 속성 일관성 보장
+    // UV 속성 일관성 보장 (기존 로직 유지)
     const hasUv = geometries.map((g) => !!g.attributes.uv)
-    const allHaveUv = hasUv.every(Boolean)
-    const noneHaveUv = hasUv.every((v) => !v)
-
-    if (!allHaveUv && !noneHaveUv) {
-      // 일부만 UV가 있으면 모두 제거 (색상 기반 렌더링이라 UV 불필요)
-      for (const geo of geometries) {
-        geo.deleteAttribute('uv')
-      }
+    if (!hasUv.every(Boolean) && !hasUv.every((v) => !v)) {
+      for (const geo of geometries) geo.deleteAttribute('uv')
     }
-
-    // normal 속성도 동일하게 처리
     const hasNormal = geometries.map((g) => !!g.attributes.normal)
-    const allHaveNormal = hasNormal.every(Boolean)
-    const noneHaveNormal = hasNormal.every((v) => !v)
-    if (!allHaveNormal && !noneHaveNormal) {
+    if (!hasNormal.every(Boolean) && !hasNormal.every((v) => !v)) {
       for (const geo of geometries) {
-        if (!geo.attributes.normal) {
-          geo.computeVertexNormals()
-        }
+        if (!geo.attributes.normal) geo.computeVertexNormals()
       }
     }
 
     const merged = mergeGeometries(geometries, false)
-    if (!merged) {
-      // 병합 실패 시 원본 유지
-      geometries.forEach((g) => g.dispose())
-      continue
-    }
+    if (!merged) { geometries.forEach((g) => g.dispose()); continue }
 
-    // 병합된 geometry를 단일 Mesh로 생성
     const mergedMesh = new THREE.Mesh(
       merged,
       firstMaterial || new THREE.MeshStandardMaterial({ color: '#d1d5db' }),
     )
     mergedMesh.name = groupNode.name
-
-    // baked geometry의 소스 클론 dispose
     geometries.forEach((g) => g.dispose())
 
-    // 기존 메시 cleanup 및 교체
-    // groupNode의 children을 제거하고 merged mesh를 추가
-    // identity transform (world transform이 이미 baked)
     const parent = groupNode.parent
     if (parent) {
-      const idx = parent.children.indexOf(groupNode)
-
-      // 새 그룹 노드 생성 (이름 보존)
       const newGroup = new THREE.Group()
       newGroup.name = groupNode.name
+      // Fix 2: 그룹 노드의 원래 변환 보존
+      newGroup.position.copy(groupNode.position)
+      newGroup.rotation.copy(groupNode.rotation)
+      newGroup.scale.copy(groupNode.scale)
       newGroup.add(mergedMesh)
-      // merged mesh의 world transform은 이미 bake되었으므로 그룹은 identity
-      mergedMesh.position.set(0, 0, 0)
-      mergedMesh.rotation.set(0, 0, 0)
-      mergedMesh.scale.set(1, 1, 1)
 
-      // 기존 그룹 노드의 메시 dispose
       groupNode.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.geometry?.dispose()
-        }
+        if (child instanceof THREE.Mesh) child.geometry?.dispose()
       })
 
-      parent.children[idx] = newGroup
-      newGroup.parent = parent
-      groupNode.parent = null
+      // Fix 3: Three.js 정규 API 사용
+      parent.remove(groupNode)
+      parent.add(newGroup)
     }
   }
 
-  // 진단 로그
   let meshCount = 0
   root.traverse((c) => { if (c instanceof THREE.Mesh) meshCount++ })
   console.log(`[BoLumiCloud] Merged: ${meshCount} meshes (draw calls)`)
