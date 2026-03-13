@@ -22,6 +22,9 @@ const WIREFRAME_MATERIAL = new THREE.LineBasicMaterial({
   linewidth: 1,
 })
 
+// EdgesGeometry 생성 임계값: 총 face 수가 이 값 초과 시 와이어프레임 비활성화
+const WIREFRAME_FACE_LIMIT = 50000
+
 const GROUP_COLORS = [
   '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
   '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
@@ -146,6 +149,18 @@ export default function InteractiveBuildingModel({
     if (!scene) return
     const gNames = groups?.map((g) => g.name) ?? []
 
+    // 총 face 수 계산 (EdgesGeometry 생성 여부 결정)
+    let totalFaces = 0
+    if (showWireframe) {
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.geometry) {
+          const idx = child.geometry.index
+          totalFaces += idx ? idx.count / 3 : (child.geometry.attributes.position?.count ?? 0) / 3
+        }
+      })
+    }
+    const wireframeAllowed = showWireframe && totalFaces <= WIREFRAME_FACE_LIMIT
+
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         // 그룹 가시성 처리
@@ -167,18 +182,39 @@ export default function InteractiveBuildingModel({
         }
         child.castShadow = true
         child.receiveShadow = true
-
-        if (showWireframe) {
-          const existing = child.children.find((c) => c.userData.isEdgeLines)
-          if (!existing) {
-            const edges = new THREE.EdgesGeometry(child.geometry, 30)
-            const lines = new THREE.LineSegments(edges, WIREFRAME_MATERIAL)
-            lines.userData.isEdgeLines = true
-            child.add(lines)
-          }
-        }
       }
     })
+
+    // Phase 4: EdgesGeometry 지연 계산 (초기 렌더 우선, 와이어프레임 후추가)
+    let edgeTimerId: ReturnType<typeof setTimeout> | null = null
+    if (wireframeAllowed) {
+      edgeTimerId = setTimeout(() => {
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.geometry) {
+            const existing = child.children.find((c) => c.userData.isEdgeLines)
+            if (!existing) {
+              const edges = new THREE.EdgesGeometry(child.geometry, 30)
+              const lines = new THREE.LineSegments(edges, WIREFRAME_MATERIAL)
+              lines.userData.isEdgeLines = true
+              child.add(lines)
+            }
+          }
+        })
+      }, 0)
+    }
+
+    return () => {
+      if (edgeTimerId) clearTimeout(edgeTimerId)
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const edgeLines = child.children.filter((c) => c.userData.isEdgeLines)
+          edgeLines.forEach((c) => {
+            if (c instanceof THREE.LineSegments) c.geometry.dispose()
+            child.remove(c)
+          })
+        }
+      })
+    }
   }, [scene, material, showWireframe, preserveOriginalMaterials, groups, groupMaterialCache, hiddenGroups])
 
   // 호버 해제 시 원래 재질 복원

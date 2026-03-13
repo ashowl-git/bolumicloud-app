@@ -11,6 +11,8 @@ export interface ModelConfig {
   autoFitCamera?: boolean
   /** Z-up 좌표계 모델을 Y-up(Three.js)으로 회전. 기본값 true (Radiance/SketchUp OBJ) */
   zUp?: boolean
+  /** 그룹 내 메시를 단일 BufferGeometry로 병합하여 draw call 최소화. 기본값 true */
+  mergeGroups?: boolean
 }
 
 // ─── 바운딩 박스 ─────────────────────────────

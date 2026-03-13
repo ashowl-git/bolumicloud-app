@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useRef, useMemo, useState, useEffect, type ReactNode } from 'react'
-import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
@@ -47,57 +47,6 @@ function CameraController({ bbox }: { bbox?: BoundingBox | null }) {
   return null
 }
 
-// ─── damping + demand 모드 호환 ─────────────────────────────
-// OrbitControls damping은 매 프레임 update()가 필요.
-// 인터랙션 종료 후 관성이 남아있는 동안만 invalidate.
-
-function DampingInvalidator() {
-  const { invalidate } = useThree()
-  const dampingActiveRef = useRef(false)
-  const dampingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const controlsRef = useRef<InstanceType<typeof import('three/examples/jsm/controls/OrbitControls.js').OrbitControls> | null>(null)
-  const { controls } = useThree()
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    controlsRef.current = controls as any
-  }, [controls])
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ctrl = controls as any
-    if (!ctrl?.addEventListener) return
-    const onStart = () => {
-      dampingActiveRef.current = true
-      if (dampingTimerRef.current) clearTimeout(dampingTimerRef.current)
-    }
-    const onChange = () => { invalidate() }
-    const onEnd = () => {
-      // damping 관성이 ~1초 내에 감쇠
-      dampingTimerRef.current = setTimeout(() => {
-        dampingActiveRef.current = false
-      }, 1000)
-    }
-    ctrl.addEventListener('start', onStart)
-    ctrl.addEventListener('change', onChange)
-    ctrl.addEventListener('end', onEnd)
-    return () => {
-      ctrl.removeEventListener('start', onStart)
-      ctrl.removeEventListener('change', onChange)
-      ctrl.removeEventListener('end', onEnd)
-      if (dampingTimerRef.current) clearTimeout(dampingTimerRef.current)
-    }
-  }, [controls, invalidate])
-
-  useFrame(() => {
-    if (dampingActiveRef.current && controlsRef.current) {
-      controlsRef.current.update()
-      invalidate()
-    }
-  })
-
-  return null
-}
 
 // ─── ThreeViewer ─────────────────────────────
 
@@ -151,7 +100,7 @@ export default function ThreeViewer({
       style={isFluid ? { cursor: orbitEnabled ? 'grab' : 'crosshair' } : { height, cursor: orbitEnabled ? 'grab' : 'crosshair' }}
     >
       <Canvas
-        frameloop="demand"
+        frameloop="always"
         dpr={[1, 1.5]}
         shadows={enableShadows ? { type: THREE.PCFSoftShadowMap } : undefined}
         camera={{
@@ -174,13 +123,12 @@ export default function ThreeViewer({
           makeDefault
           enabled={orbitEnabled}
           enableDamping={enableDamping}
-          dampingFactor={0.1}
+          dampingFactor={0.05}
           minDistance={maxDim > 0 ? Math.max(1, maxDim * 0.01) : 1}
           maxDistance={maxDim > 0 ? Math.max(5000, maxDim * 5) : 5000}
           target={orbitTarget}
           maxPolarAngle={Math.PI * 0.85}
         />
-        {enableDamping && <DampingInvalidator />}
       </Canvas>
     </div>
   )

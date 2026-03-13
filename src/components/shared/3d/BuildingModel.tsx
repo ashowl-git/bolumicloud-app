@@ -140,24 +140,59 @@ function MaterialApplicator({
     return map
   }, [groups])
 
-  // 그룹별 material 캐시 (dispose 관리 포함)
+  // 그룹별 material 캐시: 기본/선택/페이드 3종을 미리 생성 (clone 제거)
   const groupMaterialCache = useMemo(() => {
     if (!groupColorMap) return null
     const cache = new Map<string, THREE.MeshStandardMaterial>()
     groupColorMap.forEach((color, name) => {
+      // 기본 material
       cache.set(name, new THREE.MeshStandardMaterial({
         color,
         roughness: 0.7,
         metalness: 0.1,
         side: THREE.DoubleSide,
       }))
+      // 선택 하이라이트 material
+      cache.set(name + '__selected', new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.7,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        emissive: new THREE.Color(color),
+        emissiveIntensity: 0.15,
+      }))
+      // 페이드(비선택) material
+      cache.set(name + '__faded', new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.7,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.4,
+      }))
     })
-    // 기본 색상용 fallback
+    // 기본 색상용 fallback (3종)
     cache.set('__default__', new THREE.MeshStandardMaterial({
       color: '#d1d5db',
       roughness: 0.7,
       metalness: 0.1,
       side: THREE.DoubleSide,
+    }))
+    cache.set('__default____selected', new THREE.MeshStandardMaterial({
+      color: '#d1d5db',
+      roughness: 0.7,
+      metalness: 0.1,
+      side: THREE.DoubleSide,
+      emissive: new THREE.Color('#d1d5db'),
+      emissiveIntensity: 0.15,
+    }))
+    cache.set('__default____faded', new THREE.MeshStandardMaterial({
+      color: '#d1d5db',
+      roughness: 0.7,
+      metalness: 0.1,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.4,
     }))
     return cache
   }, [groupColorMap])
@@ -207,17 +242,14 @@ function MaterialApplicator({
             : groupMaterialCache.get('__default__')
 
           if (baseMat) {
-            // 선택 그룹 하이라이트 시 클론 사용
             if (selectedGroup) {
-              const mat = baseMat.clone()
+              // 미리 생성된 selected/faded material 참조 (clone 없음)
+              const key = groupName || '__default__'
               if (groupName === selectedGroup) {
-                mat.emissive = new THREE.Color(baseMat.color)
-                mat.emissiveIntensity = 0.15
+                child.material = groupMaterialCache.get(key + '__selected') || baseMat
               } else {
-                mat.transparent = true
-                mat.opacity = 0.4
+                child.material = groupMaterialCache.get(key + '__faded') || baseMat
               }
-              child.material = mat
             } else {
               child.material = baseMat
             }
@@ -228,20 +260,29 @@ function MaterialApplicator({
 
         child.castShadow = true
         child.receiveShadow = true
-
-        // 와이어프레임 에지 (face 수 임계값 이하일 때만)
-        if (wireframeAllowed) {
-          const existing = child.children.find((c) => c.userData.isEdgeLines)
-          if (!existing) {
-            const edges = new THREE.EdgesGeometry(child.geometry, 30)
-            const lines = new THREE.LineSegments(edges, WIREFRAME_MATERIAL)
-            lines.userData.isEdgeLines = true
-            child.add(lines)
-          }
-        }
       }
     })
+
+    // Phase 4: EdgesGeometry 지연 계산 (초기 렌더 우선, 와이어프레임 후추가)
+    let edgeTimerId: ReturnType<typeof setTimeout> | null = null
+    if (wireframeAllowed) {
+      edgeTimerId = setTimeout(() => {
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.geometry) {
+            const existing = child.children.find((c) => c.userData.isEdgeLines)
+            if (!existing) {
+              const edges = new THREE.EdgesGeometry(child.geometry, 30)
+              const lines = new THREE.LineSegments(edges, WIREFRAME_MATERIAL)
+              lines.userData.isEdgeLines = true
+              child.add(lines)
+            }
+          }
+        })
+      }, 0)
+    }
+
     return () => {
+      if (edgeTimerId) clearTimeout(edgeTimerId)
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           const edgeLines = child.children.filter((c) => c.userData.isEdgeLines)

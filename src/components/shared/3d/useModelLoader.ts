@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { ModelConfig, BoundingBox, ModelLoadResult, ModelLoadState, ModelEntry, LoadedModel, MultiModelLoadResult } from './types'
 
 function computeBBox(object: THREE.Object3D): BoundingBox {
@@ -23,6 +24,119 @@ function computeBBox(object: THREE.Object3D): BoundingBox {
 
 function centerModel(object: THREE.Object3D, bbox: BoundingBox): void {
   object.position.set(-bbox.center[0], -bbox.min[1], -bbox.center[2])
+}
+
+/**
+ * 그룹 노드 내의 모든 Mesh를 단일 BufferGeometry로 병합.
+ * draw call을 그룹 수만큼(10-20)으로 감소시킴.
+ */
+function mergeByGroup(root: THREE.Object3D): void {
+  // 최상위 children(그룹 노드) 순회 — shallow copy로 안전하게
+  const topChildren = [...root.children]
+
+  for (const groupNode of topChildren) {
+    const meshes: THREE.Mesh[] = []
+    groupNode.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.geometry) {
+        meshes.push(child)
+      }
+    })
+
+    // 메시 1개 이하면 병합 불필요
+    if (meshes.length <= 1) continue
+
+    // 각 메시의 world transform을 geometry에 bake
+    const geometries: THREE.BufferGeometry[] = []
+    let firstMaterial: THREE.Material | THREE.Material[] | null = null
+
+    for (const mesh of meshes) {
+      mesh.updateWorldMatrix(true, false)
+      const geo = mesh.geometry.clone()
+
+      // UV 속성 일관성: 일부 메시에만 uv가 있으면 strip
+      // (mergeGeometries가 속성 불일치 시 실패하므로)
+      geo.applyMatrix4(mesh.matrixWorld)
+
+      if (!firstMaterial) {
+        firstMaterial = mesh.material
+      }
+      geometries.push(geo)
+    }
+
+    // UV 속성 일관성 보장
+    const hasUv = geometries.map((g) => !!g.attributes.uv)
+    const allHaveUv = hasUv.every(Boolean)
+    const noneHaveUv = hasUv.every((v) => !v)
+
+    if (!allHaveUv && !noneHaveUv) {
+      // 일부만 UV가 있으면 모두 제거 (색상 기반 렌더링이라 UV 불필요)
+      for (const geo of geometries) {
+        geo.deleteAttribute('uv')
+      }
+    }
+
+    // normal 속성도 동일하게 처리
+    const hasNormal = geometries.map((g) => !!g.attributes.normal)
+    const allHaveNormal = hasNormal.every(Boolean)
+    const noneHaveNormal = hasNormal.every((v) => !v)
+    if (!allHaveNormal && !noneHaveNormal) {
+      for (const geo of geometries) {
+        if (!geo.attributes.normal) {
+          geo.computeVertexNormals()
+        }
+      }
+    }
+
+    const merged = mergeGeometries(geometries, false)
+    if (!merged) {
+      // 병합 실패 시 원본 유지
+      geometries.forEach((g) => g.dispose())
+      continue
+    }
+
+    // 병합된 geometry를 단일 Mesh로 생성
+    const mergedMesh = new THREE.Mesh(
+      merged,
+      firstMaterial || new THREE.MeshStandardMaterial({ color: '#d1d5db' }),
+    )
+    mergedMesh.name = groupNode.name
+
+    // baked geometry의 소스 클론 dispose
+    geometries.forEach((g) => g.dispose())
+
+    // 기존 메시 cleanup 및 교체
+    // groupNode의 children을 제거하고 merged mesh를 추가
+    // identity transform (world transform이 이미 baked)
+    const parent = groupNode.parent
+    if (parent) {
+      const idx = parent.children.indexOf(groupNode)
+
+      // 새 그룹 노드 생성 (이름 보존)
+      const newGroup = new THREE.Group()
+      newGroup.name = groupNode.name
+      newGroup.add(mergedMesh)
+      // merged mesh의 world transform은 이미 bake되었으므로 그룹은 identity
+      mergedMesh.position.set(0, 0, 0)
+      mergedMesh.rotation.set(0, 0, 0)
+      mergedMesh.scale.set(1, 1, 1)
+
+      // 기존 그룹 노드의 메시 dispose
+      groupNode.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry?.dispose()
+        }
+      })
+
+      parent.children[idx] = newGroup
+      newGroup.parent = parent
+      groupNode.parent = null
+    }
+  }
+
+  // 진단 로그
+  let meshCount = 0
+  root.traverse((c) => { if (c instanceof THREE.Mesh) meshCount++ })
+  console.log(`[BoLumiCloud] Merged: ${meshCount} meshes (draw calls)`)
 }
 
 const MODEL_LOAD_TIMEOUT = 30000
@@ -71,6 +185,13 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
       })
 
       group.add(loaded)
+
+      // Per-group 메시 병합 (draw call 최소화)
+      if (config.mergeGroups !== false) {
+        loaded.updateMatrixWorld(true)
+        mergeByGroup(loaded)
+      }
+
       let b = computeBBox(group)
 
       if (config.autoCenter !== false) {
@@ -120,7 +241,7 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
         }
       })
     }
-  }, [config?.url, config?.format, config?.autoCenter, config?.zUp])
+  }, [config?.url, config?.format, config?.autoCenter, config?.zUp, config?.mergeGroups])
 
   return { state, scene, bbox, error }
 }
@@ -171,6 +292,13 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
           }
         })
         group.add(loaded)
+
+        // Per-group 메시 병합
+        if (entry.config.mergeGroups !== false) {
+          loaded.updateMatrixWorld(true)
+          mergeByGroup(loaded)
+        }
+
         let b = computeBBox(group)
         if (entry.config.autoCenter !== false) {
           centerModel(group, b)
