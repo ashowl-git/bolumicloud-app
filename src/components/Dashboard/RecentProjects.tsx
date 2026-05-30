@@ -5,6 +5,7 @@ import { Sun, Eye, EyeOff, CheckCircle2, AlertCircle, Clock, ArrowRight, FolderO
 import { useProjectList, type ProjectEntry } from '@/hooks/useProjectList'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
+import Card from '@/components/common/Card'
 
 const txt = {
   title: { ko: '최근 프로젝트', en: 'Recent Projects' } as LocalizedText,
@@ -69,7 +70,7 @@ export default function RecentProjects() {
   const { projects, isLoading } = useProjectList({ limit: 5 })
 
   return (
-    <div className="border border-gray-200 mb-8 overflow-hidden">
+    <Card padding="none" className="mb-8 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <FolderOpen size={14} className="text-gray-400" />
@@ -98,6 +99,6 @@ export default function RecentProjects() {
           ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

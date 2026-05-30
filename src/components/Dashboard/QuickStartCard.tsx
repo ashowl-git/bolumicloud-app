@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
+import Card from '@/components/common/Card'
 
 const txt = {
   title: { ko: '빠른 시작', en: 'Quick Start' } as LocalizedText,
@@ -37,7 +38,7 @@ export default function QuickStartCard() {
   const { t } = useLocalizedText()
 
   return (
-    <div className="border border-gray-200 p-6 mb-8">
+    <Card padding="lg" className="mb-8">
       <h3 className="text-sm font-medium text-gray-900 mb-1">{t(txt.title)}</h3>
       <p className="text-xs text-gray-500 mb-4">{t(txt.subtitle)}</p>
       <div className="flex flex-wrap gap-3">
@@ -57,6 +58,6 @@ export default function QuickStartCard() {
           </Link>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
