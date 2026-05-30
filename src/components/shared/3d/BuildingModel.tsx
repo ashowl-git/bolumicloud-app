@@ -4,9 +4,12 @@ import { useEffect, useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
 import type { BuildingGroupInfo } from '@/lib/types/sunlight'
-
-// EdgesGeometry 생성 임계값: 총 face 수가 이 값 초과 시 와이어프레임 비활성화
-const WIREFRAME_FACE_LIMIT = 50000
+import {
+  WIREFRAME_FACE_LIMIT,
+  WIREFRAME_MATERIAL,
+  GROUP_COLORS,
+  findGroupForMesh,
+} from './buildingMaterials'
 
 // ─── 건물 재질 ─────────────────────────────
 
@@ -16,18 +19,6 @@ const BUILDING_MATERIAL = new THREE.MeshStandardMaterial({
   metalness: 0.1,
   side: THREE.DoubleSide,
 })
-
-const WIREFRAME_MATERIAL = new THREE.LineBasicMaterial({
-  color: '#9ca3af',
-  linewidth: 1,
-})
-
-// ─── 그룹별 색상 팔레트 ─────────────────────────
-
-const GROUP_COLORS = [
-  '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
-  '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
-]
 
 // ─── BuildingModel ─────────────────────────────
 
@@ -81,21 +72,6 @@ export default function BuildingModel({
       />
     </group>
   )
-}
-
-// ─── 그룹명에서 메시가 속한 그룹을 찾는 헬퍼 ─────────
-
-function findGroupForMesh(mesh: THREE.Mesh, groupNames: string[]): string | null {
-  // 메시 자체 이름 또는 부모 이름으로 그룹 매칭
-  let current: THREE.Object3D | null = mesh
-  while (current) {
-    if (current.name) {
-      const matched = groupNames.find((g) => current!.name === g || current!.name.startsWith(g))
-      if (matched) return matched
-    }
-    current = current.parent
-  }
-  return null
 }
 
 // ─── 재질 적용 헬퍼 ─────────────────────────────
