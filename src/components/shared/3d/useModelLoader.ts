@@ -252,6 +252,10 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
     }))
     setModels(initial)
 
+    // 언마운트/entries 변경 시 in-flight 로드 콜백이 stale state 를 쓰거나
+    // 이미 dispose 된 group 을 추가하는 것을 막는다 (단일 로더의 settled 가드와 동일)
+    let cancelled = false
+
     // Track groups for cleanup
     const groups: THREE.Group[] = []
 
@@ -261,6 +265,7 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
       groups.push(group)
 
       const onLoad = (loaded: THREE.Object3D) => {
+        if (cancelled) return
         if (entry.config.zUp !== false) {
           loaded.rotation.x = -Math.PI / 2
           loaded.updateMatrixWorld(true)
@@ -294,6 +299,7 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
       }
 
       const onError = (err: unknown) => {
+        if (cancelled) return
         const msg = err instanceof Error ? err.message : 'Load failed'
         setModels(prev => {
           const updated = [...prev]
@@ -312,6 +318,7 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
     })
 
     return () => {
+      cancelled = true
       // Dispose geometries and materials to prevent GPU memory leaks
       groups.forEach(group => {
         group.traverse((child) => {

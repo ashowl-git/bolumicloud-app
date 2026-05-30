@@ -74,7 +74,9 @@ export default function ThreeViewer({
   useEffect(() => {
     try {
       const canvas = document.createElement('canvas')
-      const available = !!(canvas.getContext('webgl2') || canvas.getContext('experimental-webgl2'))
+      // 'experimental-webgl2'는 유효한 context id가 아니다(실존: 'experimental-webgl'=WebGL1).
+      // 항상 null이라 죽은 fallback이었다 → WebGL2 가용성만 판정한다.
+      const available = !!canvas.getContext('webgl2')
       setWebglAvailable(available)
     } catch {
       setWebglAvailable(false)
