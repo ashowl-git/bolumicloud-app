@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { useApi } from '@/contexts/ApiContext'
@@ -97,10 +98,16 @@ export default function DashboardGrid() {
       </div>
 
       {/* Module Grid by Section */}
-      {sections.map(({ section, modules }) => {
+      {sections.map(({ section, modules }, idx) => {
         const SectionIcon = section.icon
         return (
-          <div key={section.id} className="mb-10">
+          <motion.div
+            key={section.id}
+            className="mb-10"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: Math.min(idx * 0.05, 0.2), ease: 'easeOut' }}
+          >
             <div className="flex items-center gap-2.5 mb-4">
               <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
                 <SectionIcon size={15} strokeWidth={1.75} />
@@ -116,7 +123,7 @@ export default function DashboardGrid() {
                 <ModuleCard key={mod.id} module={mod} basePath={section.basePath} />
               ))}
             </div>
-          </div>
+          </motion.div>
         )
       })}
 
