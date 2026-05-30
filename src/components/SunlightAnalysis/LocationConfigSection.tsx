@@ -306,7 +306,7 @@ export default function LocationConfigSection({
             /* 10진수 모드 (기존) */
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div>
-                <label htmlFor="loc-lat" className="text-[10px] font-medium text-gray-500 block mb-1">위도</label>
+                <label htmlFor="loc-lat" className="text-[10px] font-medium text-gray-500 block mb-1">위도 (°)</label>
                 <input
                   id="loc-lat"
                   type="number"
@@ -331,7 +331,7 @@ export default function LocationConfigSection({
                 )}
               </div>
               <div>
-                <label htmlFor="loc-lon" className="text-[10px] font-medium text-gray-500 block mb-1">경도</label>
+                <label htmlFor="loc-lon" className="text-[10px] font-medium text-gray-500 block mb-1">경도 (°)</label>
                 <input
                   id="loc-lon"
                   type="number"
