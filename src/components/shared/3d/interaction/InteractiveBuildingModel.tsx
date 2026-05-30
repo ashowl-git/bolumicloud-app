@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useMemo, useCallback } from 'react'
-import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { BoundingBox } from '../types'
@@ -75,13 +74,11 @@ interface InteractiveBuildingModelProps {
 
 export default function InteractiveBuildingModel({
   scene,
-  bbox,
   interactionEnabled = false,
   onSurfaceHover,
   onSurfaceClick,
   highlightColor = '#fbbf24',
   showWireframe = true,
-  autoFitCamera = true,
   color,
   allowedSurfaces,
   opacity,
@@ -92,7 +89,6 @@ export default function InteractiveBuildingModel({
   const groupRef = useRef<THREE.Group>(null)
   const hoveredMeshRef = useRef<THREE.Mesh | null>(null)
   const originalMaterialRef = useRef<THREE.Material | null>(null)
-  const { camera } = useThree()
 
   const material = useMemo(() => {
     if (!color && !opacity) return DEFAULT_MATERIAL
@@ -132,17 +128,7 @@ export default function InteractiveBuildingModel({
     return () => { groupMaterialCache?.forEach((mat) => mat.dispose()) }
   }, [groupMaterialCache])
 
-  // 카메라 자동 맞춤
-  useEffect(() => {
-    if (!autoFitCamera || !bbox || !camera) return
-    const maxDim = Math.max(...bbox.size)
-    const dist = maxDim * 1.8
-    if (camera instanceof THREE.PerspectiveCamera) {
-      camera.position.set(dist, dist * 0.7, dist)
-      camera.lookAt(0, bbox.size[1] * 0.3, 0)
-      camera.updateProjectionMatrix()
-    }
-  }, [bbox, camera, autoFitCamera])
+  // 카메라 초기 배치는 ThreeViewer의 CameraController가 단독 소유한다.
 
   // 재질 적용 (그룹 색상 + 가시성 지원)
   useEffect(() => {
@@ -220,11 +206,19 @@ export default function InteractiveBuildingModel({
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {
     if (hoveredMeshRef.current && originalMaterialRef.current) {
+      const highlight = hoveredMeshRef.current.material
       hoveredMeshRef.current.material = originalMaterialRef.current
+      // 호버용으로 clone한 하이라이트 material 해제 (GPU 메모리 누수 방지)
+      if (highlight && highlight !== originalMaterialRef.current && !Array.isArray(highlight)) {
+        highlight.dispose()
+      }
     }
     hoveredMeshRef.current = null
     originalMaterialRef.current = null
   }, [])
+
+  // 언마운트 시 남아있는 호버 하이라이트 정리
+  useEffect(() => restoreHovered, [restoreHovered])
 
   // 그룹명 목록 (groups prop 기반)
   const groupNames = useMemo(() => groups?.map((g) => g.name) ?? [], [groups])

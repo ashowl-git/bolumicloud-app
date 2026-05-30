@@ -125,11 +125,12 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
   const [scene, setScene] = useState<THREE.Group | null>(null)
   const [bbox, setBbox] = useState<BoundingBox | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const prevUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!config || config.url === prevUrlRef.current) return
-    prevUrlRef.current = config.url
+    // 가드는 config 부재만 검사한다. url/format/zUp/autoCenter/mergeGroups 중
+    // 무엇이 바뀌든 deps 배열이 재실행을 정확히 게이트하므로, 같은 url에서
+    // zUp·format 등을 토글해도 반영된다 (이전 url-only 가드는 이를 삼켰음).
+    if (!config) return
 
     setState('loading')
     setError(null)

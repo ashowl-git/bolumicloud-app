@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useMemo } from 'react'
-import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
 import type { BuildingGroupInfo } from '@/lib/types/sunlight'
@@ -46,16 +45,13 @@ interface BuildingModelProps {
 
 export default function BuildingModel({
   scene,
-  bbox,
   showWireframe = true,
-  autoFitCamera = true,
   color,
   groups,
   selectedGroup,
   preserveOriginalMaterials = false,
 }: BuildingModelProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const { camera } = useThree()
 
   const material = useMemo(() => {
     if (!color) return BUILDING_MATERIAL
@@ -67,19 +63,8 @@ export default function BuildingModel({
     })
   }, [color])
 
-  // 카메라 자동 맞춤
-  useEffect(() => {
-    if (!autoFitCamera || !bbox || !camera) return
-
-    const maxDim = Math.max(...bbox.size)
-    const dist = maxDim * 1.8
-
-    if (camera instanceof THREE.PerspectiveCamera) {
-      camera.position.set(dist, dist * 0.7, dist)
-      camera.lookAt(0, bbox.size[1] * 0.3, 0)
-      camera.updateProjectionMatrix()
-    }
-  }, [bbox, camera, autoFitCamera])
+  // 카메라 초기 배치는 ThreeViewer의 CameraController가 단독 소유한다.
+  // (이전: 이 컴포넌트와 ThreeViewer가 카메라를 동시 제어 → orbit pivot 불일치)
 
   if (!scene) return null
 
