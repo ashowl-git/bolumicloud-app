@@ -18,6 +18,9 @@ import SanalystProjectInfoForm, { EMPTY_INFO } from './SanalystProjectInfoForm'
 
 interface ReportDownloadPanelProps {
   sessionId: string
+  modelId?: string | null
+  /** .sn5f 로 임포트된 모델만 Sanalyst 파일로 export 가능 */
+  canExportSn5f?: boolean
   results: SunlightAnalysisResult
   config: SunlightConfigState
   onCauseAnalysis: (result: CauseAnalysisResult) => void
@@ -25,6 +28,8 @@ interface ReportDownloadPanelProps {
 
 export default function ReportDownloadPanel({
   sessionId,
+  modelId,
+  canExportSn5f,
   results,
   config,
   onCauseAnalysis,
@@ -38,6 +43,7 @@ export default function ReportDownloadPanel({
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const [reportFormat, setReportFormat] = useState<ReportFormat>('bolumicloud')
   const [projectInfo, setProjectInfo] = useState<SanalystProjectInfo>({ ...EMPTY_INFO })
+  const [isExporting, setIsExporting] = useState(false)
 
   // Cleanup on unmount
   useEffect(() => {
@@ -106,6 +112,43 @@ export default function ReportDownloadPanel({
     if (!downloadUrl) return
     window.open(downloadUrl, '_blank')
   }, [downloadUrl])
+
+  // .sn5f export: 원본 지오메트리 + 현재 분석조건을 Sanalyst 파일로 (조건 주입)
+  const handleExportSn5f = useCallback(async () => {
+    if (!modelId) return
+    setIsExporting(true)
+    setError(null)
+    try {
+      const exportConfig = {
+        azimuth: config.azimuth,
+        month: config.date.month,
+        day: config.date.day,
+        latitude: config.latitude,
+        longitude: config.longitude,
+        standard_meridian: config.timezone,
+        solar_time_mode: config.solarTimeMode,
+        total_sun_start: config.totalThreshold.startHour,
+        total_sun_end: config.totalThreshold.endHour,
+        total_sun_threshold: Math.round(config.totalThreshold.requiredHours * 60),
+        continuous_sun_start: config.continuousThreshold.startHour,
+        continuous_sun_end: config.continuousThreshold.endHour,
+        continuous_sun_threshold: Math.round(config.continuousThreshold.requiredHours * 60),
+      }
+      const blob = await api.postBlob(`/import/${modelId}/export-sn5f`, { config: exportConfig })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'bolumicloud_export.sn5f'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sanalyst 파일 내보내기 실패')
+    } finally {
+      setIsExporting(false)
+    }
+  }, [api, modelId, config])
 
   return (
     <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-3">
@@ -194,6 +237,28 @@ export default function ReportDownloadPanel({
           )}
         </div>
       </div>
+
+      {/* Sanalyst 파일 내보내기 (.sn5f 임포트 모델만) */}
+      {canExportSn5f && modelId && (
+        <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-3">
+          <div>
+            <p className="text-xs font-medium text-gray-700 dark:text-slate-300">Sanalyst 파일로 내보내기</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">원본 모델 + 현재 분석조건을 .sn5f 로 (Sanalyst 에서 재계산)</p>
+          </div>
+          <button
+            onClick={handleExportSn5f}
+            disabled={isExporting}
+            className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 hover:border-red-600/30
+              px-4 py-2 text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isExporting
+              ? <Loader2 size={14} className="animate-spin" />
+              : <Download size={14} />}
+            {isExporting ? '생성 중...' : '.sn5f 내보내기'}
+          </button>
+        </div>
+      )}
 
       {/* Error */}
       {error && (

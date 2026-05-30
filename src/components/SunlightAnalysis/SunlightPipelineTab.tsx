@@ -32,7 +32,7 @@ export default function SunlightPipelineTab() {
   const { t } = useLocalizedText()
   const { apiUrl } = useApi()
   const {
-    phase, sessionId, sceneUrl, modelMeta, progress, results,
+    phase, sessionId, modelId, importData, sceneUrl, modelMeta, progress, results,
     error, isCancelled, estimatedRemainingSec, windowPoints,
     uploadFile, runAnalysis, cancelAnalysis, reset,
   } = useSunlightPipelineContext()
@@ -212,6 +212,7 @@ export default function SunlightPipelineTab() {
         {currentStep === 4 && results && (
           <motion.div key="step-4" variants={fadeVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
             <ResultsStep sessionId={sessionId} results={results} config={config}
+              modelId={modelId} canExportSn5f={!!importData?.sessionId}
               modelScene={modelScene} modelBbox={modelBbox} shadow={shadow}
               placementPoints={placement.points} selectedPointId={placement.selectedPointId}
               onPointSelect={placement.selectPoint} causeResult={causeResult} onCauseAnalysis={setCauseResult}

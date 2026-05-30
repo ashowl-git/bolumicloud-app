@@ -28,6 +28,8 @@ const txt = {
 
 export interface ResultsStepProps {
   sessionId: string | null
+  modelId?: string | null
+  canExportSn5f?: boolean
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: any
   config: SunlightConfigState
@@ -47,6 +49,8 @@ export interface ResultsStepProps {
 
 export default function ResultsStep({
   sessionId,
+  modelId,
+  canExportSn5f,
   results,
   config,
   modelScene,
@@ -141,6 +145,8 @@ export default function ResultsStep({
       {sessionId && (
         <ReportDownloadPanel
           sessionId={sessionId}
+          modelId={modelId}
+          canExportSn5f={canExportSn5f}
           results={results}
           config={config}
           onCauseAnalysis={onCauseAnalysis}
