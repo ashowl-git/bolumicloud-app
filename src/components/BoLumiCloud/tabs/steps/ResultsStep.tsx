@@ -68,8 +68,8 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
     >
       {/* Pipeline Info */}
       {info && (
-        <div className="border border-gray-200 p-4">
-          <p className="text-sm text-gray-700">
+        <div className="border border-gray-200 dark:border-slate-700 p-4">
+          <p className="text-sm text-gray-700 dark:text-slate-300">
             총 소요 시간 {(info.total_duration_sec / 60).toFixed(1)}min |{' '}
             {info.quality} | {info.resolution} |{' '}
             {info.vf_count && info.vf_count > 1 ? `${info.vf_count} VFs | ` : ''}
@@ -80,7 +80,7 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
       )}
 
       {/* Results Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-slate-700">
         <div className="flex gap-1">
           {([
             { id: 'summary', label: '요약' },
@@ -95,7 +95,7 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-300 ${
                 resultsTab === tab.id
                   ? 'border-red-600 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               {tab.label}
@@ -108,12 +108,12 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
       {resultsTab === 'summary' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="border border-gray-200 p-6">
+            <div className="border border-gray-200 dark:border-slate-700 p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Images size={16} strokeWidth={1.5} className="text-gray-400" />
-                <p className="text-sm text-gray-800">총 렌더</p>
+                <Images size={16} strokeWidth={1.5} className="text-gray-400 dark:text-slate-500" />
+                <p className="text-sm text-gray-800 dark:text-slate-200">총 렌더</p>
               </div>
-              <p className="text-4xl font-light text-gray-900">
+              <p className="text-4xl font-light text-gray-900 dark:text-slate-100">
                 {results.summary.total}
               </p>
             </div>
@@ -121,18 +121,18 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
             <div className={`border p-6 ${
               results.summary.disability_count > 0
                 ? 'border-red-200 bg-red-50'
-                : 'border-gray-200'
+                : 'border-gray-200 dark:border-slate-700'
             }`}>
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle size={16} strokeWidth={1.5} className={
-                  results.summary.disability_count > 0 ? 'text-red-500' : 'text-gray-400'
+                  results.summary.disability_count > 0 ? 'text-red-500' : 'text-gray-400 dark:text-slate-500'
                 } />
-                <p className="text-sm text-gray-800">불능현휘</p>
+                <p className="text-sm text-gray-800 dark:text-slate-200">불능현휘</p>
               </div>
               <p className="text-4xl font-light text-red-600">
                 {results.summary.disability_count}
               </p>
-              <p className="text-xs text-gray-800 mt-2">
+              <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">
                 {results.summary.total > 0
                   ? ((results.summary.disability_count / results.summary.total) * 100).toFixed(1)
                   : 0}
@@ -140,28 +140,28 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
               </p>
             </div>
 
-            <div className="border border-gray-200 p-6">
+            <div className="border border-gray-200 dark:border-slate-700 p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Gauge size={16} strokeWidth={1.5} className="text-gray-400" />
-                <p className="text-sm text-gray-800">평균 DGP</p>
+                <Gauge size={16} strokeWidth={1.5} className="text-gray-400 dark:text-slate-500" />
+                <p className="text-sm text-gray-800 dark:text-slate-200">평균 DGP</p>
               </div>
-              <p className="text-4xl font-light text-gray-900">
+              <p className="text-4xl font-light text-gray-900 dark:text-slate-100">
                 {Number(results.summary.average_dgp).toFixed(3)}
               </p>
-              <p className="text-xs text-gray-800 mt-2">
+              <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">
                 최대: {Number(results.summary.max_dgp).toFixed(3)}
               </p>
             </div>
 
-            <div className="border border-gray-200 p-6">
+            <div className="border border-gray-200 dark:border-slate-700 p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Sun size={16} strokeWidth={1.5} className="text-gray-400" />
-                <p className="text-sm text-gray-800">평균 휘도</p>
+                <Sun size={16} strokeWidth={1.5} className="text-gray-400 dark:text-slate-500" />
+                <p className="text-sm text-gray-800 dark:text-slate-200">평균 휘도</p>
               </div>
-              <p className="text-4xl font-light text-gray-900">
+              <p className="text-4xl font-light text-gray-900 dark:text-slate-100">
                 {Number(results.summary.average_luminance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
-              <p className="text-xs text-gray-800 mt-2">cd/m2</p>
+              <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">cd/m2</p>
             </div>
           </div>
         </div>
@@ -203,18 +203,18 @@ const ResultsStep = forwardRef<HTMLDivElement, ResultsStepProps>(function Result
       )}
 
       {/* Bottom Navigation */}
-      <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
+      <div className="flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-slate-800">
         <button
           onClick={onBackToSettings}
-          className="border border-gray-200 hover:border-gray-400 px-6 py-3
-            text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+          className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
+            text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
         >
           {t(txt.changeSettings)}
         </button>
         <button
           onClick={onReset}
-          className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-            text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+          className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
+            text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
         >
           {t(txt.reset)}
         </button>

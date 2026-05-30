@@ -22,8 +22,8 @@ export default function ReportSection({
           <button
             onClick={onGenerateReport}
             disabled={isGeneratingReport}
-            className="flex items-center gap-1.5 border border-gray-200 hover:border-red-600/30
-              px-3 py-1.5 text-xs text-gray-900 hover:text-red-600 transition-all
+            className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 hover:border-red-600/30
+              px-3 py-1.5 text-xs text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGeneratingReport && <Loader2 size={12} className="animate-spin" />}

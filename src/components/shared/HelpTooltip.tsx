@@ -17,7 +17,7 @@ export default function HelpTooltip({ text }: HelpTooltipProps) {
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onClick={(e) => { e.preventDefault(); setShow(!show) }}
-        className="text-gray-300 hover:text-gray-500 transition-colors"
+        className="text-gray-300 dark:text-slate-600 hover:text-gray-500 transition-colors"
         aria-label="도움말"
       >
         <HelpCircle size={11} />

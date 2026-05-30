@@ -151,8 +151,8 @@ export default function SunPathDiagram({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Sun Path Diagram</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">Sun Path Diagram</h3>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
             ({latitude.toFixed(4)}, {longitude.toFixed(4)}) | UTC+{timeZoneOffset}
             {dataSource === 'backend' && (
               <span className="ml-2 text-blue-500">[Backend]</span>
@@ -163,7 +163,7 @@ export default function SunPathDiagram({
 
       {/* Backend loading / error state */}
       {dataSource === 'backend' && backendLoading && (
-        <div className="mb-3 text-xs text-gray-400">Loading sun path data from server...</div>
+        <div className="mb-3 text-xs text-gray-400 dark:text-slate-500">Loading sun path data from server...</div>
       )}
       {dataSource === 'backend' && backendError && (
         <div className="mb-3 text-xs text-red-500">
@@ -175,7 +175,7 @@ export default function SunPathDiagram({
       <svg
         width={svgSize}
         height={svgSize}
-        className="border border-gray-200 bg-white select-none"
+        className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 select-none"
         onMouseLeave={() => setHovered(null)}
       >
         <SunPathGrid cx={cx} cy={cy} radius={radius} />
@@ -211,7 +211,7 @@ export default function SunPathDiagram({
       />
 
       {/* Info note */}
-      <div className="mt-2 flex items-start gap-1.5 text-[10px] text-gray-400">
+      <div className="mt-2 flex items-start gap-1.5 text-[10px] text-gray-400 dark:text-slate-500">
         <Info size={12} className="mt-0.5 shrink-0" />
         <span>
           Stereographic polar projection. Outer circle = horizon (0 deg altitude),

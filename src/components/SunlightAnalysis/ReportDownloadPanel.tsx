@@ -108,12 +108,12 @@ export default function ReportDownloadPanel({
   }, [downloadUrl])
 
   return (
-    <div className="border border-gray-200 p-4 space-y-3">
+    <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-3">
       {/* 모드 선택 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet size={18} className="text-gray-500" />
-          <span className="text-sm font-medium text-gray-900">분석 보고서</span>
+          <FileSpreadsheet size={18} className="text-gray-500 dark:text-slate-400" />
+          <span className="text-sm font-medium text-gray-900 dark:text-slate-100">분석 보고서</span>
         </div>
         <div className="flex items-center gap-1">
           {(['bolumicloud', 'sanalyst'] as ReportFormat[]).map((fmt) => (
@@ -123,7 +123,7 @@ export default function ReportDownloadPanel({
               className={`px-3 py-1 text-xs transition-colors ${
                 reportFormat === fmt
                   ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
               }`}
             >
               {REPORT_FORMAT_LABELS[fmt].ko}
@@ -132,7 +132,7 @@ export default function ReportDownloadPanel({
         </div>
       </div>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-400 dark:text-slate-500">
         {REPORT_FORMAT_LABELS[reportFormat].description}
       </p>
 
@@ -147,8 +147,8 @@ export default function ReportDownloadPanel({
           {!isGenerating && !downloadUrl && (
             <button
               onClick={handleGenerate}
-              className="flex items-center gap-1.5 border border-gray-200 hover:border-red-600/30
-                px-4 py-2 text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+              className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 hover:border-red-600/30
+                px-4 py-2 text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
             >
               <FileSpreadsheet size={14} />
               보고서 생성
@@ -158,12 +158,12 @@ export default function ReportDownloadPanel({
           {/* 생성 중 */}
           {isGenerating && (
             <div className="flex items-center gap-2" aria-live="polite">
-              <Loader2 size={14} className="animate-spin text-gray-500" />
-              <span className="text-xs text-gray-500">
+              <Loader2 size={14} className="animate-spin text-gray-500 dark:text-slate-400" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">
                 생성 중... {progress.toFixed(0)}%
               </span>
               <div
-                className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+                className="w-20 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
                 role="progressbar"
                 aria-valuenow={progress}
                 aria-valuemin={0}
@@ -189,7 +189,7 @@ export default function ReportDownloadPanel({
                 <Download size={14} />
                 Excel 다운로드
               </button>
-              <span className="text-xs text-gray-400">2시간 내 다운로드하세요</span>
+              <span className="text-xs text-gray-400 dark:text-slate-500">2시간 내 다운로드하세요</span>
             </div>
           )}
         </div>

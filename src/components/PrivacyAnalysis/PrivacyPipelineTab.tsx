@@ -172,14 +172,14 @@ export default function PrivacyPipelineTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <EyeOff size={28} strokeWidth={1.2} className="text-gray-400" />
+          <EyeOff size={28} strokeWidth={1.2} className="text-gray-400 dark:text-slate-500" />
           <div>
-            <h1 className="text-2xl font-light text-gray-900">{t(txt.title)}</h1>
-            <p className="text-sm text-gray-500">{t(txt.subtitle)}</p>
+            <h1 className="text-2xl font-light text-gray-900 dark:text-slate-100">{t(txt.title)}</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400">{t(txt.subtitle)}</p>
           </div>
         </div>
         {(phase !== 'idle' || step > 1) && (
-          <button onClick={() => setShowResetConfirm(true)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition-colors">
+          <button onClick={() => setShowResetConfirm(true)} className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition-colors">
             <RotateCcw size={14} /> {t(txt.reset)}
           </button>
         )}
@@ -206,14 +206,14 @@ export default function PrivacyPipelineTab() {
                 step === s.id
                   ? 'text-red-600 border-b-2 border-red-600'
                   : s.id < step || (s.id === 4 && results)
-                  ? 'text-gray-700 cursor-pointer hover:text-red-600'
-                  : 'text-gray-400'
+                  ? 'text-gray-700 dark:text-slate-300 cursor-pointer hover:text-red-600'
+                  : 'text-gray-400 dark:text-slate-500'
               }`}
             >
               <s.icon size={14} />
               {t(s.label)}
             </button>
-            {idx < STEPS.length - 1 && <span className="text-gray-300">—</span>}
+            {idx < STEPS.length - 1 && <span className="text-gray-300 dark:text-slate-600">—</span>}
           </div>
         ))}
       </div>
@@ -236,32 +236,32 @@ export default function PrivacyPipelineTab() {
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
             {/* Target File */}
-            <div className="border border-gray-200 p-6">
-              <label className="text-sm font-medium text-gray-900 mb-3 block">{t(txt.uploadTarget)}</label>
+            <div className="border border-gray-200 dark:border-slate-700 p-6">
+              <label className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3 block">{t(txt.uploadTarget)}</label>
               <div
                 onClick={() => targetInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 hover:border-red-600/30 p-8 text-center cursor-pointer transition-colors"
+                className="border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-red-600/30 p-8 text-center cursor-pointer transition-colors"
               >
                 {targetFile ? (
-                  <p className="text-sm text-gray-700">{targetFile.name} ({(targetFile.size / 1024 / 1024).toFixed(1)} MB)</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{targetFile.name} ({(targetFile.size / 1024 / 1024).toFixed(1)} MB)</p>
                 ) : (
-                  <p className="text-sm text-gray-400">{t(txt.dropHint)}</p>
+                  <p className="text-sm text-gray-400 dark:text-slate-500">{t(txt.dropHint)}</p>
                 )}
               </div>
               <input ref={targetInputRef} type="file" accept=".obj" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setTargetFile(e.target.files[0]) }} />
             </div>
 
             {/* Observer File */}
-            <div className="border border-gray-200 p-6">
-              <label className="text-sm font-medium text-gray-900 mb-3 block">{t(txt.uploadObserver)}</label>
+            <div className="border border-gray-200 dark:border-slate-700 p-6">
+              <label className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3 block">{t(txt.uploadObserver)}</label>
               <div
                 onClick={() => observerInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 hover:border-red-600/30 p-8 text-center cursor-pointer transition-colors"
+                className="border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-red-600/30 p-8 text-center cursor-pointer transition-colors"
               >
                 {observerFile ? (
-                  <p className="text-sm text-gray-700">{observerFile.name} ({(observerFile.size / 1024 / 1024).toFixed(1)} MB)</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{observerFile.name} ({(observerFile.size / 1024 / 1024).toFixed(1)} MB)</p>
                 ) : (
-                  <p className="text-sm text-gray-400">{t(txt.dropHint)}</p>
+                  <p className="text-sm text-gray-400 dark:text-slate-500">{t(txt.dropHint)}</p>
                 )}
               </div>
               <input ref={observerInputRef} type="file" accept=".obj" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setObserverFile(e.target.files[0]) }} />
@@ -271,7 +271,7 @@ export default function PrivacyPipelineTab() {
               <button
                 onClick={sessionId ? () => setStep(2) : handleUpload}
                 disabled={!canProceedStep1}
-                className="border border-gray-200 px-6 py-2.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
+                className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
               >
                 {phase === 'uploading' ? t(txt.uploading) : t(txt.next)}
               </button>
@@ -295,7 +295,7 @@ export default function PrivacyPipelineTab() {
 
               {/* 우측: 3D 뷰어 + 창문 배치 */}
               {has3DModels && (
-                <div className="border border-gray-200 relative">
+                <div className="border border-gray-200 dark:border-slate-700 relative">
                   <InteractionToolbar
                     analysisType="privacy"
                     mode={placement.mode}
@@ -327,8 +327,8 @@ export default function PrivacyPipelineTab() {
                     onWindowClick={setSelectedWindowId}
                   />
                   {totalWindows > 0 && (
-                    <div className="px-4 py-2 border-t border-gray-100">
-                      <p className="text-xs text-gray-500">
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800">
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
                         <span className="text-orange-600">대상 {config.targetWindows.length}개</span>
                         {' / '}
                         <span className="text-blue-600">관찰 {config.observerWindows.length}개</span>
@@ -341,13 +341,13 @@ export default function PrivacyPipelineTab() {
             </div>
 
             <div className="flex justify-between">
-              <button onClick={() => setStep(1)} className="border border-gray-200 px-6 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+              <button onClick={() => setStep(1)} className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 transition-colors">
                 {t(txt.prev)}
               </button>
               <button
                 onClick={handleRun}
                 disabled={!canProceedStep2}
-                className="border border-gray-200 px-6 py-2.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
+                className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
               >
                 {t(txt.startAnalysis)}
               </button>
@@ -358,14 +358,14 @@ export default function PrivacyPipelineTab() {
         {/* Step 3: Progress */}
         {step === 3 && (
           <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <div className="border border-gray-200 p-8">
+            <div className="border border-gray-200 dark:border-slate-700 p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-light text-gray-900">{t(txt.analyzing)}</h3>
-                <span className="text-sm text-gray-500">{t(txt.elapsed)}: {progress?.elapsed_sec?.toFixed(0) ?? 0}s</span>
+                <h3 className="text-lg font-light text-gray-900 dark:text-slate-100">{t(txt.analyzing)}</h3>
+                <span className="text-sm text-gray-500 dark:text-slate-400">{t(txt.elapsed)}: {progress?.elapsed_sec?.toFixed(0) ?? 0}s</span>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full h-2 bg-gray-100 mb-6">
+              <div className="w-full h-2 bg-gray-100 dark:bg-slate-700 mb-6">
                 <div
                   className="h-full bg-red-600 transition-all duration-500"
                   style={{ width: `${progress?.overall_progress ?? 0}%` }}
@@ -381,10 +381,10 @@ export default function PrivacyPipelineTab() {
                     ) : stage.status === 'processing' ? (
                       <Loader2 size={16} className="text-red-600 animate-spin" />
                     ) : (
-                      <div className="w-4 h-4 border border-gray-300 rounded-full" />
+                      <div className="w-4 h-4 border border-gray-300 dark:border-slate-600 rounded-full" />
                     )}
                     <span className={`text-sm ${
-                      stage.status === 'processing' ? 'text-red-600' : stage.status === 'completed' ? 'text-gray-700' : 'text-gray-400'
+                      stage.status === 'processing' ? 'text-red-600' : stage.status === 'completed' ? 'text-gray-700 dark:text-slate-300' : 'text-gray-400 dark:text-slate-500'
                     }`}>
                       {t(PRIVACY_STAGE_LABELS[stage.name as PrivacyStage] || { ko: stage.name, en: stage.name })}
                     </span>
@@ -396,7 +396,7 @@ export default function PrivacyPipelineTab() {
             <div className="flex justify-end">
               <button
                 onClick={cancel}
-                className="border border-gray-200 px-6 py-2.5 text-sm text-gray-500 hover:text-red-600 transition-colors"
+                className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition-colors"
               >
                 {t(txt.cancel)}
               </button>

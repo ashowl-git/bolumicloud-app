@@ -29,7 +29,7 @@ export default function GlassPresetPicker({
 
   return (
     <div>
-      <label className="text-xs text-gray-500 mb-2 block">유리 프리셋</label>
+      <label className="text-xs text-gray-500 dark:text-slate-400 mb-2 block">유리 프리셋</label>
 
       {/* Category filter tabs */}
       <div className="flex gap-1 mb-3 overflow-x-auto pb-1">
@@ -39,7 +39,7 @@ export default function GlassPresetPicker({
           className={`px-2.5 py-1 text-[10px] border transition-all whitespace-nowrap ${
             glassCategory === 'all'
               ? 'border-red-600 text-red-600 bg-red-50'
-              : 'border-gray-200 text-gray-500 hover:border-gray-400'
+              : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-gray-400'
           }`}
         >
           전체 ({ENHANCED_GLASS_PRESETS.length})
@@ -54,7 +54,7 @@ export default function GlassPresetPicker({
               className={`px-2.5 py-1 text-[10px] border transition-all whitespace-nowrap ${
                 glassCategory === key
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                  : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-gray-400'
               }`}
             >
               {label} ({count})
@@ -78,18 +78,18 @@ export default function GlassPresetPicker({
                 hover:border-red-600/30 ${
                   isActive
                     ? 'border-red-600 bg-red-50/50'
-                    : 'border-gray-200'
+                    : 'border-gray-200 dark:border-slate-700'
                 }`}
             >
               <div className="flex items-center gap-1.5">
                 <div
-                  className="w-3 h-3 border border-gray-300 flex-shrink-0"
+                  className="w-3 h-3 border border-gray-300 dark:border-slate-600 flex-shrink-0"
                   style={{
                     backgroundColor: colorToHex(preset.r, preset.g, preset.b),
                     opacity: 0.7,
                   }}
                 />
-                <span className="text-[11px] text-gray-700 font-medium truncate">
+                <span className="text-[11px] text-gray-700 dark:text-slate-300 font-medium truncate">
                   {preset.label}
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function GlassPresetPicker({
                 <span className={`text-[10px] font-medium ${presetRisk.color}`}>
                   R{(preset.vlr * 100).toFixed(0)}
                 </span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-400 dark:text-slate-500">
                   SHGC {preset.shgc}
                 </span>
               </div>

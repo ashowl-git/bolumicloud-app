@@ -37,7 +37,7 @@ export default function ScenarioComparisonView({
 
   if (!comparison || scenarios.length < 2) {
     return (
-      <div className="text-xs text-gray-400 text-center py-4">
+      <div className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">
         비교할 시나리오가 2개 이상 필요합니다
       </div>
     )
@@ -52,19 +52,19 @@ export default function ScenarioComparisonView({
             key={idx}
             className={`border rounded-lg p-2.5 ${
               sc.isBase
-                ? 'border-gray-200 bg-gray-50'
+                ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800'
                 : sc.deltaRate > 0
                   ? 'border-green-200 bg-green-50/50'
                   : sc.deltaRate < 0
                     ? 'border-red-200 bg-red-50/50'
-                    : 'border-gray-200'
+                    : 'border-gray-200 dark:border-slate-700'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-700">{sc.label}</span>
+              <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{sc.label}</span>
               {!sc.isBase && (
                 <span className={`text-[10px] flex items-center gap-0.5 ${
-                  sc.deltaRate > 0 ? 'text-green-600' : sc.deltaRate < 0 ? 'text-red-500' : 'text-gray-400'
+                  sc.deltaRate > 0 ? 'text-green-600' : sc.deltaRate < 0 ? 'text-red-500' : 'text-gray-400 dark:text-slate-500'
                 }`}>
                   {sc.deltaRate > 0 ? <TrendingUp size={10} /> : sc.deltaRate < 0 ? <TrendingDown size={10} /> : <Minus size={10} />}
                   {sc.deltaRate > 0 ? '+' : ''}{sc.deltaRate.toFixed(1)}%
@@ -73,10 +73,10 @@ export default function ScenarioComparisonView({
             </div>
             <div className="flex items-center gap-3">
               <div>
-                <div className="text-lg font-semibold text-gray-900">{sc.complianceRate.toFixed(1)}%</div>
-                <div className="text-[10px] text-gray-400">적합률</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-slate-100">{sc.complianceRate.toFixed(1)}%</div>
+                <div className="text-[10px] text-gray-400 dark:text-slate-500">적합률</div>
               </div>
-              <div className="text-[10px] text-gray-500">
+              <div className="text-[10px] text-gray-500 dark:text-slate-400">
                 {sc.compliantPoints}/{sc.totalPoints} 적합
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function ScenarioComparisonView({
 
       {/* Delta summary */}
       {comparison.length >= 2 && (
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-slate-400">
           <span>{comparison[0].label}</span>
           <ArrowRight size={12} />
           <span>{comparison[comparison.length - 1].label}</span>

@@ -97,10 +97,10 @@ export default function MaterialEditor({
 
   if (loading) {
     return (
-      <div className="border border-gray-200 p-6">
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-500">재질 정보 로딩 중...</span>
+          <span className="text-sm text-gray-500 dark:text-slate-400">재질 정보 로딩 중...</span>
         </div>
       </div>
     )
@@ -109,22 +109,22 @@ export default function MaterialEditor({
   if (matList.length === 0) return null
 
   return (
-    <div className="border border-gray-200 p-6">
+    <div className="border border-gray-200 dark:border-slate-700 p-6">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between"
       >
-        <h3 className="text-sm font-medium text-gray-900">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">
           재질 편집 ({matList.length}개)
         </h3>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-gray-500 dark:text-slate-400">
           {expanded ? '접기' : '펼치기'}
         </span>
       </button>
 
       {!expanded && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
           {matList.length}개 재질 감지됨. 색상, 투과율, 반사율 등을 수정할 수 있습니다.
         </p>
       )}

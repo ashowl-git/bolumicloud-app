@@ -26,33 +26,33 @@ export default function GradeSummary({ result }: GradeSummaryProps) {
   return (
     <div className="space-y-6">
       {/* Summary Header */}
-      <div className={`border p-6 ${livingGrade.bg} border-gray-200`}>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t(txt.title)}</h3>
+      <div className={`border p-6 ${livingGrade.bg} border-gray-200 dark:border-slate-700`}>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">{t(txt.title)}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.livingEnvGrade)}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.livingEnvGrade)}</p>
             <p className={`text-3xl font-light ${livingGrade.text}`}>
               {livingGrade.label}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.avgDaylight)}</p>
-            <p className="text-3xl font-light text-gray-900">{result.average_daylight_factor}%</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.avgDaylight)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{result.average_daylight_factor}%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.minDaylight)}</p>
-            <p className="text-3xl font-light text-gray-900">{result.minimum_daylight_factor}%</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.minDaylight)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{result.minimum_daylight_factor}%</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.unitCount)}</p>
-            <p className="text-3xl font-light text-gray-900">{result.unit_daylight_table.length}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.unitCount)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{result.unit_daylight_table.length}</p>
           </div>
         </div>
       </div>
 
       {/* Grade Distribution Bar */}
-      <div className="border border-gray-200 p-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-4">{t(txt.gradeDistribution)}</h4>
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4">{t(txt.gradeDistribution)}</h4>
         <div className="flex h-8 overflow-hidden">
           {[1, 2, 3, 4].map((g) => {
             const count = result.grade_distribution[`grade${g}` as keyof typeof result.grade_distribution]
@@ -85,16 +85,16 @@ export default function GradeSummary({ result }: GradeSummaryProps) {
       </div>
 
       {/* Category Grid */}
-      <div className="border border-gray-200 p-6">
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {result.categories.map((cat) => {
             const colors = GRADE_COLORS[cat.grade] || GRADE_COLORS[3]
             const domainMeta = GRADE_DOMAINS.find((d) => d.domain === cat.domain)
             return (
-              <div key={cat.id} className="border border-gray-100 p-3 flex items-center justify-between">
+              <div key={cat.id} className="border border-gray-100 dark:border-slate-800 p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">{cat.domain}</p>
-                  <p className="text-sm text-gray-700">{cat.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{cat.domain}</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{cat.name}</p>
                 </div>
                 <span
                   className={`px-2 py-0.5 text-xs font-medium ${colors.bg} ${colors.text}`}
@@ -110,24 +110,24 @@ export default function GradeSummary({ result }: GradeSummaryProps) {
 
       {/* Separation Table */}
       {result.separation_table.length > 0 && (
-        <div className="border border-gray-200 p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">{t(txt.separationPairs)}</h4>
+        <div className="border border-gray-200 dark:border-slate-700 p-4">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3">{t(txt.separationPairs)}</h4>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-3 py-2 text-left text-xs text-gray-500">기준건물</th>
-                <th className="px-3 py-2 text-left text-xs text-gray-500">차폐건물</th>
-                <th className="px-3 py-2 text-left text-xs text-gray-500">거리(m)</th>
-                <th className="px-3 py-2 text-left text-xs text-gray-500">높이(m)</th>
-                <th className="px-3 py-2 text-left text-xs text-gray-500">R</th>
-                <th className="px-3 py-2 text-left text-xs text-gray-500">적합</th>
+              <tr className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">기준건물</th>
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">차폐건물</th>
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">거리(m)</th>
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">높이(m)</th>
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">R</th>
+                <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">적합</th>
               </tr>
             </thead>
             <tbody>
               {result.separation_table.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-100">
-                  <td className="px-3 py-2 text-gray-700">{row.from_building_name}</td>
-                  <td className="px-3 py-2 text-gray-700">{row.to_building_name}</td>
+                <tr key={idx} className="border-b border-gray-100 dark:border-slate-800">
+                  <td className="px-3 py-2 text-gray-700 dark:text-slate-300">{row.from_building_name}</td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-slate-300">{row.to_building_name}</td>
                   <td className="px-3 py-2 tabular-nums">{row.distance.toFixed(1)}</td>
                   <td className="px-3 py-2 tabular-nums">{row.to_height.toFixed(1)}</td>
                   <td className="px-3 py-2 tabular-nums">{row.ratio.toFixed(3)}</td>

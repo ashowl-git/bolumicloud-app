@@ -19,7 +19,7 @@ export default function Skeleton({
   lines = 1,
   lastLineShort = true,
 }: SkeletonProps) {
-  const baseClasses = 'animate-pulse bg-gray-200 rounded'
+  const baseClasses = 'animate-pulse bg-gray-200 dark:bg-slate-700 rounded'
 
   if (variant === 'circle') {
     const size = width || '40px'

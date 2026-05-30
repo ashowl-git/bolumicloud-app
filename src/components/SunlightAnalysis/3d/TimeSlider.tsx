@@ -75,14 +75,14 @@ export default function TimeSlider({
   const currentTime = minuteToTime(playback.currentMinute)
 
   return (
-    <div className="border border-gray-200 bg-white px-4 py-3 space-y-3">
+    <div className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 space-y-3">
       {/* 컨트롤 바 */}
       <div className="flex items-center gap-3">
         {/* 재생 컨트롤 */}
         <div className="flex items-center gap-1">
           <button
             onClick={skipBack}
-            className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
+            className="p-1.5 text-gray-500 dark:text-slate-400 hover:text-gray-800 transition-colors"
             title="처음으로"
             aria-label="처음으로"
           >
@@ -90,7 +90,7 @@ export default function TimeSlider({
           </button>
           <button
             onClick={playback.isPlaying ? onPause : onPlay}
-            className="p-1.5 text-gray-700 hover:text-red-600 transition-colors"
+            className="p-1.5 text-gray-700 dark:text-slate-300 hover:text-red-600 transition-colors"
             title={playback.isPlaying ? '일시정지' : '재생'}
             aria-label={playback.isPlaying ? '일시정지' : '재생'}
           >
@@ -98,7 +98,7 @@ export default function TimeSlider({
           </button>
           <button
             onClick={skipForward}
-            className="p-1.5 text-gray-500 hover:text-gray-800 transition-colors"
+            className="p-1.5 text-gray-500 dark:text-slate-400 hover:text-gray-800 transition-colors"
             title="끝으로"
             aria-label="끝으로"
           >
@@ -107,7 +107,7 @@ export default function TimeSlider({
         </div>
 
         {/* 현재 시간 */}
-        <span className="text-sm font-medium text-gray-800 tabular-nums min-w-[45px]">
+        <span className="text-sm font-medium text-gray-800 dark:text-slate-200 tabular-nums min-w-[45px]">
           {currentTime}
         </span>
 
@@ -121,7 +121,7 @@ export default function TimeSlider({
             value={playback.currentMinute}
             onChange={handleSliderChange}
             aria-label="시간 슬라이더"
-            className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer
+            className="w-full h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5
               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-600
@@ -142,7 +142,7 @@ export default function TimeSlider({
               className={`px-2 py-1 text-xs transition-colors ${
                 playback.speed === speed
                   ? 'text-red-600 font-medium'
-                  : 'text-gray-400 hover:text-gray-700'
+                  : 'text-gray-400 dark:text-slate-500 hover:text-gray-700'
               }`}
             >
               {speed}x
@@ -152,7 +152,7 @@ export default function TimeSlider({
       </div>
 
       {/* 시간 범위 라벨 */}
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500">
         <span>08:00</span>
         <span>10:00</span>
         <span>12:00</span>

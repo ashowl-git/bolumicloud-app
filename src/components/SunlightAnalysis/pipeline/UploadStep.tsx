@@ -132,10 +132,10 @@ export default function UploadStep({
         onClick={() => !isUploading && !sessionId && inputRef.current?.click()}
         className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
           isUploading || sessionId
-            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+            ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 cursor-not-allowed opacity-60'
             : isDragging
             ? 'border-red-600 bg-red-50'
-            : 'border-gray-300 hover:border-red-600/30'
+            : 'border-gray-300 dark:border-slate-600 hover:border-red-600/30'
         }`}
       >
         <input
@@ -150,13 +150,13 @@ export default function UploadStep({
         {isUploading ? (
           <div className="space-y-2">
             <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-sm text-gray-600">{t(txt.uploading)}</p>
+            <p className="text-sm text-gray-600 dark:text-slate-300">{t(txt.uploading)}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400" />
-            <p className="text-sm text-gray-700">{t(txt.dropzone)}</p>
-            <p className="text-xs text-gray-400">{t(txt.dropzoneHint)}</p>
+            <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400 dark:text-slate-500" />
+            <p className="text-sm text-gray-700 dark:text-slate-300">{t(txt.dropzone)}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{t(txt.dropzoneHint)}</p>
           </div>
         )}
       </div>
@@ -176,18 +176,18 @@ export default function UploadStep({
 
       {/* Selected Files */}
       {objFile && (
-        <div className="border border-gray-200 p-4 space-y-2">
+        <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-700">{objFile.name}</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-sm text-gray-700 dark:text-slate-300">{objFile.name}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">
                 {(objFile.size / (1024 * 1024)).toFixed(1)} MB
               </p>
             </div>
             {!sessionId && (
               <button
                 onClick={() => { setObjFile(null); setMtlFile(null) }}
-                className="text-xs text-gray-400 hover:text-red-500"
+                className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500"
               >
                 제거
               </button>
@@ -199,7 +199,7 @@ export default function UploadStep({
               <span>{mtlFile.name} (재질 색상 포함)</span>
             </div>
           ) : (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-slate-500">
               MTL 파일 없음 — OBJ와 함께 MTL을 선택하면 스케치업 색상이 보존됩니다
             </p>
           )}
@@ -212,8 +212,8 @@ export default function UploadStep({
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-              text-gray-900 hover:text-red-600 transition-all duration-300
+            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploading ? t(txt.uploading) : t(txt.uploadBtn)}
@@ -223,7 +223,7 @@ export default function UploadStep({
 
       {/* 3D Preview after upload */}
       {sessionId && modelState === 'loaded' && modelScene && (
-        <div className="border border-gray-200 relative">
+        <div className="border border-gray-200 dark:border-slate-700 relative">
           <ThreeViewer bbox={modelBbox} height="360px">
             <SceneLighting />
             <BuildingModel scene={modelScene} bbox={modelBbox} preserveOriginalMaterials />
@@ -236,11 +236,11 @@ export default function UploadStep({
             onPresetChange={onCameraPresetChange}
           />
           {modelMeta && (
-            <div className="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
+              <span className="text-xs text-gray-500 dark:text-slate-400">
                 V: {modelMeta.vertices.toLocaleString()} | F: {modelMeta.faces.toLocaleString()}
               </span>
-              <span className="text-xs text-gray-400">{modelMeta.original_name}</span>
+              <span className="text-xs text-gray-400 dark:text-slate-500">{modelMeta.original_name}</span>
             </div>
           )}
         </div>
@@ -254,8 +254,8 @@ export default function UploadStep({
         <div className="pt-2">
           <button
             onClick={onContinue}
-            className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-              text-gray-900 hover:text-red-600 transition-all duration-300"
+            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
           >
             {t(txt.continue)}
           </button>

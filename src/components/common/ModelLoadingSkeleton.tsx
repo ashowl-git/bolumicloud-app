@@ -26,12 +26,12 @@ export default function ModelLoadingSkeleton({
 
   return (
     <div
-      className="border border-gray-200 bg-gray-50 flex flex-col items-center justify-center"
+      className="border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex flex-col items-center justify-center"
       style={{ height }}
     >
       {/* Wireframe cube animation */}
       <motion.div
-        className="w-16 h-16 border-2 border-gray-300 rounded-lg mb-4"
+        className="w-16 h-16 border-2 border-gray-300 dark:border-slate-600 rounded-lg mb-4"
         animate={{
           rotateY: [0, 360],
           borderColor: ['#d1d5db', '#9ca3af', '#d1d5db'],
@@ -43,15 +43,15 @@ export default function ModelLoadingSkeleton({
         style={{ perspective: '200px', transformStyle: 'preserve-3d' }}
       >
         <div className="w-full h-full flex items-center justify-center">
-          <span className="text-gray-400 text-xs font-light">3D</span>
+          <span className="text-gray-400 dark:text-slate-500 text-xs font-light">3D</span>
         </div>
       </motion.div>
       <div aria-live="polite">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           {elapsed >= 10 ? `${message.replace('...', '')} (${elapsed}초 경과)` : message}
         </p>
       </div>
-      <div className="mt-3 w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
+      <div className="mt-3 w-32 h-1 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-gray-400 rounded-full"
           animate={{ x: ['-100%', '100%'] }}

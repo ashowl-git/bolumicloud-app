@@ -68,7 +68,7 @@ function BoLumiCloudInner() {
         </div>
 
         {/* Sub Tabs */}
-        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <SubTabs
               tabs={SUB_TABS[category].map(tab => ({ id: tab.id, label: t(tab.label), status: tab.status }))}
@@ -79,7 +79,7 @@ function BoLumiCloudInner() {
         </div>
 
         {/* Main Content */}
-        <section className="py-12 px-4 md:px-8 bg-white">
+        <section className="py-12 px-4 md:px-8 bg-white dark:bg-slate-800">
           <div className="max-w-7xl mx-auto">
             {(() => {
               const key = `${category}-${subTab}`
@@ -90,27 +90,27 @@ function BoLumiCloudInner() {
         </section>
 
         {/* Platform Info */}
-        <section className="py-12 px-8 bg-white border-t border-gray-100">
+        <section className="py-12 px-8 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-800">
           <div className="max-w-7xl mx-auto">
-            <div className="border border-gray-200 p-8">
-              <h3 className="text-lg font-normal text-gray-900 mb-6">
+            <div className="border border-gray-200 dark:border-slate-700 p-8">
+              <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-6">
                 {t(txt.platformInfo)}
               </h3>
 
-              <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-700">
+              <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-700 dark:text-slate-300">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">{t(txt.coreEngine)}</h4>
-                  <ul className="space-y-2 text-gray-800">
-                    <li><span className="font-medium text-gray-900">pyradiance</span> 1.2.0</li>
-                    <li><span className="font-medium text-gray-900">Radiance</span> 6.1 (BSD License)</li>
+                  <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">{t(txt.coreEngine)}</h4>
+                  <ul className="space-y-2 text-gray-800 dark:text-slate-200">
+                    <li><span className="font-medium text-gray-900 dark:text-slate-100">pyradiance</span> 1.2.0</li>
+                    <li><span className="font-medium text-gray-900 dark:text-slate-100">Radiance</span> 6.1 (BSD License)</li>
                     <li>{t(txt.pyFunctions)}</li>
                     <li>{t(txt.radBinaries)}</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">{t(txt.supportedFeatures)}</h4>
-                  <ul className="space-y-2 text-gray-800 text-xs">
+                  <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">{t(txt.supportedFeatures)}</h4>
+                  <ul className="space-y-2 text-gray-800 dark:text-slate-200 text-xs">
                     <li>{t(txt.featGlare)}</li>
                     <li>{t(txt.featDaylight)}</li>
                     <li>{t(txt.featSky)}</li>
@@ -124,8 +124,8 @@ function BoLumiCloudInner() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">{t(txt.fileFormats)}</h4>
-                  <ul className="space-y-2 text-gray-800 text-xs">
+                  <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">{t(txt.fileFormats)}</h4>
+                  <ul className="space-y-2 text-gray-800 dark:text-slate-200 text-xs">
                     <li><span className="font-medium">{t(txt.input)}</span> .pic, .hdr, .tif, .exr</li>
                     <li><span className="font-medium">{t(txt.output)}</span> .tiff, .png, .ppm, .bmp</li>
                     <li><span className="font-medium">3D:</span> .obj, .rad, .oct</li>
@@ -134,8 +134,8 @@ function BoLumiCloudInner() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-xs text-gray-800">
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+                <p className="text-xs text-gray-800 dark:text-slate-200">
                   BoLumiCloud |
                   EAN Technology Research Division |
                   pyradiance 1.2.0 + Radiance 6.1 |

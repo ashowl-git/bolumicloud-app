@@ -53,7 +53,7 @@ export default function ToastContainer() {
           >
             <div className="flex-shrink-0 mt-0.5">{ICON_MAP[toast.type]}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-900">{toast.message}</p>
+              <p className="text-sm text-gray-900 dark:text-slate-100">{toast.message}</p>
               {toast.action && (
                 <button
                   onClick={toast.action.onClick}
@@ -65,7 +65,7 @@ export default function ToastContainer() {
             </div>
             <button
               onClick={() => dismissToast(toast.id)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+              className="flex-shrink-0 text-gray-400 dark:text-slate-500 hover:text-gray-600"
               aria-label="닫기"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

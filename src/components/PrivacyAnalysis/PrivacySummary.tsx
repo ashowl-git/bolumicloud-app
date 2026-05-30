@@ -34,33 +34,33 @@ export default function PrivacySummary({ summary }: PrivacySummaryProps) {
     <div className="space-y-6">
       <div className={`border p-6 ${status.border} ${status.bg}`}>
         <div className="flex items-center gap-3 mb-4">
-          <EyeOff size={24} className="text-gray-600" />
+          <EyeOff size={24} className="text-gray-600 dark:text-slate-300" />
           <div>
-            <h3 className="text-lg font-medium text-gray-900">{t(txt.title)}</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
             <p className={`text-sm ${status.color}`}>{status.label}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.totalPairs)}</p>
-            <p className="text-3xl font-light text-gray-900">{summary.total_pairs_analyzed}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.totalPairs)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{summary.total_pairs_analyzed}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.infringedPairs)}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.infringedPairs)}</p>
             <p className={`text-3xl font-light ${summary.infringed_pairs > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {summary.infringed_pairs}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.infringementRate)}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.infringementRate)}</p>
             <p className={`text-3xl font-light ${summary.infringement_rate > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {summary.infringement_rate.toFixed(1)}%
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.closestDistance)}</p>
-            <p className="text-3xl font-light text-gray-900">{summary.closest_distance.toFixed(1)}m</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.closestDistance)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{summary.closest_distance.toFixed(1)}m</p>
           </div>
         </div>
 
@@ -68,15 +68,15 @@ export default function PrivacySummary({ summary }: PrivacySummaryProps) {
         <div className="flex gap-6 mt-6 pt-4 border-t border-gray-200/50">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-red-500 rounded-full" />
-            <span className="text-sm text-gray-700">{t(txt.severe)}: {summary.grade_distribution.severe}</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{t(txt.severe)}: {summary.grade_distribution.severe}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-amber-500 rounded-full" />
-            <span className="text-sm text-gray-700">{t(txt.caution)}: {summary.grade_distribution.caution}</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{t(txt.caution)}: {summary.grade_distribution.caution}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-green-500 rounded-full" />
-            <span className="text-sm text-gray-700">{t(txt.good)}: {summary.grade_distribution.good}</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{t(txt.good)}: {summary.grade_distribution.good}</span>
           </div>
         </div>
       </div>

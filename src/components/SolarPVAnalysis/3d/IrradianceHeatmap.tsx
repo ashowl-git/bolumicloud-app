@@ -138,14 +138,14 @@ export default function IrradianceHeatmap({
               distanceFactor={15}
               style={{ pointerEvents: 'none' }}
             >
-              <div className="bg-white/90 border border-gray-300 rounded px-2 py-1 text-xs whitespace-nowrap shadow-sm">
-                <p className="font-medium text-gray-700">
+              <div className="bg-white/90 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-xs whitespace-nowrap shadow-sm">
+                <p className="font-medium text-gray-700 dark:text-slate-300">
                   {cell.capacityKwp.toFixed(1)} kWp
                 </p>
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-slate-400">
                   {formatKwh(cell.annualAcKwh)}/yr
                 </p>
-                <p className="text-gray-400">
+                <p className="text-gray-400 dark:text-slate-500">
                   Score: {cell.score.toFixed(0)}
                 </p>
               </div>

@@ -42,7 +42,7 @@ export default function PipelineImageViewer({
       case '감지': return 'bg-yellow-100 text-yellow-800'
       case '방해': return 'bg-orange-100 text-orange-800'
       case '견딜수없음': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200'
     }
   }
 
@@ -57,17 +57,17 @@ export default function PipelineImageViewer({
       ref={modalRef}
     >
       <div
-        className="bg-white max-w-6xl w-full mx-4 max-h-[90vh] overflow-auto"
+        className="bg-white dark:bg-slate-800 max-w-6xl w-full mx-4 max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 p-4">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 p-4">
           <div>
-            <h3 className="text-sm font-medium text-gray-900 font-mono">{result.file}</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 font-mono">{result.file}</h3>
             <div className="flex items-center gap-2 mt-1">
-              {result.viewp && <span className="text-xs text-gray-500">{result.viewp}</span>}
-              {result.date_label && <span className="text-xs text-gray-500">| {result.date_label}</span>}
-              {result.time && <span className="text-xs text-gray-500">| {result.time}시</span>}
+              {result.viewp && <span className="text-xs text-gray-500 dark:text-slate-400">{result.viewp}</span>}
+              {result.date_label && <span className="text-xs text-gray-500 dark:text-slate-400">| {result.date_label}</span>}
+              {result.time && <span className="text-xs text-gray-500 dark:text-slate-400">| {result.time}시</span>}
               <span className={`px-1.5 py-0.5 text-xs font-semibold ${ratingColor(result.dgp_rating)}`}>
                 DGP {Number(result.dgp).toFixed(3)} ({result.dgp_rating})
               </span>
@@ -75,21 +75,21 @@ export default function PipelineImageViewer({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1 transition-colors duration-300"
+            className="text-gray-400 dark:text-slate-500 hover:text-gray-600 p-1 transition-colors duration-300"
           >
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
         {/* Mode toggle + Scale */}
-        <div className="flex items-center gap-4 border-b border-gray-100 p-4">
+        <div className="flex items-center gap-4 border-b border-gray-100 dark:border-slate-800 p-4">
           <div className="flex gap-2">
             <button
               onClick={() => setMode('preview')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border transition-all duration-300 ${
                 mode === 'preview'
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 text-gray-700 hover:border-red-600/30'
+                  : 'border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-red-600/30'
               }`}
             >
               <ImageIcon size={14} strokeWidth={1.5} />
@@ -100,7 +100,7 @@ export default function PipelineImageViewer({
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border transition-all duration-300 ${
                 mode === 'falsecolor'
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 text-gray-700 hover:border-red-600/30'
+                  : 'border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-red-600/30'
               }`}
             >
               <Thermometer size={14} strokeWidth={1.5} />
@@ -110,7 +110,7 @@ export default function PipelineImageViewer({
 
           {mode === 'falsecolor' && (
             <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500">스케일:</label>
+              <label className="text-xs text-gray-500 dark:text-slate-400">스케일:</label>
               <input
                 type="range"
                 min={100}
@@ -122,15 +122,15 @@ export default function PipelineImageViewer({
                 onTouchEnd={() => setFcScale(fcDisplayScale)}
                 className="w-32 accent-red-600"
               />
-              <span className="text-xs text-gray-700 w-20">{fcDisplayScale} cd/m2</span>
+              <span className="text-xs text-gray-700 dark:text-slate-300 w-20">{fcDisplayScale} cd/m2</span>
             </div>
           )}
 
           <a
             href={downloadUrl}
             download
-            className="ml-auto flex items-center gap-1.5 border border-gray-200 hover:border-red-600/30 px-3 py-1.5
-              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
+            className="ml-auto flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-3 py-1.5
+              text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300"
           >
             <Download size={14} strokeWidth={1.5} />
             PIC
@@ -138,7 +138,7 @@ export default function PipelineImageViewer({
         </div>
 
         {/* Image */}
-        <div className="p-4 flex justify-center bg-gray-50">
+        <div className="p-4 flex justify-center bg-gray-50 dark:bg-slate-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={mode === 'falsecolor' ? `fc-${fcScale}` : 'preview'}
@@ -149,21 +149,21 @@ export default function PipelineImageViewer({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 border-t border-gray-100 text-center text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 border-t border-gray-100 dark:border-slate-800 text-center text-sm">
           <div>
-            <p className="text-gray-500 text-xs">평균 휘도</p>
+            <p className="text-gray-500 dark:text-slate-400 text-xs">평균 휘도</p>
             <p className="font-medium">{Number(result.average).toFixed(1)} cd/m2</p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs">최대 휘도</p>
+            <p className="text-gray-500 dark:text-slate-400 text-xs">최대 휘도</p>
             <p className="font-medium">{Number(result.max).toFixed(1)} cd/m2</p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs">DGP</p>
+            <p className="text-gray-500 dark:text-slate-400 text-xs">DGP</p>
             <p className="font-medium">{Number(result.dgp).toFixed(4)}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs">DGI</p>
+            <p className="text-gray-500 dark:text-slate-400 text-xs">DGI</p>
             <p className="font-medium">{Number(result.dgi).toFixed(2)}</p>
           </div>
         </div>

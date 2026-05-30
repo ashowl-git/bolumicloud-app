@@ -149,11 +149,11 @@ export default function ViewWorkspace() {
             onClearAll={placement.clearPoints}
             extraControls={
               <div className="flex items-center gap-0.5 ml-1">
-                <div className="w-px h-5 bg-gray-200" />
+                <div className="w-px h-5 bg-gray-200 dark:bg-slate-700" />
                 <button
                   onClick={placement.undo}
                   disabled={!placement.canUndo}
-                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  className="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
                   title="실행 취소 (Ctrl+Z)"
                 >
                   <Undo2 size={14} />
@@ -161,7 +161,7 @@ export default function ViewWorkspace() {
                 <button
                   onClick={placement.redo}
                   disabled={!placement.canRedo}
-                  className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                  className="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
                   title="다시 실행 (Ctrl+Shift+Z)"
                 >
                   <Redo2 size={14} />

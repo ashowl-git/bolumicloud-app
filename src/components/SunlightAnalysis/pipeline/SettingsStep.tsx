@@ -112,7 +112,7 @@ export default function SettingsStep({
 
         {/* 3D Preview + Measurement Points */}
         {modelScene && (
-          <div className="border border-gray-200 relative">
+          <div className="border border-gray-200 dark:border-slate-700 relative">
             <InteractionToolbar
               analysisType="sunlight"
               mode={placement.mode}
@@ -176,8 +176,8 @@ export default function SettingsStep({
             />
             {/* Area grid controls */}
             {areaPlacement.area && (
-              <div className="px-4 py-2 border-t border-gray-100 flex items-center gap-3">
-                <span className="text-xs text-gray-500">격자 간격</span>
+              <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800 flex items-center gap-3">
+                <span className="text-xs text-gray-500 dark:text-slate-400">격자 간격</span>
                 <input
                   type="number"
                   min={0.5}
@@ -185,9 +185,9 @@ export default function SettingsStep({
                   step={0.5}
                   value={areaPlacement.gridSpacing}
                   onChange={(e) => areaPlacement.setGridSpacing(Number(e.target.value))}
-                  className="w-16 border border-gray-200 px-2 py-0.5 text-xs text-center"
+                  className="w-16 border border-gray-200 dark:border-slate-700 px-2 py-0.5 text-xs text-center"
                 />
-                <span className="text-xs text-gray-400">m</span>
+                <span className="text-xs text-gray-400 dark:text-slate-500">m</span>
                 <button
                   onClick={() => {
                     const pts = areaPlacement.generateGrid()
@@ -201,7 +201,7 @@ export default function SettingsStep({
                 </button>
                 <button
                   onClick={() => areaPlacement.resetArea()}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600"
                 >
                   취소
                 </button>
@@ -209,8 +209,8 @@ export default function SettingsStep({
             )}
             {/* Point count */}
             {placement.points.length > 0 && !areaPlacement.area && (
-              <div className="px-4 py-2 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
+              <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   {placement.points.length}개 측정점 배치됨
                   {placement.mode === 'place_point' && ' — 지면 또는 건물 표면을 클릭하여 추가'}
                   {placement.mode === 'place_area' && (areaPlacement.firstCorner
@@ -225,19 +225,19 @@ export default function SettingsStep({
       </div>
 
       {/* Start Button */}
-      <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+      <div className="flex items-center gap-4 pt-4 border-t border-gray-100 dark:border-slate-800">
         <button
           onClick={onBack}
-          className="border border-gray-200 hover:border-gray-400 px-6 py-3
-            text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+          className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
+            text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
         >
           {t(txt.back)}
         </button>
         <button
           onClick={onStartAnalysis}
           disabled={isRunning}
-          className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-            text-gray-900 hover:text-red-600 transition-all duration-300
+          className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+            text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
             disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isRunning ? t(txt.running) : t(txt.startAnalysis)}

@@ -24,13 +24,13 @@ export default function GradeResultCard({ grades, onGradeChange, disabled }: Gra
 
   return (
     <div className="space-y-6">
-      <h3 className="text-sm font-medium text-gray-900">{t(txt.gradeEntry)}</h3>
+      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.gradeEntry)}</h3>
 
       {domains.map((domain) => {
         const items = GRADE_ITEMS.filter((item) => item.domain === domain)
         return (
-          <div key={domain} className="border border-gray-200 p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{domain}</h4>
+          <div key={domain} className="border border-gray-200 dark:border-slate-700 p-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">{domain}</h4>
             <div className="space-y-3">
               {items.map((item) => {
                 const gi: GradeInput = grades[item.id]
@@ -39,7 +39,7 @@ export default function GradeResultCard({ grades, onGradeChange, disabled }: Gra
 
                 return (
                   <div key={item.id} className="flex items-center gap-4">
-                    <span className="text-sm text-gray-700 w-32 shrink-0">{t(item.name)}</span>
+                    <span className="text-sm text-gray-700 dark:text-slate-300 w-32 shrink-0">{t(item.name)}</span>
 
                     {isAuto ? (
                       <span className={`text-sm px-2 py-0.5 ${gradeInfo.bg} ${gradeInfo.text}`}>
@@ -55,7 +55,7 @@ export default function GradeResultCard({ grades, onGradeChange, disabled }: Gra
                             className={`px-3 py-1 text-xs border transition-all duration-300 disabled:opacity-50 ${
                               gi.grade === g
                                 ? `${GRADE_COLORS[g].bg} ${GRADE_COLORS[g].text} border-current`
-                                : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                                : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-gray-300'
                             }`}
                           >
                             {g}등급
@@ -65,7 +65,7 @@ export default function GradeResultCard({ grades, onGradeChange, disabled }: Gra
                     )}
 
                     {/* Criteria tooltip */}
-                    <span className="text-xs text-gray-400 hidden sm:inline">
+                    <span className="text-xs text-gray-400 dark:text-slate-500 hidden sm:inline">
                       {t(txt.criteria)}: {item.criteria[`grade${gi.grade}` as keyof typeof item.criteria]}
                     </span>
                   </div>

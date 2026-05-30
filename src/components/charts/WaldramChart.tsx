@@ -295,14 +295,14 @@ export default function WaldramChart({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Waldram Diagram</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">Waldram Diagram</h3>
           {viewpoint && (
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
               ({viewpoint.lat.toFixed(4)}, {viewpoint.lng.toFixed(4)})
             </p>
           )}
         </div>
-        <div className="flex items-center gap-4 text-xs text-gray-600">
+        <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-slate-300">
           {editable && (
             <span className="text-amber-600 font-medium">
               {isDrawing
@@ -311,10 +311,10 @@ export default function WaldramChart({
             </span>
           )}
           <span>
-            SVF: <strong className="text-gray-900">{(svf * 100).toFixed(1)}%</strong>
+            SVF: <strong className="text-gray-900 dark:text-slate-100">{(svf * 100).toFixed(1)}%</strong>
           </span>
           <span>
-            Blocked: <strong className="text-gray-900">{(blockedFraction * 100).toFixed(1)}%</strong>
+            Blocked: <strong className="text-gray-900 dark:text-slate-100">{(blockedFraction * 100).toFixed(1)}%</strong>
           </span>
         </div>
       </div>
@@ -323,7 +323,7 @@ export default function WaldramChart({
       <svg
         width={svgWidth}
         height={svgHeight}
-        className="border border-gray-200 bg-white select-none"
+        className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 select-none"
         style={{ cursor: editable ? 'crosshair' : 'default' }}
         onMouseLeave={() => {
           setHoveredPoint(null)
@@ -397,7 +397,7 @@ export default function WaldramChart({
       />
 
       {/* Info note */}
-      <div className="mt-2 flex items-start gap-1.5 text-[10px] text-gray-400">
+      <div className="mt-2 flex items-start gap-1.5 text-[10px] text-gray-400 dark:text-slate-500">
         <Info size={12} className="mt-0.5 shrink-0" />
         <span>
           Waldram equal-solid-angle projection. Each unit area on the chart

@@ -48,8 +48,8 @@ export default function SolarDiagram3DSection({
         icon={<Globe2 size={14} />}
         defaultOpen={false}
       >
-        <div className="flex items-center gap-2 py-3 text-xs text-gray-400">
-          <Crosshair size={14} className="text-gray-300" />
+        <div className="flex items-center gap-2 py-3 text-xs text-gray-400 dark:text-slate-500">
+          <Crosshair size={14} className="text-gray-300 dark:text-slate-600" />
           측정점을 선택하면 3D 일조 도표를 표시합니다
         </div>
       </WorkspacePanelSection>
@@ -63,7 +63,7 @@ export default function SolarDiagram3DSection({
       defaultOpen={false}
     >
       <div className="space-y-2">
-        <ThreeViewer height="280px" className="rounded border border-gray-200">
+        <ThreeViewer height="280px" className="rounded border border-gray-200 dark:border-slate-700">
           <SolarDiagram3D
             sunPaths={sunPaths}
             radius={10}
@@ -71,7 +71,7 @@ export default function SolarDiagram3DSection({
         </ThreeViewer>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-2 text-[10px] text-gray-500">
+        <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 dark:text-slate-400">
           {sunPaths.map((p) => (
             <div key={p.label} className="flex items-center gap-1">
               <span
@@ -83,7 +83,7 @@ export default function SolarDiagram3DSection({
           ))}
         </div>
 
-        <p className="text-[10px] text-gray-400">
+        <p className="text-[10px] text-gray-400 dark:text-slate-500">
           반구 위 태양 궤적. 회색 영역 = 장애물 차단.
           마우스 드래그로 회전, 스크롤로 확대/축소.
         </p>

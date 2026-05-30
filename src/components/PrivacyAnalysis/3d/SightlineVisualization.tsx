@@ -99,15 +99,15 @@ export default function SightlineVisualization({
                 ]}
                 style={{ pointerEvents: 'none' }}
               >
-                <div className="bg-white border border-gray-200 shadow-lg p-2 text-xs whitespace-nowrap rounded">
-                  <div className="font-medium text-gray-900">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-lg p-2 text-xs whitespace-nowrap rounded">
+                  <div className="font-medium text-gray-900 dark:text-slate-100">
                     {pair.observer.id} → {pair.target.id}
                   </div>
-                  <div className="text-gray-600 mt-0.5">
+                  <div className="text-gray-600 dark:text-slate-300 mt-0.5">
                     등급 {pair.grade} | PII {pair.pii.toFixed(3)} | {pair.distance.toFixed(1)}m
                   </div>
                   {isBlocked && (
-                    <div className="text-gray-400">차단됨 (blocked)</div>
+                    <div className="text-gray-400 dark:text-slate-500">차단됨 (blocked)</div>
                   )}
                 </div>
               </Html>

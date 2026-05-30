@@ -215,8 +215,8 @@ export default function ViewPipelineTab() {
           {currentStep === 4 && sessionId && (
             <button
               onClick={() => setCurrentStep(2)}
-              className="border border-gray-200 hover:border-gray-400 px-4 py-3
-                text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+              className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-4 py-3
+                text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
             >
               {t(txt.backToSettings)}
             </button>
@@ -224,8 +224,8 @@ export default function ViewPipelineTab() {
           {currentStep > 1 && (
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="border border-gray-200 hover:border-red-600/30 px-4 py-3
-                text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+              className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-4 py-3
+                text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
             >
               {t(txt.reset)}
             </button>
@@ -261,7 +261,7 @@ export default function ViewPipelineTab() {
                       ? 'bg-green-600 text-white'
                       : isActive
                       ? 'border-2 border-red-600 text-red-600 ring-2 ring-red-600/20'
-                      : 'border border-gray-300 text-gray-400'
+                      : 'border border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500'
                   }`}
                 >
                   {isCompleted ? (
@@ -272,7 +272,7 @@ export default function ViewPipelineTab() {
                 </div>
                 <span
                   className={`text-xs mt-1.5 ${
-                    isActive ? 'text-red-600 font-medium' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                    isActive ? 'text-red-600 font-medium' : isCompleted ? 'text-green-600' : 'text-gray-400 dark:text-slate-500'
                   }`}
                 >
                   {step.label}
@@ -281,7 +281,7 @@ export default function ViewPipelineTab() {
               {idx < STEPS.length - 1 && (
                 <div
                   className={`w-12 sm:w-20 h-0.5 mx-1 transition-all duration-300 ${
-                    isCompleted ? 'bg-green-600' : 'bg-gray-200'
+                    isCompleted ? 'bg-green-600' : 'bg-gray-200 dark:bg-slate-700'
                   }`}
                 />
               )}
@@ -323,8 +323,8 @@ export default function ViewPipelineTab() {
               onClick={() => !isUploading && !sessionId && inputRef.current?.click()}
               className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
                 isUploading || sessionId
-                  ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                  : isDragging ? 'border-red-600 bg-red-50' : 'border-gray-300 hover:border-red-600/30'
+                  ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 cursor-not-allowed opacity-60'
+                  : isDragging ? 'border-red-600 bg-red-50' : 'border-gray-300 dark:border-slate-600 hover:border-red-600/30'
               }`}
             >
               <input ref={inputRef} type="file" accept=".obj" onChange={handleFileChange} className="hidden"
@@ -332,25 +332,25 @@ export default function ViewPipelineTab() {
               {isUploading ? (
                 <div className="space-y-2">
                   <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-sm text-gray-600">{t(txt.uploading)}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{t(txt.uploading)}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400" />
-                  <p className="text-sm text-gray-700">{t(txt.dropzone)}</p>
-                  <p className="text-xs text-gray-400">{t(txt.dropzoneHint)}</p>
+                  <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400 dark:text-slate-500" />
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{t(txt.dropzone)}</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500">{t(txt.dropzoneHint)}</p>
                 </div>
               )}
             </div>
 
             {objFile && (
-              <div className="border border-gray-200 p-4 flex items-center justify-between">
+              <div className="border border-gray-200 dark:border-slate-700 p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">{objFile.name}</p>
-                  <p className="text-xs text-gray-400">{(objFile.size / (1024 * 1024)).toFixed(1)} MB</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{objFile.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500">{(objFile.size / (1024 * 1024)).toFixed(1)} MB</p>
                 </div>
                 {!sessionId && (
-                  <button onClick={() => setObjFile(null)} className="text-xs text-gray-400 hover:text-red-500">제거</button>
+                  <button onClick={() => setObjFile(null)} className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500">제거</button>
                 )}
               </div>
             )}
@@ -358,8 +358,8 @@ export default function ViewPipelineTab() {
             {canUpload && !sessionId && (
               <div className="pt-2">
                 <button onClick={handleUpload} disabled={isUploading}
-                  className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                    text-gray-900 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
+                  className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+                    text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
                 >
                   {isUploading ? t(txt.uploading) : t(txt.uploadBtn)}
                 </button>
@@ -367,7 +367,7 @@ export default function ViewPipelineTab() {
             )}
 
             {sessionId && modelState === 'loaded' && modelScene && (
-              <div className="border border-gray-200 relative">
+              <div className="border border-gray-200 dark:border-slate-700 relative">
                 <ThreeViewer bbox={modelBbox} height="360px">
                   <SceneLighting />
                   <BuildingModel scene={modelScene} bbox={modelBbox} />
@@ -376,11 +376,11 @@ export default function ViewPipelineTab() {
                 </ThreeViewer>
                 <CameraPresetBar bbox={modelBbox} activePreset={cameraPreset} onPresetChange={setCameraPreset} />
                 {modelMeta && (
-                  <div className="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
+                  <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-xs text-gray-500 dark:text-slate-400">
                       V: {modelMeta.vertices.toLocaleString()} | F: {modelMeta.faces.toLocaleString()}
                     </span>
-                    <span className="text-xs text-gray-400">{modelMeta.original_name}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500">{modelMeta.original_name}</span>
                   </div>
                 )}
               </div>
@@ -392,8 +392,8 @@ export default function ViewPipelineTab() {
             {sessionId && (
               <div className="pt-2">
                 <button onClick={() => setCurrentStep(2)}
-                  className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                    text-gray-900 hover:text-red-600 transition-all duration-300"
+                  className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+                    text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
                 >
                   {t(txt.continue)}
                 </button>
@@ -413,7 +413,7 @@ export default function ViewPipelineTab() {
               </div>
 
               {modelScene && (
-                <div className="border border-gray-200 relative">
+                <div className="border border-gray-200 dark:border-slate-700 relative">
                   <InteractionToolbar
                     analysisType="view"
                     mode={placement.mode}
@@ -451,8 +451,8 @@ export default function ViewPipelineTab() {
                   </ThreeViewer>
                   <CameraPresetBar bbox={modelBbox} activePreset={cameraPreset} onPresetChange={setCameraPreset} />
                   {placement.points.length > 0 && (
-                    <div className="px-4 py-2 border-t border-gray-100">
-                      <p className="text-xs text-gray-500">
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-800">
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
                         {placement.points.length}개 관찰점 배치됨
                         {placement.mode === 'place_point' && ' — 건물 벽면을 클릭하여 추가'}
                       </p>
@@ -462,16 +462,16 @@ export default function ViewPipelineTab() {
               )}
             </div>
 
-            <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-4 pt-4 border-t border-gray-100 dark:border-slate-800">
               <button onClick={() => setCurrentStep(1)}
-                className="border border-gray-200 hover:border-gray-400 px-6 py-3
-                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+                className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
+                  text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
               >
                 {t(txt.back)}
               </button>
               <button onClick={handleStartAnalysis} disabled={isRunning}
-                className="border border-gray-200 hover:border-red-600/30 px-8 py-3
-                  text-gray-900 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
+                className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
+                  text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300 disabled:opacity-50"
               >
                 {isRunning ? t(txt.running) : t(txt.startAnalysis)}
               </button>
@@ -488,16 +488,16 @@ export default function ViewPipelineTab() {
               <ViewProgressView progress={progress} estimatedRemainingSec={estimatedRemainingSec} />
             )}
             {!progress && isRunning && (
-              <div className="border border-gray-200 p-8 text-center">
+              <div className="border border-gray-200 dark:border-slate-700 p-8 text-center">
                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-gray-500">{t(txt.running)}</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{t(txt.running)}</p>
               </div>
             )}
             {isRunning && (
               <div className="pt-4">
                 <button onClick={cancelAnalysis}
-                  className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-                    text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
+                  className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
+                    text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300"
                 >
                   {t(txt.cancel)}
                 </button>
@@ -518,16 +518,16 @@ export default function ViewPipelineTab() {
               onObserverSelect={setSelectedObserverId}
             />
 
-            <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-slate-800">
               <button onClick={() => setCurrentStep(2)}
-                className="border border-gray-200 hover:border-gray-400 px-6 py-3
-                  text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
+                className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
+                  text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
               >
                 {t(txt.backToSettings)}
               </button>
               <button onClick={() => setShowResetConfirm(true)}
-                className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-                  text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
+                className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
+                  text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
               >
                 {t(txt.reset)}
               </button>
@@ -551,7 +551,7 @@ function ViewProgressView({
   const { t } = useLocalizedText()
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="border border-gray-200 p-6">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="border border-gray-200 dark:border-slate-700 p-6">
       <div className="space-y-3 mb-6">
         {progress.stages.map((stage, idx) => {
           const label = VIEW_STAGE_LABELS[stage.name]
@@ -567,32 +567,32 @@ function ViewProgressView({
                 ) : stage.status === 'error' ? (
                   <div className="w-4 h-4 rounded-full bg-red-600" />
                 ) : (
-                  <div className="w-4 h-4 rounded-full border border-gray-300" />
+                  <div className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-600" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${
-                    stage.status === 'completed' ? 'text-gray-700'
+                    stage.status === 'completed' ? 'text-gray-700 dark:text-slate-300'
                     : stage.status === 'processing' ? 'text-blue-700 font-medium'
                     : stage.status === 'error' ? 'text-red-700'
-                    : 'text-gray-400'
+                    : 'text-gray-400 dark:text-slate-500'
                   }`}>
                     {idx + 1}. {stageLabel}
                   </span>
                   {stage.duration_sec !== null && (
-                    <span className="text-xs text-gray-400">({stage.duration_sec.toFixed(1)}s)</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500">({stage.duration_sec.toFixed(1)}s)</span>
                   )}
                 </div>
                 {stage.status === 'processing' && progress.stage_progress.total > 0 && (
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div className="h-full bg-blue-500 rounded-full transition-all duration-500"
                           style={{ width: `${(progress.stage_progress.completed / progress.stage_progress.total) * 100}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 tabular-nums">
+                      <span className="text-xs text-gray-500 dark:text-slate-400 tabular-nums">
                         {progress.stage_progress.completed}/{progress.stage_progress.total}
                       </span>
                     </div>
@@ -604,17 +604,17 @@ function ViewProgressView({
         })}
       </div>
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">{t(txt.overall)}</span>
-          <span className="text-sm text-gray-600 tabular-nums">
+          <span className="text-sm text-gray-600 dark:text-slate-300">{t(txt.overall)}</span>
+          <span className="text-sm text-gray-600 dark:text-slate-300 tabular-nums">
             {progress.overall_progress}% ({formatDuration(progress.elapsed_sec)})
             {estimatedRemainingSec !== null && estimatedRemainingSec > 0 && (
               <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
             )}
           </span>
         </div>
-        <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700"
             style={{ width: `${progress.overall_progress}%` }}
           />

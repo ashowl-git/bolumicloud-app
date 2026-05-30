@@ -29,8 +29,8 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
   return (
     <div className="space-y-6">
       {/* Distance Threshold */}
-      <div className="border border-gray-200 p-6">
-        <label className="text-sm font-medium text-gray-900 mb-3 block">
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <label className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3 block">
           {t(txt.threshold)}
         </label>
         <div className="flex items-center gap-3">
@@ -44,16 +44,16 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
             disabled={disabled}
             className="flex-1 accent-red-600"
           />
-          <span className="text-sm tabular-nums text-gray-700 w-16 text-right">
+          <span className="text-sm tabular-nums text-gray-700 dark:text-slate-300 w-16 text-right">
             {config.distanceThreshold}m
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-1">{t(txt.thresholdUnit)}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t(txt.thresholdUnit)}</p>
       </div>
 
       {/* Sub-grid Resolution */}
-      <div className="border border-gray-200 p-6">
-        <label className="text-sm font-medium text-gray-900 mb-3 block">
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <label className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3 block">
           {t(txt.subGrid)}
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -70,13 +70,13 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
                   className={`border p-3 text-left transition-all duration-300 disabled:opacity-50 ${
                     isSelected
                       ? 'border-red-600 bg-red-50'
-                      : 'border-gray-200 hover:border-red-600/30'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30'
                   }`}
                 >
-                  <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
+                  <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900 dark:text-slate-100'}`}>
                     {t(info)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{info.description}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{info.description}</p>
                 </button>
               )
             }
@@ -85,8 +85,8 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
       </div>
 
       {/* PII Threshold */}
-      <div className="border border-gray-200 p-6">
-        <label className="text-sm font-medium text-gray-900 mb-3 block">
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <label className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3 block">
           {t(txt.piiThreshold)}
         </label>
         <input
@@ -97,15 +97,15 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
           value={config.piiThreshold}
           onChange={(e) => onChange({ piiThreshold: Number(e.target.value) })}
           disabled={disabled}
-          className="w-full border border-gray-200 px-3 py-2 text-sm
+          className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
             focus:outline-none focus:border-red-600/30 disabled:opacity-50"
         />
-        <p className="text-xs text-gray-400 mt-1">{t(txt.piiUnit)}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{t(txt.piiUnit)}</p>
       </div>
 
       {/* Window List */}
-      <div className="border border-gray-200 p-4 space-y-3">
-        <p className="text-xs font-medium text-gray-700">
+      <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-3">
+        <p className="text-xs font-medium text-gray-700 dark:text-slate-300">
           {t(txt.windowCount)}: {t(txt.target)} {config.targetWindows.length}개 | {t(txt.observer)} {config.observerWindows.length}개
         </p>
 
@@ -114,14 +114,14 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
           <div className="space-y-1">
             <p className="text-xs text-orange-600 font-medium">{t(txt.target)}</p>
             {config.targetWindows.map((w) => (
-              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 py-0.5">
+              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 py-0.5">
                 <span className="font-mono">
                   {w.id} ({w.x.toFixed(1)}, {w.y.toFixed(1)}, {w.z.toFixed(1)}) F{w.floor}
                 </span>
                 {onRemoveWindow && !disabled && (
                   <button
                     onClick={() => onRemoveWindow(w.id)}
-                    className="text-gray-300 hover:text-red-500 ml-2"
+                    className="text-gray-300 dark:text-slate-600 hover:text-red-500 ml-2"
                   >
                     x
                   </button>
@@ -136,14 +136,14 @@ export default function PrivacyConfigPanel({ config, onChange, disabled, onRemov
           <div className="space-y-1">
             <p className="text-xs text-blue-600 font-medium">{t(txt.observer)}</p>
             {config.observerWindows.map((w) => (
-              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 py-0.5">
+              <div key={w.id} className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 py-0.5">
                 <span className="font-mono">
                   {w.id} ({w.x.toFixed(1)}, {w.y.toFixed(1)}, {w.z.toFixed(1)}) F{w.floor}
                 </span>
                 {onRemoveWindow && !disabled && (
                   <button
                     onClick={() => onRemoveWindow(w.id)}
-                    className="text-gray-300 hover:text-red-500 ml-2"
+                    className="text-gray-300 dark:text-slate-600 hover:text-red-500 ml-2"
                   >
                     x
                   </button>

@@ -41,17 +41,17 @@ export default function ProgressStep({
     >
       {progress && <PipelineProgress progress={progress} />}
       {!progress && isRunning && (
-        <div className="border border-gray-200 p-8 text-center">
+        <div className="border border-gray-200 dark:border-slate-700 p-8 text-center">
           <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500">{t(txt.running)}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{t(txt.running)}</p>
         </div>
       )}
       {isRunning && (
         <div className="pt-4">
           <button
             onClick={onCancel}
-            className="border border-gray-200 hover:border-red-600/30 px-6 py-3
-              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
+            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
+              text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300"
           >
             {t(txt.cancel)}
           </button>

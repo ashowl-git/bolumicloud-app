@@ -24,29 +24,29 @@ export default function SolarPVLegend({
   const gradient = GRADIENT_STOPS.map((s) => `${s.color} ${s.pct}%`).join(', ')
 
   return (
-    <div className="absolute bottom-3 right-3 z-10 bg-white/90 border border-gray-200 p-2">
-      <p className="text-xs text-gray-500 mb-1">Surface Score</p>
+    <div className="absolute bottom-3 right-3 z-10 bg-white/90 border border-gray-200 dark:border-slate-700 p-2">
+      <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Surface Score</p>
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 tabular-nums">0</span>
+        <span className="text-xs text-gray-400 dark:text-slate-500 tabular-nums">0</span>
         <div
           className="w-24 h-3 rounded-sm"
           style={{ background: `linear-gradient(to right, ${gradient})` }}
         />
-        <span className="text-xs text-gray-400 tabular-nums">100</span>
+        <span className="text-xs text-gray-400 dark:text-slate-500 tabular-nums">100</span>
       </div>
 
       {(totalCapacityKwp != null || totalAnnualMwh != null) && (
-        <div className="mt-2 pt-1.5 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
+        <div className="mt-2 pt-1.5 border-t border-gray-200 dark:border-slate-700">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
             Total:{' '}
             {totalCapacityKwp != null && (
-              <span className="font-medium text-gray-700 tabular-nums">
+              <span className="font-medium text-gray-700 dark:text-slate-300 tabular-nums">
                 {totalCapacityKwp.toFixed(1)} kWp
               </span>
             )}
             {totalCapacityKwp != null && totalAnnualMwh != null && ' / '}
             {totalAnnualMwh != null && (
-              <span className="font-medium text-gray-700 tabular-nums">
+              <span className="font-medium text-gray-700 dark:text-slate-300 tabular-nums">
                 {totalAnnualMwh.toFixed(1)} MWh/yr
               </span>
             )}

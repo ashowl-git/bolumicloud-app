@@ -32,16 +32,16 @@ export default function OnboardingChecklist({
   const completedCount = steps.filter(s => s.done).length
 
   return (
-    <div className="relative bg-gray-50 border border-gray-200 rounded p-3 mb-1">
+    <div className="relative bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded p-3 mb-1">
       <button
         onClick={() => setDismissed(true)}
-        className="absolute top-1.5 right-1.5 text-gray-300 hover:text-gray-500 transition-colors"
+        className="absolute top-1.5 right-1.5 text-gray-300 dark:text-slate-600 hover:text-gray-500 transition-colors"
         aria-label="닫기"
       >
         <X size={12} />
       </button>
 
-      <p className="text-[10px] font-medium text-gray-500 mb-2">
+      <p className="text-[10px] font-medium text-gray-500 dark:text-slate-400 mb-2">
         시작 가이드 ({completedCount}/3)
       </p>
       <div className="flex items-center gap-1">
@@ -51,8 +51,8 @@ export default function OnboardingChecklist({
               ${step.done
                 ? 'bg-green-50 text-green-600'
                 : i === completedCount
-                  ? 'bg-white border border-red-200 text-red-600 font-medium'
-                  : 'bg-white text-gray-400'
+                  ? 'bg-white dark:bg-slate-800 border border-red-200 text-red-600 font-medium'
+                  : 'bg-white dark:bg-slate-800 text-gray-400 dark:text-slate-500'
               }`}
             >
               {step.done ? (
@@ -63,7 +63,7 @@ export default function OnboardingChecklist({
               <span className="truncate">{step.label}</span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`w-3 h-px flex-shrink-0 ${step.done ? 'bg-green-300' : 'bg-gray-200'}`} />
+              <div className={`w-3 h-px flex-shrink-0 ${step.done ? 'bg-green-300' : 'bg-gray-200 dark:bg-slate-700'}`} />
             )}
           </div>
         ))}

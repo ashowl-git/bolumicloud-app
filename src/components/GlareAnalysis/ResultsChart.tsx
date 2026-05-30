@@ -274,14 +274,14 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
   }, [loadPlotly])
 
   return (
-    <div className="border border-gray-200 p-6">
+    <div className="border border-gray-200 dark:border-slate-700 p-6">
       {/* Heatmap date selector */}
       {chartType === 'heatmap' && dateLabels.length > 1 && (
         <div className="mb-4 flex gap-2">
           <button
             onClick={() => setHeatmapDate('all')}
             className={`px-3 py-1 text-xs border transition-all ${
-              heatmapDate === 'all' ? 'border-gray-900 text-gray-900' : 'border-gray-200 text-gray-500 hover:text-gray-700'
+              heatmapDate === 'all' ? 'border-gray-900 text-gray-900 dark:text-slate-100' : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:text-gray-700'
             }`}
           >
             전체
@@ -291,7 +291,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
               key={dl}
               onClick={() => setHeatmapDate(dl)}
               className={`px-3 py-1 text-xs border transition-all ${
-                heatmapDate === dl ? 'border-gray-900 text-gray-900' : 'border-gray-200 text-gray-500 hover:text-gray-700'
+                heatmapDate === dl ? 'border-gray-900 text-gray-900 dark:text-slate-100' : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:text-gray-700'
               }`}
             >
               {dl}
@@ -303,7 +303,7 @@ export default function ResultsChart({ results, chartType }: ResultsChartProps) 
       <div ref={chartRef} className="w-full" />
 
       {results.length === 0 && (
-        <div className="text-center text-gray-800 py-12">
+        <div className="text-center text-gray-800 dark:text-slate-200 py-12">
           분석 결과가 없습니다
         </div>
       )}

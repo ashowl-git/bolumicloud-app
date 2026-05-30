@@ -201,19 +201,19 @@ export default function BayesianOptimizationPanel({
       {/* Variable configuration per blocker building */}
       {variables.length > 0 && (
         <div className="space-y-2">
-          <div className="text-[10px] text-gray-500 font-medium">변수 설정</div>
+          <div className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">변수 설정</div>
           {variables.map((v, idx) => (
-            <div key={v.building_id} className="border border-gray-100 rounded-md p-2 space-y-1.5">
+            <div key={v.building_id} className="border border-gray-100 dark:border-slate-800 rounded-md p-2 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
                   {v.building_id}
-                  <span className="text-gray-400 ml-1">({v.original_height}m)</span>
+                  <span className="text-gray-400 dark:text-slate-500 ml-1">({v.original_height}m)</span>
                 </span>
               </div>
 
               {/* Height range */}
               <div className="flex items-center gap-1.5">
-                <label className="flex items-center gap-1 text-[10px] text-gray-500 min-w-[52px]">
+                <label className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-slate-400 min-w-[52px]">
                   <input
                     type="checkbox"
                     checked={v.height_range !== null}
@@ -241,7 +241,7 @@ export default function BayesianOptimizationPanel({
                       className="w-14 text-[10px] border rounded px-1 py-0.5"
                       min={1}
                     />
-                    <span className="text-[10px] text-gray-400">~</span>
+                    <span className="text-[10px] text-gray-400 dark:text-slate-500">~</span>
                     <input
                       type="number"
                       value={v.height_range[1]}
@@ -259,7 +259,7 @@ export default function BayesianOptimizationPanel({
 
               {/* Translate range */}
               <div className="flex items-center gap-1.5">
-                <label className="flex items-center gap-1 text-[10px] text-gray-500 min-w-[52px]">
+                <label className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-slate-400 min-w-[52px]">
                   <input
                     type="checkbox"
                     checked={v.translate_range !== null}
@@ -288,7 +288,7 @@ export default function BayesianOptimizationPanel({
 
               {/* Rotation */}
               <div className="flex items-center gap-1.5">
-                <label className="flex items-center gap-1 text-[10px] text-gray-500 min-w-[52px]">
+                <label className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-slate-400 min-w-[52px]">
                   <input
                     type="checkbox"
                     checked={v.rotation_enabled}
@@ -306,14 +306,14 @@ export default function BayesianOptimizationPanel({
       )}
 
       {variables.length === 0 && (
-        <p className="text-[10px] text-gray-400">원인 분석 결과에서 차폐 건물을 찾을 수 없습니다.</p>
+        <p className="text-[10px] text-gray-400 dark:text-slate-500">원인 분석 결과에서 차폐 건물을 찾을 수 없습니다.</p>
       )}
 
       {/* Optimization settings */}
       <div>
-        <div className="text-[10px] text-gray-500 font-medium mb-1">최적화 설정</div>
+        <div className="text-[10px] text-gray-500 dark:text-slate-400 font-medium mb-1">최적화 설정</div>
         <div className="flex items-center gap-2">
-          <label className="text-[10px] text-gray-500">시행 횟수</label>
+          <label className="text-[10px] text-gray-500 dark:text-slate-400">시행 횟수</label>
           <input
             type="number"
             value={nTrials}
@@ -326,10 +326,10 @@ export default function BayesianOptimizationPanel({
       </div>
 
       {/* Constraints (collapsible) */}
-      <div className="border border-gray-100 rounded-md overflow-hidden">
+      <div className="border border-gray-100 dark:border-slate-800 rounded-md overflow-hidden">
         <button
           onClick={() => setShowConstraints(!showConstraints)}
-          className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] text-gray-500 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] text-gray-500 dark:text-slate-400 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-1">
             <Settings size={10} />
@@ -340,7 +340,7 @@ export default function BayesianOptimizationPanel({
         {showConstraints && (
           <div className="px-2 pb-2 space-y-1.5">
             <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 min-w-[64px]">건폐율 상한(%)</label>
+              <label className="text-[10px] text-gray-500 dark:text-slate-400 min-w-[64px]">건폐율 상한(%)</label>
               <input
                 type="number"
                 value={maxCoverageRatio}
@@ -352,7 +352,7 @@ export default function BayesianOptimizationPanel({
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 min-w-[64px]">용적률 상한(%)</label>
+              <label className="text-[10px] text-gray-500 dark:text-slate-400 min-w-[64px]">용적률 상한(%)</label>
               <input
                 type="number"
                 value={maxFar}
@@ -363,7 +363,7 @@ export default function BayesianOptimizationPanel({
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[10px] text-gray-500 min-w-[64px]">대지면적(m2)</label>
+              <label className="text-[10px] text-gray-500 dark:text-slate-400 min-w-[64px]">대지면적(m2)</label>
               <input
                 type="number"
                 value={siteArea}
@@ -373,7 +373,7 @@ export default function BayesianOptimizationPanel({
                 min={0}
               />
             </div>
-            <p className="text-[9px] text-gray-400">건폐율/용적률 사용 시 대지면적 입력 필요</p>
+            <p className="text-[9px] text-gray-400 dark:text-slate-500">건폐율/용적률 사용 시 대지면적 입력 필요</p>
           </div>
         )}
       </div>
@@ -401,19 +401,19 @@ export default function BayesianOptimizationPanel({
         </button>
         {isRunning && (
           <div className="mt-1.5">
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
+            <div className="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-1.5">
               <div
                 className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-[9px] text-gray-400 mt-0.5 text-center">
+            <p className="text-[9px] text-gray-400 dark:text-slate-500 mt-0.5 text-center">
               약 {estimatedMinutes}분 소요 예상
             </p>
           </div>
         )}
         {!canRun && !isRunning && (
-          <p className="text-[10px] text-gray-400 mt-1">원인 분석 완료 후 사용 가능</p>
+          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">원인 분석 완료 후 사용 가능</p>
         )}
       </div>
 
@@ -438,7 +438,7 @@ export default function BayesianOptimizationPanel({
               </div>
               <div className="text-xs">
                 적합률{' '}
-                <span className="text-gray-400">{result.original_compliance_rate}%</span>
+                <span className="text-gray-400 dark:text-slate-500">{result.original_compliance_rate}%</span>
                 {' → '}
                 <span className="font-semibold text-green-600">
                   {result.best_trial.compliance_rate}%
@@ -449,8 +449,8 @@ export default function BayesianOptimizationPanel({
               </div>
               <div className="mt-1 space-y-0.5">
                 {Object.entries(result.best_trial.params).map(([key, val]) => (
-                  <div key={key} className="text-[10px] text-gray-600">
-                    <span className="text-gray-400">{key}:</span> {typeof val === 'number' ? val.toFixed(1) : val}
+                  <div key={key} className="text-[10px] text-gray-600 dark:text-slate-300">
+                    <span className="text-gray-400 dark:text-slate-500">{key}:</span> {typeof val === 'number' ? val.toFixed(1) : val}
                   </div>
                 ))}
               </div>
@@ -458,7 +458,7 @@ export default function BayesianOptimizationPanel({
           )}
 
           {/* Study stats */}
-          <div className="flex items-center gap-3 text-[10px] text-gray-500">
+          <div className="flex items-center gap-3 text-[10px] text-gray-500 dark:text-slate-400">
             <div className="flex items-center gap-0.5">
               <Clock size={9} />
               {result.study_duration_sec < 60
@@ -472,7 +472,7 @@ export default function BayesianOptimizationPanel({
           {/* Convergence mini-chart */}
           {result.trials.length > 0 && (
             <div>
-              <div className="text-[10px] text-gray-500 font-medium mb-1">수렴 추이</div>
+              <div className="text-[10px] text-gray-500 dark:text-slate-400 font-medium mb-1">수렴 추이</div>
               <div className="space-y-px">
                 {getChartTrials(result.trials).map(t => {
                   const maxRate = Math.max(
@@ -484,10 +484,10 @@ export default function BayesianOptimizationPanel({
                   const improved = t.delta_rate > 0
                   return (
                     <div key={t.trial_number} className="flex items-center gap-1">
-                      <span className="text-[8px] text-gray-400 w-5 text-right shrink-0">
+                      <span className="text-[8px] text-gray-400 dark:text-slate-500 w-5 text-right shrink-0">
                         #{t.trial_number}
                       </span>
-                      <div className="flex-1 h-3 bg-gray-50 rounded-sm overflow-hidden">
+                      <div className="flex-1 h-3 bg-gray-50 dark:bg-slate-800 rounded-sm overflow-hidden">
                         <div
                           className={`h-full rounded-sm transition-all ${
                             improved ? 'bg-green-400' : 'bg-red-300'
@@ -495,7 +495,7 @@ export default function BayesianOptimizationPanel({
                           style={{ width: `${widthPct}%` }}
                         />
                       </div>
-                      <span className="text-[8px] text-gray-500 w-10 text-right shrink-0">
+                      <span className="text-[8px] text-gray-500 dark:text-slate-400 w-10 text-right shrink-0">
                         {t.compliance_rate}%
                       </span>
                     </div>
@@ -504,9 +504,9 @@ export default function BayesianOptimizationPanel({
               </div>
               {/* Original baseline marker */}
               <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[8px] text-gray-400 w-5 text-right">기준</span>
+                <span className="text-[8px] text-gray-400 dark:text-slate-500 w-5 text-right">기준</span>
                 <div className="flex-1 h-px bg-gray-300" />
-                <span className="text-[8px] text-gray-400 w-10 text-right">
+                <span className="text-[8px] text-gray-400 dark:text-slate-500 w-10 text-right">
                   {result.original_compliance_rate}%
                 </span>
               </div>
@@ -515,10 +515,10 @@ export default function BayesianOptimizationPanel({
 
           {/* Full trial history table */}
           <div>
-            <div className="text-[10px] text-gray-500 font-medium mb-1">전체 시행 결과</div>
-            <div className="max-h-[200px] overflow-y-auto border border-gray-100 rounded-md">
+            <div className="text-[10px] text-gray-500 dark:text-slate-400 font-medium mb-1">전체 시행 결과</div>
+            <div className="max-h-[200px] overflow-y-auto border border-gray-100 dark:border-slate-800 rounded-md">
               <table className="w-full text-[10px]">
-                <thead className="text-gray-400 sticky top-0 bg-white">
+                <thead className="text-gray-400 dark:text-slate-500 sticky top-0 bg-white dark:bg-slate-800">
                   <tr>
                     <th className="text-left py-0.5 px-1">#</th>
                     <th className="text-right py-0.5 px-1">적합률</th>
@@ -526,7 +526,7 @@ export default function BayesianOptimizationPanel({
                     <th className="text-center py-0.5 px-1">제약</th>
                   </tr>
                 </thead>
-                <tbody className="text-gray-600">
+                <tbody className="text-gray-600 dark:text-slate-300">
                   {result.trials.map(t => (
                     <tr
                       key={t.trial_number}
@@ -546,7 +546,7 @@ export default function BayesianOptimizationPanel({
                             ? 'text-green-600'
                             : t.delta_rate < 0
                             ? 'text-red-500'
-                            : 'text-gray-400'
+                            : 'text-gray-400 dark:text-slate-500'
                         }`}
                       >
                         {t.delta_rate > 0 ? '+' : ''}

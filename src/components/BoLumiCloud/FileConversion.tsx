@@ -88,14 +88,14 @@ export default function FileConversion() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-light text-gray-900 mb-6">
+        <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-6">
           파일 형식 변환
         </h2>
         <div className="w-24 h-px bg-gray-300 mb-6" />
 
         {/* 1. 파일 업로드 (드래그&드롭 + 다중 선택) */}
-        <div className="border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-normal text-gray-900 mb-4">
+        <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
+          <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
             1. 파일 선택 (다중 선택 가능)
           </h3>
 
@@ -105,9 +105,9 @@ export default function FileConversion() {
           />
 
           {uploadedFiles && uploadedFiles.length > 0 && (
-            <div className="mt-4 p-4 border border-gray-200 bg-amber-50/50">
+            <div className="mt-4 p-4 border border-gray-200 dark:border-slate-700 bg-amber-50/50">
               <div className="flex justify-between items-start mb-2">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
                   {uploadedFiles.length}개 파일 선택됨
                 </p>
                 <button
@@ -119,12 +119,12 @@ export default function FileConversion() {
               </div>
               <div className="space-y-1 max-h-40 overflow-y-auto">
                 {Array.from(uploadedFiles).slice(0, 10).map((file, i) => (
-                  <p key={i} className="text-xs text-gray-800">
+                  <p key={i} className="text-xs text-gray-800 dark:text-slate-200">
                     • {file.name} ({(file.size / 1024).toFixed(1)} KB)
                   </p>
                 ))}
                 {uploadedFiles.length > 10 && (
-                  <p className="text-xs text-gray-800 italic">
+                  <p className="text-xs text-gray-800 dark:text-slate-200 italic">
                     ...외 {uploadedFiles.length - 10}개 파일
                   </p>
                 )}
@@ -134,14 +134,14 @@ export default function FileConversion() {
         </div>
 
         {/* 2. 출력 형식 선택 */}
-        <div className="border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-normal text-gray-900 mb-4">
+        <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
+          <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
             2. 출력 형식 선택
           </h3>
 
           {/* HDR 형식 */}
           <div className="mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">HDR 형식 (High Dynamic Range)</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">HDR 형식 (High Dynamic Range)</p>
             <div className="grid grid-cols-4 gap-3">
               {hdrFormats.map(([fmt, info]) => (
                 <button
@@ -150,11 +150,11 @@ export default function FileConversion() {
                   className={`border-2 p-3 transition-all text-left ${
                     outputFormat === fmt
                       ? 'border-red-600 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-400'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-400'
                   }`}
                 >
-                  <div className="font-medium text-gray-900">.{fmt}</div>
-                  <div className="text-xs text-gray-800 mt-1">{info.desc}</div>
+                  <div className="font-medium text-gray-900 dark:text-slate-100">.{fmt}</div>
+                  <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">{info.desc}</div>
                 </button>
               ))}
             </div>
@@ -162,7 +162,7 @@ export default function FileConversion() {
 
           {/* LDR 형식 */}
           <div className="mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">LDR 형식 (웹/일반 용도, 톤 매핑 적용)</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">LDR 형식 (웹/일반 용도, 톤 매핑 적용)</p>
             <div className="grid grid-cols-4 gap-3">
               {ldrFormats.map(([fmt, info]) => (
                 <button
@@ -171,11 +171,11 @@ export default function FileConversion() {
                   className={`border-2 p-3 transition-all text-left ${
                     outputFormat === fmt
                       ? 'border-red-600 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-400'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-400'
                   }`}
                 >
-                  <div className="font-medium text-gray-900">.{fmt}</div>
-                  <div className="text-xs text-gray-800 mt-1">{info.desc}</div>
+                  <div className="font-medium text-gray-900 dark:text-slate-100">.{fmt}</div>
+                  <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">{info.desc}</div>
                 </button>
               ))}
             </div>
@@ -183,7 +183,7 @@ export default function FileConversion() {
 
           {/* Raw 형식 */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-3">원본 형식</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">원본 형식</p>
             <div className="grid grid-cols-4 gap-3">
               {rawFormats.map(([fmt, info]) => (
                 <button
@@ -192,11 +192,11 @@ export default function FileConversion() {
                   className={`border-2 p-3 transition-all text-left ${
                     outputFormat === fmt
                       ? 'border-red-600 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-400'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-400'
                   }`}
                 >
-                  <div className="font-medium text-gray-900">.{fmt}</div>
-                  <div className="text-xs text-gray-800 mt-1">{info.desc}</div>
+                  <div className="font-medium text-gray-900 dark:text-slate-100">.{fmt}</div>
+                  <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">{info.desc}</div>
                 </button>
               ))}
             </div>
@@ -205,8 +205,8 @@ export default function FileConversion() {
 
         {/* 3. 변환 옵션 (LDR 선택 시만) */}
         {needsToneMapping && (
-          <div className="border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-normal text-gray-900 mb-4">
+          <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
+            <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
               3. 변환 옵션
             </h3>
 
@@ -218,12 +218,12 @@ export default function FileConversion() {
                   onChange={(e) => setToneMapping(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span className="text-gray-700">톤 매핑 적용 (HDR → LDR 자동 변환)</span>
+                <span className="text-gray-700 dark:text-slate-300">톤 매핑 적용 (HDR → LDR 자동 변환)</span>
               </label>
 
               {toneMapping && (
                 <div>
-                  <label className="text-sm text-gray-700 mb-2 block">
+                  <label className="text-sm text-gray-700 dark:text-slate-300 mb-2 block">
                     감마 보정 (γ={gamma})
                   </label>
                   <input
@@ -235,7 +235,7 @@ export default function FileConversion() {
                     onChange={(e) => setGamma(Number(e.target.value))}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-xs text-gray-800 mt-1">
+                  <div className="flex justify-between text-xs text-gray-800 dark:text-slate-200 mt-1">
                     <span>1.0 (어두움)</span>
                     <span>2.2 (표준)</span>
                     <span>3.0 (밝음)</span>
@@ -251,8 +251,8 @@ export default function FileConversion() {
           <button
             onClick={handleBatchConvert}
             disabled={!uploadedFiles || uploadedFiles.length === 0 || converting}
-            className="border border-gray-200 hover:border-red-600/30 px-8 py-3 text-base
-              text-gray-900 hover:text-red-600 transition-all duration-300
+            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3 text-base
+              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {converting ? `변환 중... (${uploadedFiles?.length || 0}개 파일)` :
@@ -261,20 +261,20 @@ export default function FileConversion() {
           </button>
 
           {uploadedFiles && uploadedFiles.length > 5 && (
-            <p className="text-xs text-gray-800 mt-3">
+            <p className="text-xs text-gray-800 dark:text-slate-200 mt-3">
               ⚠️ 여러 파일 다운로드 시 브라우저 팝업 차단 해제 필요
             </p>
           )}
         </div>
 
         {/* 설명 */}
-        <div className="mt-8 p-6 border border-gray-200">
-          <h4 className="font-medium text-gray-900 mb-3">지원 형식 및 설명</h4>
+        <div className="mt-8 p-6 border border-gray-200 dark:border-slate-700">
+          <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">지원 형식 및 설명</h4>
 
           <div className="grid md:grid-cols-3 gap-6 text-sm">
             <div>
-              <p className="font-medium text-gray-900 mb-2">HDR 형식</p>
-              <ul className="space-y-1 text-xs text-gray-800">
+              <p className="font-medium text-gray-900 dark:text-slate-100 mb-2">HDR 형식</p>
+              <ul className="space-y-1 text-xs text-gray-800 dark:text-slate-200">
                 <li>• .pic, .hdr: Radiance 네이티브</li>
                 <li>• .tif: TIFF HDR (32-bit float)</li>
                 <li>• .exr: OpenEXR (준비 중)</li>
@@ -282,8 +282,8 @@ export default function FileConversion() {
             </div>
 
             <div>
-              <p className="font-medium text-gray-900 mb-2">LDR 형식</p>
-              <ul className="space-y-1 text-xs text-gray-800">
+              <p className="font-medium text-gray-900 dark:text-slate-100 mb-2">LDR 형식</p>
+              <ul className="space-y-1 text-xs text-gray-800 dark:text-slate-200">
                 <li>• .png: 무손실, 웹 호환</li>
                 <li>• .jpg: 손실 압축, 작은 용량</li>
                 <li>• .bmp: Windows 호환</li>
@@ -291,16 +291,16 @@ export default function FileConversion() {
             </div>
 
             <div>
-              <p className="font-medium text-gray-900 mb-2">원본 형식</p>
-              <ul className="space-y-1 text-xs text-gray-800">
+              <p className="font-medium text-gray-900 dark:text-slate-100 mb-2">원본 형식</p>
+              <ul className="space-y-1 text-xs text-gray-800 dark:text-slate-200">
                 <li>• .ppm: Portable Pixmap</li>
                 <li>• 변환 없이 원본 데이터</li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-800">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+            <p className="text-xs text-gray-800 dark:text-slate-200">
               pyradiance 기반 형식 변환. 모든 Radiance 호환 형식 지원.
               LDR 변환 시 자동 톤 매핑 적용 (ra_ppm).
             </p>

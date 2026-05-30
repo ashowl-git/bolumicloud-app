@@ -151,13 +151,13 @@ export default function SunlightSidePanel({
     >
       {/* ── 탭 바 (결과 있을 때만) ── */}
       {results && onTabChange && (
-        <div className="flex border border-gray-200 rounded overflow-hidden mb-2">
+        <div className="flex border border-gray-200 dark:border-slate-700 rounded overflow-hidden mb-2">
           <button
             onClick={() => onTabChange('settings')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs transition-colors
               ${activeTab === 'settings'
                 ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
+                : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50'
               }`}
           >
             <Settings size={12} />
@@ -168,7 +168,7 @@ export default function SunlightSidePanel({
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs transition-colors
               ${activeTab === 'results'
                 ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
+                : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50'
               }`}
           >
             <BarChart3 size={12} />
@@ -286,21 +286,21 @@ export default function SunlightSidePanel({
               defaultOpen
             >
               <div className="space-y-2">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   선택된 측정점에서 태양 궤적 방향으로 팬 곡면을 렌더링하여 일조침해를 시각화합니다.
                 </p>
                 {solarChart.data ? (
                   <div className="space-y-2">
-                    <div className="text-xs bg-gray-50 rounded p-2 space-y-1">
+                    <div className="text-xs bg-gray-50 dark:bg-slate-800 rounded p-2 space-y-1">
                       <div>총일조: <b>{solarChart.data.summary.total_hours}시간</b></div>
                       <div>연속일조: <b>{solarChart.data.summary.continuous_hours}시간</b></div>
                       {solarChart.data.sunlit_intervals.map((iv, i) => (
-                        <div key={i} className="text-gray-500">{iv.label}: {iv.start}~{iv.end}</div>
+                        <div key={i} className="text-gray-500 dark:text-slate-400">{iv.label}: {iv.start}~{iv.end}</div>
                       ))}
                     </div>
                     <button
                       onClick={() => solarChart.clear()}
-                      className="w-full px-3 py-1.5 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                      className="w-full px-3 py-1.5 text-xs bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 rounded transition-colors"
                     >
                       닫기
                     </button>

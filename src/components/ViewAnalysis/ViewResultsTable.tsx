@@ -65,12 +65,12 @@ export default function ViewResultsTable({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
+      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
 
-      <div className="border border-gray-200 overflow-x-auto">
+      <div className="border border-gray-200 dark:border-slate-700 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
               {([
                 { key: 'id' as SortKey, label: txt.id },
                 { key: 'id' as SortKey, label: txt.name },
@@ -83,12 +83,12 @@ export default function ViewResultsTable({
                   key={idx}
                   scope="col"
                   onClick={() => handleSort(col.key)}
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400
                     cursor-pointer hover:text-gray-700 select-none"
                 >
                   <div className="flex items-center gap-1">
                     {t(col.label)}
-                    <ArrowUpDown size={12} className="text-gray-400" />
+                    <ArrowUpDown size={12} className="text-gray-400 dark:text-slate-500" />
                   </div>
                 </th>
               ))}
@@ -99,14 +99,14 @@ export default function ViewResultsTable({
               <tr
                 key={obs.id}
                 onClick={() => onObserverSelect?.(obs.id)}
-                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 cursor-pointer transition-colors ${
                   selectedObserverId === obs.id
                     ? 'bg-red-50 ring-1 ring-inset ring-red-200'
                     : ''
                 }`}
               >
-                <td className="px-4 py-3 text-gray-500 font-mono text-xs">{obs.id}</td>
-                <td className="px-4 py-3 text-gray-700">{obs.name}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">{obs.id}</td>
+                <td className="px-4 py-3 text-gray-700 dark:text-slate-300">{obs.name}</td>
                 <td className="px-4 py-3 tabular-nums">
                   <span className={obs.svf >= 0.50 ? 'text-green-600' : obs.svf >= 0.20 ? 'text-amber-600' : 'text-red-600'}>
                     {(obs.svf * 100).toFixed(1)}%
@@ -115,10 +115,10 @@ export default function ViewResultsTable({
                 <td className="px-4 py-3 tabular-nums text-blue-600">
                   {obs.view_by_category.sky?.toFixed(1) ?? '-'}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-300">
                   {obs.view_by_category.building?.toFixed(1) ?? '-'}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-300">
                   {obs.view_by_category.ground?.toFixed(1) ?? '-'}
                 </td>
               </tr>
@@ -127,7 +127,7 @@ export default function ViewResultsTable({
         </table>
       </div>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-400 dark:text-slate-500">
         {observers.length}개 관찰점
       </p>
     </div>

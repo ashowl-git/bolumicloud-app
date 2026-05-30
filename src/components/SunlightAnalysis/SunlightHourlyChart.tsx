@@ -51,7 +51,7 @@ export default function SunlightHourlyChart({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-900">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-slate-100">
           {point.name} — 시간별 일조 상태
         </h4>
         <div className="flex items-center gap-3 text-xs">
@@ -66,7 +66,7 @@ export default function SunlightHourlyChart({
         </div>
       </div>
 
-      <div className="border border-gray-200 p-4">
+      <div className="border border-gray-200 dark:border-slate-700 p-4">
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -101,12 +101,12 @@ export default function SunlightHourlyChart({
         </ResponsiveContainer>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400">
         <span>
-          총일조: <strong className="text-gray-700">{point.total_hours.toFixed(1)}h</strong>
+          총일조: <strong className="text-gray-700 dark:text-slate-300">{point.total_hours.toFixed(1)}h</strong>
         </span>
         <span>
-          연속일조: <strong className="text-gray-700">{point.continuous_hours.toFixed(1)}h</strong>
+          연속일조: <strong className="text-gray-700 dark:text-slate-300">{point.continuous_hours.toFixed(1)}h</strong>
         </span>
         <span className={point.compliant ? 'text-green-600' : 'text-red-600'}>
           {point.compliant ? '적합' : '부적합'}

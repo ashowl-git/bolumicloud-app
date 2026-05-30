@@ -105,39 +105,39 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
   return (
     <div className="space-y-6">
       {/* Location */}
-      <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <MapPin size={16} strokeWidth={1.5} className="text-gray-500" />
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <MapPin size={16} strokeWidth={1.5} className="text-gray-500 dark:text-slate-400" />
           {t(txt.location)}
         </h3>
 
         {/* Address Search */}
         <div className="mb-4 relative">
-          <label className="text-xs text-gray-500 mb-1.5 block">{t(txt.addressSearch)}</label>
+          <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">{t(txt.addressSearch)}</label>
           <input
             type="text"
             value={addressQuery}
             onChange={(e) => searchAddress(e.target.value)}
             placeholder={t(txt.addressPlaceholder)}
             disabled={disabled}
-            className="w-full border border-gray-200 px-3 py-2 text-sm
+            className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
               focus:outline-none focus:border-red-600/30 disabled:opacity-50"
           />
           {isSearching && (
-            <span className="absolute right-3 top-8 text-xs text-gray-400">{t(txt.searching)}</span>
+            <span className="absolute right-3 top-8 text-xs text-gray-400 dark:text-slate-500">{t(txt.searching)}</span>
           )}
           {addressResults.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-lg max-h-48 overflow-y-auto">
               {addressResults.map((result, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => selectAddress(result)}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300
                     hover:bg-red-50 hover:text-red-600 transition-colors duration-300"
                 >
                   <p className="truncate">{result.display_name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-slate-500">
                     ({parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)})
                   </p>
                 </button>
@@ -147,7 +147,7 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
         </div>
 
         <div className="mb-4">
-          <label className="text-xs text-gray-500 mb-2 block">{t(txt.cityPreset)}</label>
+          <label className="text-xs text-gray-500 dark:text-slate-400 mb-2 block">{t(txt.cityPreset)}</label>
           <div className="flex flex-wrap gap-2">
             {CITY_PRESETS.map((city, idx) => (
               <button
@@ -155,8 +155,8 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                 type="button"
                 onClick={() => handleCityPreset(idx)}
                 disabled={disabled}
-                className="border border-gray-200 hover:border-red-600/30 px-3 py-1.5
-                  text-sm text-gray-700 hover:text-red-600 transition-all duration-300
+                className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-3 py-1.5
+                  text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300
                   disabled:opacity-50"
               >
                 {t(city.name)}
@@ -167,38 +167,38 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t(txt.latitude)}</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.latitude)}</label>
             <input
               type="number"
               step="0.001"
               value={config.latitude}
               onChange={(e) => onChange({ latitude: Number(e.target.value) })}
               disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
+              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t(txt.longitude)}</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.longitude)}</label>
             <input
               type="number"
               step="0.001"
               value={config.longitude}
               onChange={(e) => onChange({ longitude: Number(e.target.value) })}
               disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
+              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t(txt.timezone)}</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.timezone)}</label>
             <input
               type="number"
               step="1"
               value={config.timezone}
               onChange={(e) => onChange({ timezone: Number(e.target.value) })}
               disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
+              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
@@ -206,9 +206,9 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
       </div>
 
       {/* Date */}
-      <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Calendar size={16} strokeWidth={1.5} className="text-gray-500" />
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <Calendar size={16} strokeWidth={1.5} className="text-gray-500 dark:text-slate-400" />
           {t(txt.date)}
         </h3>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -223,7 +223,7 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                 className={`border px-4 py-2 text-sm transition-all duration-300 disabled:opacity-50 ${
                   isSelected
                     ? 'border-red-600 text-red-600 bg-red-50'
-                    : 'border-gray-200 text-gray-700 hover:border-red-600/30 hover:text-red-600'
+                    : 'border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-red-600/30 hover:text-red-600'
                 }`}
               >
                 {preset.label} ({preset.month}/{preset.day})
@@ -233,7 +233,7 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">월</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">월</label>
             <input
               type="number"
               min={1}
@@ -243,12 +243,12 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                 onChange({ date: { ...config.date, month: Number(e.target.value), label: 'custom' } })
               }
               disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
+              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">일</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">일</label>
             <input
               type="number"
               min={1}
@@ -258,7 +258,7 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                 onChange({ date: { ...config.date, day: Number(e.target.value), label: 'custom' } })
               }
               disabled={disabled}
-              className="w-full border border-gray-200 px-3 py-2 text-sm
+              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
@@ -266,9 +266,9 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
       </div>
 
       {/* Building Type */}
-      <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Building2 size={16} strokeWidth={1.5} className="text-gray-500" />
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <Building2 size={16} strokeWidth={1.5} className="text-gray-500 dark:text-slate-400" />
           {t(txt.buildingType)}
         </h3>
         <div className="flex gap-4">
@@ -286,7 +286,7 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                 />
                 <span
                   className={`text-sm ${
-                    config.buildingType === value ? 'text-red-600' : 'text-gray-700'
+                    config.buildingType === value ? 'text-red-600' : 'text-gray-700 dark:text-slate-300'
                   }`}
                 >
                   {t(label)}
@@ -298,9 +298,9 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
       </div>
 
       {/* Resolution */}
-      <div className="border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Clock size={16} strokeWidth={1.5} className="text-gray-500" />
+      <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <Clock size={16} strokeWidth={1.5} className="text-gray-500 dark:text-slate-400" />
           {t(txt.resolution)}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -316,13 +316,13 @@ export default function SunlightConfigPanel({ config, onChange, disabled }: Sunl
                   className={`border p-4 text-left transition-all duration-300 disabled:opacity-50 ${
                     isSelected
                       ? 'border-red-600 bg-red-50'
-                      : 'border-gray-200 hover:border-red-600/30'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30'
                   }`}
                 >
-                  <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
+                  <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900 dark:text-slate-100'}`}>
                     {t(info)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{info.description}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{info.description}</p>
                 </button>
               )
             }

@@ -34,8 +34,8 @@ export default function ViewReportButton({ sessionId, results }: ViewReportButto
       <button
         onClick={generateReport}
         disabled={isGeneratingReport}
-        className="flex items-center gap-1.5 border border-gray-200 hover:border-red-600/30
-          px-3 py-1.5 text-xs text-gray-900 hover:text-red-600 transition-all disabled:opacity-50"
+        className="flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 hover:border-red-600/30
+          px-3 py-1.5 text-xs text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all disabled:opacity-50"
       >
         {isGeneratingReport ? <Loader2 size={12} className="animate-spin" /> : <FileSpreadsheet size={12} />}
         {isGeneratingReport ? '생성 중...' : '조망 보고서'}

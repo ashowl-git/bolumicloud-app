@@ -25,12 +25,12 @@ export default function DashboardSkeleton() {
           <div className="flex items-center gap-2 mb-4">
             <Skeleton variant="custom" width="16px" height="16px" />
             <Skeleton variant="text" width="80px" height="12px" />
-            <div className="flex-1 h-px bg-gray-100 ml-2" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700 ml-2" />
           </div>
           {/* Card grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[0, 1, 2].map((cardIdx) => (
-              <div key={cardIdx} className="border border-gray-200 p-6">
+              <div key={cardIdx} className="border border-gray-200 dark:border-slate-700 p-6">
                 <Skeleton variant="custom" width="28px" height="28px" className="mb-3" />
                 <Skeleton variant="text" width="60%" height="14px" className="mb-2" />
                 <Skeleton variant="text" lines={2} height="12px" />

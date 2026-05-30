@@ -42,41 +42,41 @@ export default function ViewSummary({ summary }: ViewSummaryProps) {
         }`}
       >
         <div className="flex items-center gap-3 mb-4">
-          <Eye size={24} className="text-gray-600" />
+          <Eye size={24} className="text-gray-600 dark:text-slate-300" />
           <div>
-            <h3 className="text-lg font-medium text-gray-900">{t(txt.title)}</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
             <p className={`text-sm ${grade.color}`}>{grade.label}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.totalObservers)}</p>
-            <p className="text-3xl font-light text-gray-900">{summary.total_observers}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.totalObservers)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{summary.total_observers}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.averageSvf)}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.averageSvf)}</p>
             <p className={`text-3xl font-light ${grade.color}`}>
               {(summary.average_svf * 100).toFixed(1)}%
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.minSvf)}</p>
-            <p className="text-3xl font-light text-gray-900">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.minSvf)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">
               {(summary.min_svf * 100).toFixed(1)}%
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">{t(txt.maxSvf)}</p>
-            <p className="text-3xl font-light text-gray-900">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.maxSvf)}</p>
+            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">
               {(summary.max_svf * 100).toFixed(1)}%
             </p>
           </div>
         </div>
       </div>
 
-      <div className="border border-gray-200 p-4">
-        <p className="text-xs text-gray-500">
+      <div className="border border-gray-200 dark:border-slate-700 p-4">
+        <p className="text-xs text-gray-500 dark:text-slate-400">
           SVF(천공개방률): 관찰점에서 하늘이 보이는 비율. 주택성능등급 기준 — 1등급: 50% 이상 | 2등급: 35% 이상 | 3등급: 20% 이상
         </p>
       </div>

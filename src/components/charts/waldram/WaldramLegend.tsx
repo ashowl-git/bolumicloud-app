@@ -35,27 +35,27 @@ export default function WaldramLegend({
           onClick={() => !editable && onSelect(selectedIdx === idx ? null : idx)}
           className={`flex items-center gap-1.5 px-2 py-1 text-xs border transition-all duration-200 ${
             selectedIdx === idx
-              ? 'border-gray-400 bg-gray-50'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-gray-400 bg-gray-50 dark:bg-slate-800'
+              : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
           }`}
         >
           <span
             className="w-3 h-3 inline-block"
             style={{ backgroundColor: obs.color, opacity: 0.6 }}
           />
-          <span className="text-gray-700">{obs.name}</span>
+          <span className="text-gray-700 dark:text-slate-300">{obs.name}</span>
         </button>
       ))}
       {sunPaths.map((sp, idx) => (
         <div
           key={`sp-legend-${sp.date}-${idx}`}
-          className="flex items-center gap-1.5 px-2 py-1 text-xs border border-gray-200"
+          className="flex items-center gap-1.5 px-2 py-1 text-xs border border-gray-200 dark:border-slate-700"
         >
           <span
             className="w-6 h-0.5 inline-block"
             style={{ backgroundColor: sp.color }}
           />
-          <span className="text-gray-700">{sp.label}</span>
+          <span className="text-gray-700 dark:text-slate-300">{sp.label}</span>
         </div>
       ))}
     </div>

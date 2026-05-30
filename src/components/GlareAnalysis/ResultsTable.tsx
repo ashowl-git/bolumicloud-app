@@ -70,7 +70,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
   const SortIcon = ({ column }: { column: keyof GlareResult }) => {
     if (sortBy !== column) {
       return (
-        <span className="text-gray-500 ml-1">
+        <span className="text-gray-500 dark:text-slate-400 ml-1">
           <svg className="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
@@ -86,15 +86,15 @@ export default function ResultsTable({ results }: ResultsTableProps) {
   }
 
   return (
-    <div className="border border-gray-200 overflow-hidden">
+    <div className="border border-gray-200 dark:border-slate-700 overflow-hidden">
       {/* 필터 버튼 */}
-      <div className="p-6 border-b border-gray-200 flex flex-wrap gap-2 items-center">
+      <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex flex-wrap gap-2 items-center">
         <button
           onClick={() => setFilter('all')}
           className={`px-4 py-2 text-sm transition-all duration-300 ${
             filter === 'all'
-              ? 'border-b-2 border-red-600 text-gray-900'
-              : 'text-gray-800 hover:text-gray-900'
+              ? 'border-b-2 border-red-600 text-gray-900 dark:text-slate-100'
+              : 'text-gray-800 dark:text-slate-200 hover:text-gray-900'
           }`}
         >
           전체 ({results.length})
@@ -104,8 +104,8 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           onClick={() => setFilter('disability')}
           className={`px-4 py-2 text-sm transition-all duration-300 ${
             filter === 'disability'
-              ? 'border-b-2 border-red-600 text-gray-900'
-              : 'text-gray-800 hover:text-gray-900'
+              ? 'border-b-2 border-red-600 text-gray-900 dark:text-slate-100'
+              : 'text-gray-800 dark:text-slate-200 hover:text-gray-900'
           }`}
         >
           불능현휘 ({results.filter(r => r.disability === 1).length})
@@ -115,8 +115,8 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           onClick={() => setFilter('normal')}
           className={`px-4 py-2 text-sm transition-all duration-300 ${
             filter === 'normal'
-              ? 'border-b-2 border-red-600 text-gray-900'
-              : 'text-gray-800 hover:text-gray-900'
+              ? 'border-b-2 border-red-600 text-gray-900 dark:text-slate-100'
+              : 'text-gray-800 dark:text-slate-200 hover:text-gray-900'
           }`}
         >
           정상 ({results.filter(r => r.disability === 0).length})
@@ -126,7 +126,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
           <select
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="ml-auto border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
+            className="ml-auto border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 날짜</option>
             {dateLabels.map(dl => (
@@ -139,11 +139,11 @@ export default function ResultsTable({ results }: ResultsTableProps) {
       {/* 테이블 */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-slate-800">
             <tr>
               <th
                 scope="col"
-                className="p-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-left font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('file')}
               >
                 파일명 <SortIcon column="file" />
@@ -151,7 +151,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               {hasDateLabels && (
                 <th
                   scope="col"
-                  className="p-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  className="p-3 text-left font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('date_label')}
                 >
                   날짜 <SortIcon column="date_label" />
@@ -159,41 +159,41 @@ export default function ResultsTable({ results }: ResultsTableProps) {
               )}
               <th
                 scope="col"
-                className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-right font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('average')}
               >
                 평균 휘도 <SortIcon column="average" />
               </th>
               <th
                 scope="col"
-                className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-right font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('max')}
               >
                 최대 휘도 <SortIcon column="max" />
               </th>
               <th
                 scope="col"
-                className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-right font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('dgp')}
               >
                 DGP <SortIcon column="dgp" />
               </th>
               <th
                 scope="col"
-                className="p-3 text-right font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-right font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('dgi')}
               >
                 DGI <SortIcon column="dgi" />
               </th>
               <th
                 scope="col"
-                className="p-3 text-center font-semibold text-gray-900"
+                className="p-3 text-center font-semibold text-gray-900 dark:text-slate-100"
               >
                 DGP 등급
               </th>
               <th
                 scope="col"
-                className="p-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                className="p-3 text-center font-semibold text-gray-900 dark:text-slate-100 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('disability')}
               >
                 불능현휘 <SortIcon column="disability" />
@@ -207,16 +207,16 @@ export default function ResultsTable({ results }: ResultsTableProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.02, 0.5), duration: 0.2 }}
-                className="border-b border-gray-100 hover:bg-gray-50"
+                className="border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50"
               >
                 <td className="p-3 font-mono text-xs">{row.file}</td>
                 {hasDateLabels && (
-                  <td className="p-3 text-xs text-gray-600">{row.date_label || '-'}</td>
+                  <td className="p-3 text-xs text-gray-600 dark:text-slate-300">{row.date_label || '-'}</td>
                 )}
-                <td className="p-3 text-right text-gray-700">{Number(row.average).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className="p-3 text-right text-gray-700">{Number(row.max).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className="p-3 text-right text-gray-700">{Number(row.dgp).toFixed(3)}</td>
-                <td className="p-3 text-right text-gray-700">{Number(row.dgi).toFixed(2)}</td>
+                <td className="p-3 text-right text-gray-700 dark:text-slate-300">{Number(row.average).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-gray-700 dark:text-slate-300">{Number(row.max).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-3 text-right text-gray-700 dark:text-slate-300">{Number(row.dgp).toFixed(3)}</td>
+                <td className="p-3 text-right text-gray-700 dark:text-slate-300">{Number(row.dgi).toFixed(2)}</td>
                 <td className="p-3 text-center">
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold ${
@@ -245,7 +245,7 @@ export default function ResultsTable({ results }: ResultsTableProps) {
         </table>
 
         {filteredResults.length === 0 && (
-          <div className="text-center text-gray-500 py-12">
+          <div className="text-center text-gray-500 dark:text-slate-400 py-12">
             조건에 맞는 데이터가 없습니다
           </div>
         )}

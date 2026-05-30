@@ -66,8 +66,8 @@ export default function PipelineDownloads({ sessionId }: PipelineDownloadsProps)
   }
 
   return (
-    <div className="border border-gray-200 p-6">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">데이터 다운로드</h3>
+    <div className="border border-gray-200 dark:border-slate-700 p-6">
+      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4">데이터 다운로드</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {downloads.map((item) => {
           const Icon = item.icon
@@ -79,24 +79,24 @@ export default function PipelineDownloads({ sessionId }: PipelineDownloadsProps)
               onClick={() => handleDownload(item)}
               disabled={isDownloading}
               aria-label={`${item.description} 다운로드`}
-              className="border border-gray-200 hover:border-red-600/30 p-4
+              className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 p-4
                 text-center transition-all duration-300 group hover:-translate-y-0.5
                 disabled:opacity-50 disabled:cursor-wait"
             >
               {isDownloading ? (
                 <div className="mx-auto w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin mb-2" />
               ) : (
-                <Icon size={20} strokeWidth={1.5} className="mx-auto text-gray-400 group-hover:text-red-600 transition-colors duration-300 mb-2" />
+                <Icon size={20} strokeWidth={1.5} className="mx-auto text-gray-400 dark:text-slate-500 group-hover:text-red-600 transition-colors duration-300 mb-2" />
               )}
-              <p className="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors duration-300">
+              <p className="text-sm font-medium text-gray-900 dark:text-slate-100 group-hover:text-red-600 transition-colors duration-300">
                 {item.label}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{item.description}</p>
             </button>
           )
         })}
       </div>
-      <p className="text-xs text-gray-400 mt-3">
+      <p className="text-xs text-gray-400 dark:text-slate-500 mt-3">
         세션 종료 후 2시간 내 다운로드하세요.
       </p>
     </div>

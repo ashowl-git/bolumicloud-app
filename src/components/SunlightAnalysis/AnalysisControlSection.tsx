@@ -50,19 +50,19 @@ export default function AnalysisControlSection({
           disabled:hover:border-gray-200 disabled:hover:text-gray-900
           ${error && !isRunning
             ? 'border-red-300 text-red-600 hover:border-red-500 hover:bg-red-50'
-            : 'border-gray-200 text-gray-900 hover:border-red-600/30 hover:text-red-600'
+            : 'border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 hover:border-red-600/30 hover:text-red-600'
           }`}
       >
         {isRunning && <Loader2 size={14} className="animate-spin" />}
         {isRunning ? '분석 중...' : error ? '재시도' : results ? '재분석' : '분석 시작'}
       </button>
       {footerDisabled && !isRunning && !error && disabledReason && (
-        <p className="text-[10px] text-gray-500 text-center">
+        <p className="text-[10px] text-gray-500 dark:text-slate-400 text-center">
           {disabledReason}
         </p>
       )}
       {results && !isRunning && !error && !footerDisabled && (
-        <p className="text-[10px] text-gray-500 text-center">
+        <p className="text-[10px] text-gray-500 dark:text-slate-400 text-center">
           측정점을 수정한 후 재분석할 수 있습니다
         </p>
       )}

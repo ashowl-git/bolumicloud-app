@@ -50,8 +50,8 @@ export default function SunlightResults({
   return (
     <div className="space-y-6">
       {/* Analysis Info */}
-      <div className="border border-gray-200 p-4">
-        <p className="text-sm text-gray-700">
+      <div className="border border-gray-200 dark:border-slate-700 p-4">
+        <p className="text-sm text-gray-700 dark:text-slate-300">
           {results.analysis_date.label} ({results.analysis_date.month}/{results.analysis_date.day}) |{' '}
           ({results.location.latitude.toFixed(4)}, {results.location.longitude.toFixed(4)}) |{' '}
           {results.time_window.start}-{results.time_window.end} |{' '}
@@ -62,7 +62,7 @@ export default function SunlightResults({
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-slate-700">
         <div className="flex gap-1">
           {([
             { id: 'summary' as const, label: txt.summary },
@@ -75,7 +75,7 @@ export default function SunlightResults({
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-300 ${
                 activeTab === tab.id
                   ? 'border-red-600 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               {t(tab.label)}
@@ -105,8 +105,8 @@ export default function SunlightResults({
             stepMinutes={results.time_window.step_minutes}
           />
         ) : (
-          <div className="border border-gray-200 p-8 text-center">
-            <p className="text-sm text-gray-400">{t(txt.selectPoint)}</p>
+          <div className="border border-gray-200 dark:border-slate-700 p-8 text-center">
+            <p className="text-sm text-gray-400 dark:text-slate-500">{t(txt.selectPoint)}</p>
           </div>
         )
       )}

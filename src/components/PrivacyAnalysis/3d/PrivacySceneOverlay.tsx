@@ -122,8 +122,8 @@ export default function PrivacySceneOverlay({
       </ThreeViewer>
 
       {/* HTML 오버레이: 등급 필터 체크박스 */}
-      <div className="absolute top-3 left-3 bg-white/90 border border-gray-200 shadow-sm p-3 space-y-2 text-xs">
-        <div className="font-medium text-gray-700 mb-1">등급 필터</div>
+      <div className="absolute top-3 left-3 bg-white/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 space-y-2 text-xs">
+        <div className="font-medium text-gray-700 dark:text-slate-300 mb-1">등급 필터</div>
         {([1, 2, 3] as const).map((grade) => (
           <label key={grade} className="flex items-center gap-2 cursor-pointer">
             <input
@@ -136,38 +136,38 @@ export default function PrivacySceneOverlay({
               className="inline-block w-3 h-3 rounded-sm"
               style={{ backgroundColor: GRADE_COLORS[grade] }}
             />
-            <span className="text-gray-700">등급 {grade}</span>
+            <span className="text-gray-700 dark:text-slate-300">등급 {grade}</span>
           </label>
         ))}
       </div>
 
       {/* HTML 오버레이: 범례 */}
-      <div className="absolute bottom-3 right-3 bg-white/90 border border-gray-200 shadow-sm p-3 text-xs space-y-1.5">
-        <div className="font-medium text-gray-700 mb-1">범례</div>
+      <div className="absolute bottom-3 right-3 bg-white/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 text-xs space-y-1.5">
+        <div className="font-medium text-gray-700 dark:text-slate-300 mb-1">범례</div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: '#2563eb' }} />
-          <span className="text-gray-600">관찰자 창문</span>
+          <span className="text-gray-600 dark:text-slate-300">관찰자 창문</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: '#ea580c' }} />
-          <span className="text-gray-600">대상 창문</span>
+          <span className="text-gray-600 dark:text-slate-300">대상 창문</span>
         </div>
-        <hr className="border-gray-200" />
+        <hr className="border-gray-200 dark:border-slate-700" />
         <div className="flex items-center gap-2">
           <span className="inline-block w-6 h-0.5" style={{ backgroundColor: GRADE_COLORS[1] }} />
-          <span className="text-gray-600">등급 1 (심각)</span>
+          <span className="text-gray-600 dark:text-slate-300">등급 1 (심각)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-6 h-0.5" style={{ backgroundColor: GRADE_COLORS[2] }} />
-          <span className="text-gray-600">등급 2 (주의)</span>
+          <span className="text-gray-600 dark:text-slate-300">등급 2 (주의)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-6 h-0.5" style={{ backgroundColor: GRADE_COLORS[3] }} />
-          <span className="text-gray-600">등급 3 (양호)</span>
+          <span className="text-gray-600 dark:text-slate-300">등급 3 (양호)</span>
         </div>
         {selectedWindowId && (
           <>
-            <hr className="border-gray-200" />
+            <hr className="border-gray-200 dark:border-slate-700" />
             <button
               onClick={() => setSelectedWindowId(null)}
               className="text-red-600 hover:text-red-700 text-xs"

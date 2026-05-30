@@ -15,13 +15,13 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h2 className="text-3xl font-light text-gray-900 mb-6">
+          <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-6">
             불능현휘 판정
           </h2>
           <div className="w-24 h-px bg-gray-300 mb-6" />
 
-          <div className="border border-gray-200 p-12 text-center">
-            <p className="text-base text-gray-800">
+          <div className="border border-gray-200 dark:border-slate-700 p-12 text-center">
+            <p className="text-base text-gray-800 dark:text-slate-200">
               먼저 분석 탭에서 현휘 분석을 실행하세요.
             </p>
           </div>
@@ -94,19 +94,19 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-light text-gray-900 mb-6">
+        <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-6">
           불능현휘 판정
         </h2>
         <div className="w-24 h-px bg-gray-300 mb-6" />
 
         {/* 전체 요약 */}
-        <div className="border border-gray-200 p-8 mb-6">
+        <div className="border border-gray-200 dark:border-slate-700 p-8 mb-6">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="text-4xl font-light text-gray-900 mb-2">
+              <div className="text-4xl font-light text-gray-900 dark:text-slate-100 mb-2">
                 {totalFiles}
               </div>
-              <div className="text-sm text-gray-800">분석 파일 수</div>
+              <div className="text-sm text-gray-800 dark:text-slate-200">분석 파일 수</div>
             </div>
 
             <div className="text-center">
@@ -115,7 +115,7 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
               }`}>
                 {disabilityCount}
               </div>
-              <div className="text-sm text-gray-800">불능현휘 판정</div>
+              <div className="text-sm text-gray-800 dark:text-slate-200">불능현휘 판정</div>
             </div>
 
             <div className="text-center">
@@ -124,7 +124,7 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
               }`}>
                 {disabilityRate.toFixed(1)}%
               </div>
-              <div className="text-sm text-gray-800">위반율</div>
+              <div className="text-sm text-gray-800 dark:text-slate-200">위반율</div>
             </div>
           </div>
         </div>
@@ -142,10 +142,10 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                     {condition.title}
                   </h3>
-                  <p className="text-sm text-gray-800 mt-1">
+                  <p className="text-sm text-gray-800 dark:text-slate-200 mt-1">
                     {condition.description}
                   </p>
                 </div>
@@ -156,13 +156,13 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
                   }`}>
                     {condition.value}
                   </div>
-                  <div className="text-xs text-gray-800">건 위반</div>
+                  <div className="text-xs text-gray-800 dark:text-slate-200">건 위반</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-gray-700">기준:</span>
-                <span className="font-medium text-gray-900">{condition.criterion}</span>
+                <span className="text-gray-700 dark:text-slate-300">기준:</span>
+                <span className="font-medium text-gray-900 dark:text-slate-100">{condition.criterion}</span>
                 <span className={`ml-auto px-3 py-1 text-xs ${
                   condition.status === 'violation'
                     ? 'bg-red-600 text-white'
@@ -178,7 +178,7 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
         {/* 위반 파일 목록 */}
         {disabilityCount > 0 && (
           <div className="mt-8 border border-red-600 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">
               불능현휘 판정 파일 ({disabilityCount}개)
             </h3>
 
@@ -186,13 +186,13 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
               {disabilityResults.map((result, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 border border-gray-200 bg-white"
+                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800"
                 >
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
                       {result.file}
                     </div>
-                    <div className="text-xs text-gray-800 mt-1">
+                    <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">
                       DGP: {result.dgp.toFixed(3)} | DGI: {result.dgi.toFixed(1)} |
                       평균: {result.average.toFixed(0)} cd/m² | 최대: {result.max.toFixed(0)} cd/m²
                     </div>
@@ -208,24 +208,24 @@ export default function DisabilityGlare({ results }: DisabilityGlareProps) {
         )}
 
         {/* 개선 권고 */}
-        <div className="mt-8 p-6 border border-gray-200">
-          <h4 className="font-medium text-gray-900 mb-3">개선 권고사항</h4>
+        <div className="mt-8 p-6 border border-gray-200 dark:border-slate-700">
+          <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">개선 권고사항</h4>
 
-          <div className="space-y-3 text-sm text-gray-800">
+          <div className="space-y-3 text-sm text-gray-800 dark:text-slate-200">
             <p>
-              <span className="font-medium text-gray-900">차양 설치:</span>
+              <span className="font-medium text-gray-900 dark:text-slate-100">차양 설치:</span>
               블라인드, 커튼, 외부 루버 등으로 직사광선 차단
             </p>
             <p>
-              <span className="font-medium text-gray-900">유리 교체:</span>
+              <span className="font-medium text-gray-900 dark:text-slate-100">유리 교체:</span>
               Low-E 유리, 반사 유리로 투과율 감소
             </p>
             <p>
-              <span className="font-medium text-gray-900">배치 변경:</span>
+              <span className="font-medium text-gray-900 dark:text-slate-100">배치 변경:</span>
               작업 공간을 창문에서 멀리 배치
             </p>
             <p>
-              <span className="font-medium text-gray-900">법규 참고:</span>
+              <span className="font-medium text-gray-900 dark:text-slate-100">법규 참고:</span>
               녹색건축 인증 기준 - DGP 0.45 이하 또는 DGI 31 이하 유지
             </p>
           </div>

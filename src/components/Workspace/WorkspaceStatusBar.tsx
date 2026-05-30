@@ -33,7 +33,7 @@ interface WorkspaceStatusBarProps {
 }
 
 const stateStyles: Record<StatusBarState, string> = {
-  idle: 'bg-gray-100/95 border-gray-200 text-gray-600',
+  idle: 'bg-gray-100/95 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300',
   uploading: 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-600 text-white',
   running: 'bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-700 text-white animate-status-pulse',
   completed: 'bg-emerald-500 border-emerald-600 text-white',
