@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { CheckCircle2, XCircle, ArrowUpDown, FileSearch } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowUpDown, FileSearch, Download } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import EmptyState from '@/components/common/EmptyState'
+import { exportRowsToCsv } from '@/lib/exportCsv'
 import type { PointSunlightResult, MeasurementPointGroup } from '@/lib/types/sunlight'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -167,6 +168,30 @@ export default function SunlightResultsTable({
 
   return (
     <div className="space-y-2">
+      {/* Export toolbar */}
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() =>
+            exportRowsToCsv('일조분석_측정점결과', sorted, [
+              { key: 'id', header: 'ID' },
+              { header: '그룹', value: (p) => pointGroupMap.get(p.id)?.groupName ?? '' },
+              { header: '행', value: (p) => pointGroupMap.get(p.id)?.row ?? '' },
+              { header: '열', value: (p) => pointGroupMap.get(p.id)?.column ?? '' },
+              { header: '총일조시간(h)', value: (p) => p.total_hours.toFixed(3) },
+              { header: '연속일조시간(h)', value: (p) => p.continuous_hours.toFixed(3) },
+              { header: '만족여부', value: (p) => (p.compliant ? 'O' : 'X') },
+            ])
+          }
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs
+            text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700
+            hover:border-red-600/30 hover:text-red-600 transition-colors"
+        >
+          <Download size={13} aria-hidden="true" />
+          CSV 내보내기
+        </button>
+      </div>
+
       {/* Group tabs */}
       {hasGroups && (
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
