@@ -53,7 +53,7 @@ export default function BuildingLabels3D({
               whitespace-nowrap select-none transition-all cursor-pointer
               ${label.isSelected
                 ? 'bg-red-600 text-white ring-2 ring-red-300 scale-110'
-                : 'bg-white/90 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600'
+                : 'bg-white/90 dark:bg-slate-800/90 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-red-50 hover:border-red-400 hover:text-red-600'
               }`}
           >
             {label.id}

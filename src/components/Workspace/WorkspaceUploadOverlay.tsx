@@ -132,7 +132,7 @@ export default function WorkspaceUploadOverlay({
           {WORKFLOW_STEPS.map((step, i) => (
             <div key={step.label} className="flex items-center gap-2">
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs
-                ${i === 0 ? 'bg-white/95 text-gray-900 dark:text-slate-100 font-semibold shadow-sm' : 'bg-white/20 text-white/80'}`}
+                ${i === 0 ? 'bg-white/95 dark:bg-slate-800/95 text-gray-900 dark:text-slate-100 font-semibold shadow-sm' : 'bg-white/20 dark:bg-slate-800/20 text-white/80'}`}
               >
                 <step.icon size={14} strokeWidth={i === 0 ? 2 : 1.5} />
                 <span className="hidden sm:inline">{step.label}</span>
@@ -148,7 +148,7 @@ export default function WorkspaceUploadOverlay({
         {/* ── Upload Card ── */}
         <div
           onClick={() => !isUploading && inputRef.current?.click()}
-          className={`bg-white/95 rounded-xl border-2 border-dashed p-10 text-center
+          className={`bg-white/95 dark:bg-slate-800/95 rounded-xl border-2 border-dashed p-10 text-center
             transition-all duration-300 shadow-2xl ${
               isUploading
                 ? 'border-gray-300 dark:border-slate-600 cursor-not-allowed opacity-80'

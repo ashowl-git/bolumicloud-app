@@ -55,7 +55,7 @@ function BoLumiCloudInner() {
         />
 
         {/* Category Tabs (Sticky) */}
-        <div className="sticky top-16 z-20 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="sticky top-16 z-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-sm">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <CategoryTabs
               active={category}
@@ -68,7 +68,7 @@ function BoLumiCloudInner() {
         </div>
 
         {/* Sub Tabs */}
-        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700">
+        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <SubTabs
               tabs={SUB_TABS[category].map(tab => ({ id: tab.id, label: t(tab.label), status: tab.status }))}

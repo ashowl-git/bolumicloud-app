@@ -94,7 +94,7 @@ export default function WorkspaceToolbar({
     <>
       <div
         ref={toolbarRef}
-        className="flex items-center gap-0.5 bg-white/95 backdrop-blur-sm
+        className="flex items-center gap-0.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm
         border border-gray-200 dark:border-slate-700 rounded-lg p-0.5 shadow-md"
       >
         {/* Mode buttons */}

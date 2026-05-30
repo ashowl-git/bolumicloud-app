@@ -30,7 +30,7 @@ export default function WorkspaceProgressStepper({
   const currentIdx = STEP_INDEX[currentStep]
 
   return (
-    <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg
+    <div className="flex items-center gap-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg
       border border-gray-200 dark:border-slate-700 shadow-sm px-3 py-1.5 select-none">
       {STEPS.map((step, i) => {
         const isCompleted = i < currentIdx

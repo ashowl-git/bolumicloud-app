@@ -24,7 +24,7 @@ export default function SolarPVLegend({
   const gradient = GRADIENT_STOPS.map((s) => `${s.color} ${s.pct}%`).join(', ')
 
   return (
-    <div className="absolute bottom-3 right-3 z-10 bg-white/90 border border-gray-200 dark:border-slate-700 p-2">
+    <div className="absolute bottom-3 right-3 z-10 bg-white/90 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 p-2">
       <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Surface Score</p>
       <div className="flex items-center gap-2">
         <span className="text-xs text-gray-400 dark:text-slate-500 tabular-nums">0</span>

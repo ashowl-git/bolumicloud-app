@@ -26,7 +26,7 @@ export default function MeasurementToolbar({
 }: MeasurementToolbarProps) {
   return (
     <div className="absolute top-3 left-3 z-10 flex items-center gap-1
-      bg-white/90 border border-gray-200 dark:border-slate-700 p-1"
+      bg-white/90 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 p-1"
     >
       {MODES.map(({ id, icon: Icon, label }) => (
         <button

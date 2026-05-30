@@ -24,7 +24,7 @@ export default function ContourLegend({
   ]
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700 rounded-lg p-2 shadow-md text-xs">
+    <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700 rounded-lg p-2 shadow-md text-xs">
       <div className="font-medium text-gray-700 dark:text-slate-300 mb-1.5">등시간선</div>
       <div className="space-y-1">
         {items.map((item) => (

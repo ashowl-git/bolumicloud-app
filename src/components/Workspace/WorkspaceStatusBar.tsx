@@ -91,7 +91,7 @@ export default function WorkspaceStatusBar({
             {state === 'running' && onCancel && (
               <button
                 onClick={onCancel}
-                className="p-1 bg-white/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
+                className="p-1 bg-white/15 dark:bg-slate-800/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
                 aria-label="분석 취소"
               >
                 <X size={14} />
@@ -99,9 +99,9 @@ export default function WorkspaceStatusBar({
             )}
           </div>
           {progress !== undefined && (
-            <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-white/20 dark:bg-slate-800/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white/80 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-white/80 dark:bg-slate-800/80 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -132,7 +132,7 @@ export default function WorkspaceStatusBar({
           {state === 'completed' && onViewResults && (
             <button
               onClick={onViewResults}
-              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
+              className="px-3 py-1 bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 rounded text-[11px]
                 font-medium transition-colors flex-shrink-0"
             >
               결과 보기

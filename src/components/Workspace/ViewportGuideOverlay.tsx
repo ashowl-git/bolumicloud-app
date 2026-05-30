@@ -59,7 +59,7 @@ export default function ViewportGuideOverlay({
         <div className="space-y-1.5">
           {steps.map((step, i) => (
             <div key={step.key} className="flex items-center gap-2 justify-center text-sm">
-              <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center flex-shrink-0">
+              <span className="w-5 h-5 rounded-full bg-white/20 dark:bg-slate-800/20 text-xs flex items-center justify-center flex-shrink-0">
                 {i + 1}
               </span>
               <span className="text-white/90">{step.label}</span>

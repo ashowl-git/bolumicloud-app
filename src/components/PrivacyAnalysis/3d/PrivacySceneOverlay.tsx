@@ -122,7 +122,7 @@ export default function PrivacySceneOverlay({
       </ThreeViewer>
 
       {/* HTML 오버레이: 등급 필터 체크박스 */}
-      <div className="absolute top-3 left-3 bg-white/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 space-y-2 text-xs">
+      <div className="absolute top-3 left-3 bg-white/90 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 space-y-2 text-xs">
         <div className="font-medium text-gray-700 dark:text-slate-300 mb-1">등급 필터</div>
         {([1, 2, 3] as const).map((grade) => (
           <label key={grade} className="flex items-center gap-2 cursor-pointer">
@@ -142,7 +142,7 @@ export default function PrivacySceneOverlay({
       </div>
 
       {/* HTML 오버레이: 범례 */}
-      <div className="absolute bottom-3 right-3 bg-white/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 text-xs space-y-1.5">
+      <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 shadow-sm p-3 text-xs space-y-1.5">
         <div className="font-medium text-gray-700 dark:text-slate-300 mb-1">범례</div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: '#2563eb' }} />
