@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2, Loader2, RotateCcw } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { SUNLIGHT_STAGE_LABELS } from '@/lib/types/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
@@ -12,6 +12,7 @@ const txt = {
   running: { ko: '분석 중...', en: 'Analyzing...' } as LocalizedText,
   cancel: { ko: '분석 취소', en: 'Cancel Analysis' } as LocalizedText,
   overall: { ko: '전체', en: 'Overall' } as LocalizedText,
+  retry: { ko: '다시 시도', en: 'Retry' } as LocalizedText,
 }
 
 export interface ProgressStepProps {
@@ -19,6 +20,8 @@ export interface ProgressStepProps {
   estimatedRemainingSec: number | null
   isRunning: boolean
   onCancel: () => void
+  /** 에러 발생 시 재시도 핸들러 (제공 시 에러 박스에 '다시 시도' 버튼 표시) */
+  onRetry?: () => void
 }
 
 export default function ProgressStep({
@@ -26,6 +29,7 @@ export default function ProgressStep({
   estimatedRemainingSec,
   isRunning,
   onCancel,
+  onRetry,
 }: ProgressStepProps) {
   const { t } = useLocalizedText()
 
@@ -53,8 +57,20 @@ export default function ProgressStep({
         </div>
       )}
       {progress?.status === 'error' && progress.error && (
-        <div className="mt-4 border border-red-200 bg-red-50 p-4" role="alert">
-          <p className="text-sm text-red-700">{progress.error}</p>
+        <div className="mt-4 border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 rounded-lg" role="alert">
+          <p className="text-sm text-red-700 dark:text-red-300">{progress.error}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
+                border border-red-300 dark:border-red-500/40 text-red-700 dark:text-red-300
+                hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+            >
+              <RotateCcw size={13} aria-hidden="true" />
+              {t(txt.retry)}
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -158,7 +174,7 @@ function SunlightProgressView({
               <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
             )}
             {estimatedRemainingSec === null && progress.overall_progress < 5 && progress.status === 'processing' && (
-              <> | 계산 중...</>
+              <span className="animate-pulse"> | 계산 중...</span>
             )}
           </span>
         </div>

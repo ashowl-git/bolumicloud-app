@@ -206,7 +206,7 @@ export default function SunlightPipelineTab() {
         {currentStep === 3 && (
           <motion.div key="step-3" variants={fadeVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
             <ProgressStep progress={progress} estimatedRemainingSec={estimatedRemainingSec}
-              isRunning={isRunning} onCancel={cancelAnalysis} />
+              isRunning={isRunning} onCancel={cancelAnalysis} onRetry={handleStartAnalysis} />
           </motion.div>
         )}
         {currentStep === 4 && results && (
