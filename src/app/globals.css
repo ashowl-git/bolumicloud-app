@@ -136,6 +136,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* 네이티브 폼 컨트롤 — 브랜드 accent(red-600)로 통일.
+   개별 컴포넌트의 accent-red 누락분(라디오/체크박스 기본 파랑)을 전역 보정 */
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: rgb(var(--color-accent));
+}
+
 ::selection {
   @apply bg-red-600/20 text-slate-900;
 }
