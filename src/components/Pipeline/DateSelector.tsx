@@ -63,7 +63,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                 aria-pressed={active}
                 aria-label={`${preset.label} ${preset.month}월 ${preset.day}일`}
                 className={`border px-4 py-2 text-sm transition-all duration-300 disabled:opacity-50
-                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 ${
+                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600 ${
                   active
                     ? 'border-red-600 bg-red-50 text-red-600'
                     : 'border-gray-200 hover:border-red-600/30 text-gray-700 hover:text-red-600'
@@ -88,7 +88,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
               onChange={(e) => setCustomMonth(Number(e.target.value))}
               disabled={disabled}
               className="border border-gray-200 px-3 py-2 text-sm
-                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={m}>{m}월</option>
@@ -106,7 +106,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
               onChange={(e) => setCustomDay(Number(e.target.value))}
               disabled={disabled}
               className="w-20 border border-gray-200 px-3 py-2 text-sm
-                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
               placeholder="일"
             />
           </div>
@@ -117,7 +117,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
             aria-label={`${customMonth}월 ${customDay}일 추가`}
             className="border border-gray-200 hover:border-red-600/30 px-4 py-2
               text-sm text-gray-700 hover:text-red-600 transition-all duration-300 disabled:opacity-50
-              focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
+              focus:outline-2 focus:outline-offset-2 focus:outline-red-600"
           >
             추가
           </button>
@@ -145,7 +145,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                     onClick={() => removeDate(idx)}
                     aria-label={`${date.label !== 'custom' ? date.label + ' ' : ''}${date.month}월 ${date.day}일 제거`}
                     className="text-gray-400 hover:text-red-500 transition-colors
-                      focus:outline-2 focus:outline-offset-1 focus:outline-blue-500"
+                      focus:outline-2 focus:outline-offset-1 focus:outline-red-600"
                   >
                     x
                   </button>

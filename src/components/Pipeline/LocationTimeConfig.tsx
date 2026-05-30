@@ -173,7 +173,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
               aria-activedescendant={activeResultIdx >= 0 ? `${listboxId}-opt-${activeResultIdx}` : undefined}
               aria-autocomplete="list"
               className="flex-1 border border-gray-200 px-3 py-2 text-sm
-                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
             />
             {isSearching && (
               <span className="self-center text-xs text-gray-400" aria-live="polite">{t(txt.searching)}</span>
@@ -200,7 +200,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                     className={`w-full text-left px-3 py-2 text-sm text-gray-700
                       hover:bg-red-50 hover:text-red-600 transition-colors duration-300
                       border-b border-gray-50 last:border-0
-                      focus:outline-2 focus:outline-offset-[-2px] focus:outline-blue-500
+                      focus:outline-2 focus:outline-offset-[-2px] focus:outline-red-600
                       ${idx === activeResultIdx ? 'bg-red-50 text-red-600' : ''}`}
                   >
                     <p className="truncate">{result.display_name}</p>
@@ -227,7 +227,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                 className="border border-gray-200 hover:border-red-600/30 px-3 py-1.5
                   text-sm text-gray-700 hover:text-red-600 transition-all duration-300
                   disabled:opacity-50
-                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
+                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600"
               >
                 {t(city.name)}
               </button>
@@ -248,7 +248,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                 onChange={(e) => onChange({ latitude: Number(e.target.value) })}
                 disabled={disabled}
                 className="w-full border border-gray-200 px-3 py-2 text-sm
-                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
               />
             </div>
             <div>
@@ -261,7 +261,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                 onChange={(e) => onChange({ longitude: Number(e.target.value) })}
                 disabled={disabled}
                 className="w-full border border-gray-200 px-3 py-2 text-sm
-                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
               />
             </div>
             <div>
@@ -274,7 +274,7 @@ export default function LocationTimeConfig({ config, onChange, vfCount, disabled
                 onChange={(e) => onChange({ timezone: Number(e.target.value) })}
                 disabled={disabled}
                 className="w-full border border-gray-200 px-3 py-2 text-sm
-                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
+                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
               />
             </div>
           </div>
