@@ -65,7 +65,7 @@ export default function ReportDownloadPanel({
         report_format: reportFormat,
       }
 
-      if (reportFormat === 'sanalyst') {
+      if (reportFormat === 'sanalyst' || reportFormat === 'timetable') {
         body.project_info = projectInfo
       }
 
@@ -116,7 +116,7 @@ export default function ReportDownloadPanel({
           <span className="text-sm font-medium text-gray-900 dark:text-slate-100">분석 보고서</span>
         </div>
         <div className="flex items-center gap-1">
-          {(['bolumicloud', 'sanalyst'] as ReportFormat[]).map((fmt) => (
+          {(['bolumicloud', 'sanalyst', 'timetable'] as ReportFormat[]).map((fmt) => (
             <button
               key={fmt}
               onClick={() => { setReportFormat(fmt); setDownloadUrl(null) }}
