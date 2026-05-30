@@ -90,7 +90,7 @@ export default function DashboardGrid() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t({ ko: '모듈 검색...', en: 'Search modules...' })}
           aria-label={t({ ko: '모듈 검색', en: 'Search modules' })}
-          className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 pl-9 pr-3 py-2
+          className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2
             text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500
             transition-colors hover:border-gray-300 dark:hover:border-slate-600
             focus:outline-none focus-visible:ring-1 focus-visible:ring-red-600/30 focus:border-red-600/40"
