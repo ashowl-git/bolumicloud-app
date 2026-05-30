@@ -33,7 +33,7 @@ export default function Input({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block mb-1 text-xs font-medium text-gray-700">
+        <label htmlFor={inputId} className="block mb-1 text-xs font-medium text-gray-700 dark:text-slate-300">
           {label}
           {required && <span className="ml-0.5 text-red-600" aria-hidden="true">*</span>}
         </label>
@@ -45,11 +45,11 @@ export default function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            'w-full bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 border transition-colors',
-            'hover:border-gray-300',
+            'w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 border transition-colors',
+            'hover:border-gray-300 dark:hover:border-slate-600',
             'focus:outline-none focus-visible:ring-1 focus-visible:ring-red-600/30 focus:border-red-600/40',
             'disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed',
-            error ? 'border-red-500' : 'border-gray-200',
+            error ? 'border-red-500' : 'border-gray-200 dark:border-slate-700',
             unit ? 'pr-9' : '',
             className,
           )}

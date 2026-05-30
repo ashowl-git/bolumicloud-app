@@ -21,12 +21,12 @@ export default function DashboardGrid() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <BoLumiCloudMark size={32} className="text-slate-900" />
-          <h1 className="text-2xl font-light text-slate-900">
+          <h1 className="text-2xl font-light text-slate-900 dark:text-slate-100">
             B<span className="text-red-600">o</span>LumiCloud
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-slate-400">
             {t({ ko: '건축 빛환경 시뮬레이션 플랫폼', en: 'Architectural lighting simulation platform' })}
           </p>
           <div className="flex items-center gap-1.5">
@@ -63,14 +63,14 @@ export default function DashboardGrid() {
         return (
           <div key={section.id} className="mb-10">
             <div className="flex items-center gap-2.5 mb-4">
-              <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-50 text-gray-500">
+              <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
                 <SectionIcon size={15} strokeWidth={1.75} />
               </span>
-              <h2 className="text-sm font-semibold text-gray-800">
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-200">
                 {t(section.name)}
               </h2>
               <Badge variant="neutral" size="sm">{section.modules.length}</Badge>
-              <div className="flex-1 h-px bg-gray-100 ml-1" />
+              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700 ml-1" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {section.modules.map((mod) => (

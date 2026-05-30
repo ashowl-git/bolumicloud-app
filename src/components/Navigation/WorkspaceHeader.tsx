@@ -26,18 +26,18 @@ export default function WorkspaceHeader() {
 
   return (
     <div className="flex items-center justify-between gap-3 px-4 h-9 shrink-0
-      border-b border-gray-200 bg-white text-xs">
+      border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
       {/* 경로 */}
-      <nav className="flex items-center gap-1.5 text-gray-400 min-w-0" aria-label="현재 위치">
-        <Link href="/" className="inline-flex items-center hover:text-gray-700 transition-colors" title="홈">
+      <nav className="flex items-center gap-1.5 text-gray-400 dark:text-slate-500 min-w-0" aria-label="현재 위치">
+        <Link href="/" className="inline-flex items-center hover:text-gray-700 dark:hover:text-slate-300 transition-colors" title="홈">
           <Home size={13} />
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="text-gray-500">{t({ ko: '분석', en: 'Analysis' })}</span>
+        <span className="text-gray-500 dark:text-slate-400">{t({ ko: '분석', en: 'Analysis' })}</span>
         {current && (
           <>
             <span aria-hidden="true">/</span>
-            <span className="text-gray-800 font-medium truncate">
+            <span className="text-gray-800 dark:text-slate-200 font-medium truncate">
               {t(current.label)} {t({ ko: '분석', en: '' })}
             </span>
           </>
@@ -56,8 +56,8 @@ export default function WorkspaceHeader() {
               className={cn(
                 'px-2 py-0.5 rounded transition-colors',
                 active
-                  ? 'bg-red-50 text-red-600 font-medium'
-                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100',
+                  ? 'bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 font-medium'
+                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700',
               )}
             >
               {t(w.label)}

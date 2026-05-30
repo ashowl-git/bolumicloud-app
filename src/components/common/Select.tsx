@@ -35,7 +35,7 @@ export default function Select({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={selectId} className="block mb-1 text-xs font-medium text-gray-700">
+        <label htmlFor={selectId} className="block mb-1 text-xs font-medium text-gray-700 dark:text-slate-300">
           {label}
           {required && <span className="ml-0.5 text-red-600" aria-hidden="true">*</span>}
         </label>
@@ -46,11 +46,11 @@ export default function Select({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          'w-full bg-white px-3 py-2 text-sm text-gray-900 border transition-colors cursor-pointer',
-          'hover:border-gray-300',
+          'w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 border transition-colors cursor-pointer',
+          'hover:border-gray-300 dark:hover:border-slate-600',
           'focus:outline-none focus-visible:ring-1 focus-visible:ring-red-600/30 focus:border-red-600/40',
           'disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed',
-          error ? 'border-red-500' : 'border-gray-200',
+          error ? 'border-red-500' : 'border-gray-200 dark:border-slate-700',
           CHEVRON,
           className,
         )}

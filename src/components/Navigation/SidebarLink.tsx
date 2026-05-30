@@ -54,8 +54,8 @@ export default function SidebarLink({ module, basePath, collapsed, onNavigate }:
           flex items-center justify-center w-10 h-10 mx-auto my-0.5
           rounded transition-all duration-150
           ${isActive
-            ? 'bg-red-50 text-red-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            ? 'bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400'
+            : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-slate-100'
           }
         `}
       >
@@ -73,15 +73,15 @@ export default function SidebarLink({ module, basePath, collapsed, onNavigate }:
         group flex items-center gap-2.5 px-3 py-2 text-sm
         transition-all duration-150 border-l-2
         ${isActive
-          ? 'bg-red-50 text-red-600 border-red-600 font-medium'
-          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-transparent hover:border-gray-200'
+          ? 'bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 border-red-600 dark:border-red-500 font-medium'
+          : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-slate-100 border-transparent hover:border-gray-200 dark:hover:border-slate-700'
         }
       `}
     >
       <Icon
         size={16}
         strokeWidth={isActive ? 1.8 : 1.5}
-        className={isActive ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700 transition-colors duration-150'}
+        className={isActive ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-slate-500 group-hover:text-gray-700 dark:group-hover:text-slate-300 transition-colors duration-150'}
       />
       <span className="flex-1">{t(module.name)}</span>
       {isActive && (

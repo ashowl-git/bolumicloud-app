@@ -35,7 +35,7 @@ export default function Card({
   return (
     <Tag
       className={cn(
-        'bg-white border border-gray-200',
+        'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700',
         PADDING[padding],
         interactive &&
           'transition-all duration-200 hover:border-red-600/30 hover:shadow-sm hover:-translate-y-px',
@@ -60,7 +60,7 @@ export function CardHeader({ className = '', children, ...rest }: React.HTMLAttr
 
 export function CardTitle({ className = '', children, ...rest }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn('text-sm font-semibold text-gray-900', className)} {...rest}>
+    <h3 className={cn('text-sm font-semibold text-gray-900 dark:text-slate-100', className)} {...rest}>
       {children}
     </h3>
   )
@@ -68,7 +68,7 @@ export function CardTitle({ className = '', children, ...rest }: React.HTMLAttri
 
 export function CardFooter({ className = '', children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('mt-3 pt-3 border-t border-gray-100 flex items-center gap-2', className)} {...rest}>
+    <div className={cn('mt-3 pt-3 border-t border-gray-100 dark:border-slate-700 flex items-center gap-2', className)} {...rest}>
       {children}
     </div>
   )

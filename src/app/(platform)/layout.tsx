@@ -31,7 +31,7 @@ function MainContent({ children, isWorkspace }: { children: ReactNode; isWorkspa
     >
       <PlatformNavbar />
       {isWorkspace ? <WorkspaceHeader /> : <Breadcrumb />}
-      <main className={`flex-1 bg-white ${isWorkspace ? 'overflow-hidden p-0' : ''}`}>
+      <main className={`flex-1 bg-white dark:bg-slate-900 ${isWorkspace ? 'overflow-hidden p-0' : ''}`}>
         {children}
       </main>
       {!isWorkspace && <Footer />}

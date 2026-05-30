@@ -39,21 +39,21 @@ export default function QuickStartCard() {
 
   return (
     <Card padding="lg" className="mb-8">
-      <h3 className="text-sm font-medium text-gray-900 mb-1">{t(txt.title)}</h3>
-      <p className="text-xs text-gray-500 mb-4">{t(txt.subtitle)}</p>
+      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-1">{t(txt.title)}</h3>
+      <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">{t(txt.subtitle)}</p>
       <div className="flex flex-wrap gap-3">
         {QUICK_LINKS.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             className={`group inline-flex items-center gap-2 border px-4 py-2.5
-              text-sm text-gray-700 hover:text-gray-900 transition-all duration-200
-              hover:-translate-y-px ${link.accent}`}
+              text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-all duration-200
+              hover:-translate-y-px dark:border-slate-700 ${link.accent}`}
           >
             {t(link.name)}
             <ArrowRight
               size={14}
-              className="text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all duration-200"
+              className="text-gray-400 dark:text-slate-500 group-hover:text-gray-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all duration-200"
             />
           </Link>
         ))}

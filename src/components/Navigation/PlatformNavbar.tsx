@@ -5,6 +5,7 @@ import { Menu } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useApi } from '@/contexts/ApiContext'
 import { LocaleContext } from '@/hooks/useLocalizedText'
+import ThemeToggle from './ThemeToggle'
 import type { Locale } from '@/lib/types/i18n'
 
 export default function PlatformNavbar() {
@@ -17,11 +18,11 @@ export default function PlatformNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex items-center h-14 px-4 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <header className="sticky top-0 z-30 flex items-center h-14 px-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700">
       {/* Mobile hamburger */}
       <button
         onClick={() => setIsMobileOpen(true)}
-        className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900 transition-colors"
+        className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
         aria-label="Open menu"
       >
         <Menu size={20} />
@@ -39,18 +40,21 @@ export default function PlatformNavbar() {
               'bg-red-500'
             }`}
           />
-          <span className="text-xs text-gray-500 hidden sm:inline">
+          <span className="text-xs text-gray-500 dark:text-slate-400 hidden sm:inline">
             {backendStatus === 'healthy' ? 'API' :
              backendStatus === 'checking' ? '...' : 'Offline'}
           </span>
         </div>
 
-        <div className="h-4 w-px bg-gray-200" />
+        <div className="h-4 w-px bg-gray-200 dark:bg-slate-700" />
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* Language toggle */}
         <button
           onClick={toggleLocale}
-          className="px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-900 border border-gray-200 rounded transition-colors"
+          className="px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100 border border-gray-200 dark:border-slate-700 rounded transition-colors"
         >
           {locale === 'ko' ? 'EN' : 'KO'}
         </button>

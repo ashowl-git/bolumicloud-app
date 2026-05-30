@@ -46,20 +46,20 @@ export default function ModuleCard({ module, basePath }: ModuleCardProps) {
       >
         <div className="flex items-start justify-between mb-3">
           <span
-            className="inline-flex items-center justify-center w-9 h-9 bg-gray-50 text-gray-600
-              transition-colors duration-200 group-hover:bg-red-50 group-hover:text-red-600"
+            className="inline-flex items-center justify-center w-9 h-9 bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-slate-300
+              transition-colors duration-200 group-hover:bg-red-50 dark:group-hover:bg-red-500/15 group-hover:text-red-600 dark:group-hover:text-red-400"
           >
             <Icon size={20} strokeWidth={1.5} />
           </span>
           <ArrowUpRight
             size={16}
             aria-hidden="true"
-            className="text-gray-300 transition-all duration-200
-              group-hover:text-red-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            className="text-gray-300 dark:text-slate-600 transition-all duration-200
+              group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
           />
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">{t(module.name)}</h3>
-        <p className="text-xs text-gray-500 leading-relaxed">{t(module.description)}</p>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-1">{t(module.name)}</h3>
+        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{t(module.description)}</p>
       </Card>
     </Link>
   )
