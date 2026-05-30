@@ -9,6 +9,7 @@ import StatsSummary from './StatsSummary'
 import RecentProjects from './RecentProjects'
 import WelcomeBanner from './WelcomeBanner'
 import BoLumiCloudMark from '@/components/BoLumiCloud/BoLumiCloudMark'
+import Badge from '@/components/common/Badge'
 
 export default function DashboardGrid() {
   const { t } = useLocalizedText()
@@ -61,12 +62,15 @@ export default function DashboardGrid() {
         const SectionIcon = section.icon
         return (
           <div key={section.id} className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <SectionIcon size={16} strokeWidth={1.5} className="text-gray-400" />
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center gap-2.5 mb-4">
+              <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-50 text-gray-500">
+                <SectionIcon size={15} strokeWidth={1.75} />
+              </span>
+              <h2 className="text-sm font-semibold text-gray-800">
                 {t(section.name)}
               </h2>
-              <div className="flex-1 h-px bg-gray-100 ml-2" />
+              <Badge variant="neutral" size="sm">{section.modules.length}</Badge>
+              <div className="flex-1 h-px bg-gray-100 ml-1" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {section.modules.map((mod) => (
