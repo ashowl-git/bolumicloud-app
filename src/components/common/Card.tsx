@@ -35,7 +35,7 @@ export default function Card({
   return (
     <Tag
       className={cn(
-        'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700',
+        'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg',
         PADDING[padding],
         interactive &&
           'transition-all duration-200 hover:border-red-600/30 hover:shadow-sm hover:-translate-y-px',
