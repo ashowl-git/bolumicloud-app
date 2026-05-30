@@ -134,7 +134,11 @@ export default function ReportDownloadPanel({
         continuous_sun_end: config.continuousThreshold.endHour,
         continuous_sun_threshold: Math.round(config.continuousThreshold.requiredHours * 60),
       }
-      const blob = await api.postBlob(`/import/${modelId}/export-sn5f`, { config: exportConfig })
+      // config + result 동봉: Sanalyst 가 BoLumiCloud 조건·결과를 그대로 표시
+      const blob = await api.postBlob(`/import/${modelId}/export-sn5f`, {
+        config: exportConfig,
+        result: results,
+      })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -148,7 +152,7 @@ export default function ReportDownloadPanel({
     } finally {
       setIsExporting(false)
     }
-  }, [api, modelId, config])
+  }, [api, modelId, config, results])
 
   return (
     <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-3">
@@ -243,7 +247,7 @@ export default function ReportDownloadPanel({
         <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-3">
           <div>
             <p className="text-xs font-medium text-gray-700 dark:text-slate-300">Sanalyst 파일로 내보내기</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">원본 모델 + 현재 분석조건을 .sn5f 로 (Sanalyst 에서 재계산)</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">원본 모델 + 분석조건 + BoLumiCloud 결과를 .sn5f 로 (Sanalyst 에서 바로 확인)</p>
           </div>
           <button
             onClick={handleExportSn5f}
