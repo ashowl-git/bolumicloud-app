@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Home } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { cn } from '@/lib/cn'
+import WorkspaceGuide from './WorkspaceGuide'
 import type { LocalizedText } from '@/lib/types/i18n'
 
 // ─── WorkspaceHeader ─────────────────────────────
@@ -44,8 +45,11 @@ export default function WorkspaceHeader() {
         )}
       </nav>
 
-      {/* 형제 분석 빠른 전환 */}
-      <div className="flex items-center gap-0.5 shrink-0" role="group" aria-label="분석 전환">
+      {/* 안내 + 형제 분석 빠른 전환 */}
+      <div className="flex items-center gap-2 shrink-0">
+        <WorkspaceGuide />
+        <div className="w-px h-4 bg-gray-200 dark:bg-slate-700" aria-hidden="true" />
+        <div className="flex items-center gap-0.5" role="group" aria-label="분석 전환">
         {WORKSPACES.map((w) => {
           const active = pathname?.endsWith(`/analysis/${w.slug}`)
           return (
@@ -64,6 +68,7 @@ export default function WorkspaceHeader() {
             </Link>
           )
         })}
+        </div>
       </div>
     </div>
   )
