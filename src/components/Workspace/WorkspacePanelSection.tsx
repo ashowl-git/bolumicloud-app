@@ -44,22 +44,22 @@ export default function WorkspacePanelSection({
   }, [isOpen])
 
   return (
-    <div className="border border-gray-200/80 rounded-lg overflow-hidden">
+    <div className="border border-gray-200/80 dark:border-slate-700 rounded-lg overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between px-3 py-2
           transition-colors duration-150 ${
-            isOpen ? 'bg-gray-50/80' : 'hover:bg-gray-50/60'
+            isOpen ? 'bg-gray-50/80 dark:bg-slate-800/80' : 'hover:bg-gray-50/60 dark:hover:bg-slate-800/60'
           }`}
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-gray-400">{icon}</span>}
-          <span className="text-[11px] font-semibold text-gray-800 uppercase tracking-wider">
+          {icon && <span className="text-gray-400 dark:text-slate-500">{icon}</span>}
+          <span className="text-[11px] font-semibold text-gray-800 dark:text-slate-200 uppercase tracking-wider">
             {title}
           </span>
           {badge !== undefined && (
-            <span className="text-[10px] font-medium text-gray-500 bg-gray-100
+            <span className="text-[10px] font-medium text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700
               px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
               {badge}
             </span>
@@ -67,7 +67,7 @@ export default function WorkspacePanelSection({
         </div>
         <ChevronDown
           size={14}
-          className={`text-gray-400 transition-transform duration-200 ${
+          className={`text-gray-400 dark:text-slate-500 transition-transform duration-200 ${
             isOpen ? 'rotate-0' : '-rotate-90'
           }`}
         />
@@ -80,7 +80,7 @@ export default function WorkspacePanelSection({
         className="transition-[max-height,opacity] duration-250 ease-in-out overflow-hidden"
         aria-hidden={!isOpen}
       >
-        <div className={`px-3 pb-3 pt-2 border-t border-gray-100 transition-opacity duration-200 ${
+        <div className={`px-3 pb-3 pt-2 border-t border-gray-100 dark:border-slate-700 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}>
           {children}
