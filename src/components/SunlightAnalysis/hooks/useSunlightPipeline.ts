@@ -200,13 +200,25 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
         }
 
         setImportData(sn5fData)
-        base.setSessionId(sn5fData.sessionId)
+        // import 세션 id는 분석 세션이 아니라 /sunlight/run 이 404가 난다. obj 처럼
+        // /sunlight/register 로 실제 분석 세션을 받는다(register가 sn5f의 analysis_geometry.obj 사용).
+        try {
+          const analysisData: SunlightUploadResponse = await api.post(
+            `/sunlight/register?model_id=${sn5fData.modelId}`
+          )
+          base.setSessionId(analysisData.session_id)
+        } catch (e) {
+          base.setSessionId(sn5fData.sessionId)
+          logger.warn('sn5f 분석 세션 등록 실패 — import 세션으로 폴백', {
+            error: e instanceof Error ? e.message : String(e),
+          })
+        }
         setModelId(sn5fData.modelId)
         const fullSceneUrl = `${contextApiUrl}${sn5fData.sceneUrl}`
         setSceneUrl(fullSceneUrl)
         persistModelInfo({ sceneUrl: fullSceneUrl, modelId: sn5fData.modelId, modelMeta: null })
         base.setPhase('idle')
-        logger.info('SN5F import success', { sessionId: sn5fData.sessionId, groups: groups.length })
+        logger.info('SN5F import success', { modelId: sn5fData.modelId, groups: groups.length })
         return
       }
 

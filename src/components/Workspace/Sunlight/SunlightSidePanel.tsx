@@ -128,7 +128,11 @@ export default function SunlightSidePanel({
   activeTab = 'settings',
   onTabChange,
 }: SunlightSidePanelProps) {
-  const noPoints = points.length === 0
+  // 분석은 그룹 전체 측정점(수동 배치 + sn5f 임포트 + 일괄 생성)을 쓰므로 게이팅도 동일 기준.
+  // (과거엔 placement.points만 보아 sn5f 임포트 측정점이 있어도 '분석 시작'이 비활성이었다.)
+  const totalMeasurementPoints =
+    groups.reduce((sum, g) => sum + g.points.length, 0) || points.length
+  const noPoints = totalMeasurementPoints === 0
 
   const footer = (
     <AnalysisControlSection
