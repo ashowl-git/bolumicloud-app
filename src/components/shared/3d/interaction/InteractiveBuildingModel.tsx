@@ -68,6 +68,9 @@ export default function InteractiveBuildingModel({
   const groupRef = useRef<THREE.Group>(null)
   const hoveredMeshRef = useRef<THREE.Mesh | null>(null)
   const originalMaterialRef = useRef<THREE.Material | null>(null)
+  // 호버용으로 clone 한 하이라이트 material 만 추적해, 복원 시 공유 캐시 material 을
+  // 실수로 dispose 하지 않도록 한다(아래 restoreHovered 참조).
+  const hoverCloneRef = useRef<THREE.Material | null>(null)
 
   const material = useMemo(() => {
     if (!color && !opacity) return DEFAULT_MATERIAL
@@ -184,16 +187,21 @@ export default function InteractiveBuildingModel({
 
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {
-    if (hoveredMeshRef.current && originalMaterialRef.current) {
-      const highlight = hoveredMeshRef.current.material
-      hoveredMeshRef.current.material = originalMaterialRef.current
-      // 호버용으로 clone한 하이라이트 material 해제 (GPU 메모리 누수 방지)
-      if (highlight && highlight !== originalMaterialRef.current && !Array.isArray(highlight)) {
-        highlight.dispose()
-      }
+    const mesh = hoveredMeshRef.current
+    const clone = hoverCloneRef.current
+    // 메시 재질이 아직 우리 하이라이트 클론이면 원본으로 되돌린다. 재질 재적용 effect 가
+    // 호버 도중 다른(공유 캐시) 재질로 이미 교체했다면 건드리지 않는다 — 그 공유 재질을
+    // 원본으로 오인해 dispose 하면 같은 그룹 전 메시가 검게 렌더된다.
+    if (mesh && originalMaterialRef.current && mesh.material === clone) {
+      mesh.material = originalMaterialRef.current
+    }
+    // 우리가 만든 호버 클론만 해제한다(공유 캐시·원본 재질은 절대 dispose 하지 않음).
+    if (clone && !Array.isArray(clone)) {
+      clone.dispose()
     }
     hoveredMeshRef.current = null
     originalMaterialRef.current = null
+    hoverCloneRef.current = null
   }, [])
 
   // 언마운트 시 남아있는 호버 하이라이트 정리
@@ -256,6 +264,7 @@ export default function InteractiveBuildingModel({
       const hlMat = (mesh.material as THREE.MeshStandardMaterial).clone()
       hlMat.emissive = new THREE.Color(highlightColor)
       hlMat.emissiveIntensity = 0.3
+      hoverCloneRef.current = hlMat
       mesh.material = hlMat
     }
   }, [interactionEnabled, extractHit, onSurfaceHover, highlightColor, restoreHovered])

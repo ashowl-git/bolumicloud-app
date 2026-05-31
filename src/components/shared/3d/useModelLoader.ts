@@ -232,7 +232,14 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
   const prevEntriesRef = useRef<string>('')
 
   useEffect(() => {
-    const key = JSON.stringify(entries.map(e => e.config.url))
+    // 키에 url 뿐 아니라 format·zUp·autoCenter·mergeGroups 까지 포함한다. url-only 키는
+    // 같은 url 에서 zUp·format 등 config 토글을 삼켰다(단일 로더 useModelLoader 는 이미
+    // deps 로 해결 — 멀티 로더도 동일하게 맞춤). entries 는 매 렌더 새 참조라 키 비교로
+    // 불필요한 재로드는 계속 막는다.
+    const key = JSON.stringify(
+      entries.map(e => [e.id, e.config.url, e.config.format, e.config.zUp,
+        e.config.autoCenter, e.config.mergeGroups]),
+    )
     if (key === prevEntriesRef.current) return
     prevEntriesRef.current = key
 
