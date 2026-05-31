@@ -136,13 +136,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 네이티브 폼 컨트롤 — 브랜드 accent(red-600)로 통일.
-   개별 컴포넌트의 accent-red 누락분(라디오/체크박스 기본 파랑)을 전역 보정 */
-input[type='radio'],
-input[type='checkbox'] {
-  accent-color: rgb(var(--color-accent));
-}
-
 ::selection {
   @apply bg-red-600/20 text-slate-900;
 }
@@ -172,30 +165,6 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   @apply border-red-600/30;
-}
-
-/* ─── Dark Mode ──────────────────────────────── */
-.dark {
-  --color-surface: 30 41 59;          /* slate-800 */
-  --color-border: 51 65 85;           /* slate-700 */
-  --color-text-primary: 226 232 240;  /* slate-200 */
-  --color-text-secondary: 148 163 184;/* slate-400 */
-}
-
-.dark body {
-  @apply bg-slate-900 text-slate-200;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(248, 113, 113, 0.5); /* red-400 */
-}
-
-.dark ::selection {
-  @apply bg-red-500/30 text-slate-100;
 }
 
 /* ─── Reduced Motion ─────────────────────────── */

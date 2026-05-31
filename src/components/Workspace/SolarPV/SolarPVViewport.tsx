@@ -172,7 +172,7 @@ function SolarPVViewport({
       {/* Camera preset bar (HTML overlay) — top-left */}
       {hasModel && (
         <div className="absolute top-3 left-3 z-20 pointer-events-none">
-          <div className="pointer-events-auto flex gap-0.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700 shadow-lg rounded-lg px-1.5 py-1">
+          <div className="pointer-events-auto flex gap-0.5 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-lg px-1.5 py-1">
             {CAMERA_PRESET_IDS.map((id) => (
               <button
                 key={id}
@@ -180,7 +180,7 @@ function SolarPVViewport({
                 className={`px-2.5 py-1.5 text-[11px] rounded transition-all duration-200 ${
                   activePreset === id
                     ? 'bg-gray-900 text-white font-medium'
-                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 hover:bg-gray-100'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >
                 {CAMERA_PRESET_LABELS[id]}

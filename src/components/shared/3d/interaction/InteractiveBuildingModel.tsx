@@ -1,17 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useMemo, useCallback } from 'react'
+import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { BoundingBox } from '../types'
 import type { SurfaceHit, SurfaceType } from './types'
 import type { BuildingGroupInfo } from '@/lib/types/sunlight'
-import {
-  WIREFRAME_FACE_LIMIT,
-  WIREFRAME_MATERIAL,
-  GROUP_COLORS,
-  findGroupForMesh,
-} from '../buildingMaterials'
 
 // ─── 기본 재질 ─────────────────────────────
 
@@ -22,6 +17,19 @@ const DEFAULT_MATERIAL = new THREE.MeshStandardMaterial({
   side: THREE.DoubleSide,
 })
 
+const WIREFRAME_MATERIAL = new THREE.LineBasicMaterial({
+  color: '#9ca3af',
+  linewidth: 1,
+})
+
+// EdgesGeometry 생성 임계값: 총 face 수가 이 값 초과 시 와이어프레임 비활성화
+const WIREFRAME_FACE_LIMIT = 50000
+
+const GROUP_COLORS = [
+  '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
+  '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
+]
+
 // ─── 표면 유형 분류 ─────────────────────────────
 
 function classifySurface(worldNormal: THREE.Vector3): SurfaceType {
@@ -30,6 +38,20 @@ function classifySurface(worldNormal: THREE.Vector3): SurfaceType {
     return worldNormal.y > 0 ? 'roof' : 'ground'
   }
   return 'wall'
+}
+
+// ─── 메시에서 그룹명 추출 ─────────────────────────
+
+function findGroupNameForMesh(mesh: THREE.Object3D, groupNames: string[]): string | undefined {
+  let current: THREE.Object3D | null = mesh
+  while (current) {
+    if (current.name) {
+      const matched = groupNames.find((g) => current!.name === g || current!.name.startsWith(g))
+      if (matched) return matched
+    }
+    current = current.parent
+  }
+  return undefined
 }
 
 // ─── InteractiveBuildingModel ─────────────────────
@@ -53,11 +75,13 @@ interface InteractiveBuildingModelProps {
 
 export default function InteractiveBuildingModel({
   scene,
+  bbox,
   interactionEnabled = false,
   onSurfaceHover,
   onSurfaceClick,
   highlightColor = '#fbbf24',
   showWireframe = true,
+  autoFitCamera = true,
   color,
   allowedSurfaces,
   opacity,
@@ -68,6 +92,7 @@ export default function InteractiveBuildingModel({
   const groupRef = useRef<THREE.Group>(null)
   const hoveredMeshRef = useRef<THREE.Mesh | null>(null)
   const originalMaterialRef = useRef<THREE.Material | null>(null)
+  const { camera } = useThree()
 
   const material = useMemo(() => {
     if (!color && !opacity) return DEFAULT_MATERIAL
@@ -107,7 +132,17 @@ export default function InteractiveBuildingModel({
     return () => { groupMaterialCache?.forEach((mat) => mat.dispose()) }
   }, [groupMaterialCache])
 
-  // 카메라 초기 배치는 ThreeViewer의 CameraController가 단독 소유한다.
+  // 카메라 자동 맞춤
+  useEffect(() => {
+    if (!autoFitCamera || !bbox || !camera) return
+    const maxDim = Math.max(...bbox.size)
+    const dist = maxDim * 1.8
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.position.set(dist, dist * 0.7, dist)
+      camera.lookAt(0, bbox.size[1] * 0.3, 0)
+      camera.updateProjectionMatrix()
+    }
+  }, [bbox, camera, autoFitCamera])
 
   // 재질 적용 (그룹 색상 + 가시성 지원)
   useEffect(() => {
@@ -130,7 +165,7 @@ export default function InteractiveBuildingModel({
       if (child instanceof THREE.Mesh) {
         // 그룹 가시성 처리
         if (hiddenGroups && hiddenGroups.size > 0 && gNames.length > 0) {
-          const groupName = findGroupForMesh(child, gNames)
+          const groupName = findGroupNameForMesh(child, gNames)
           child.visible = !(groupName && hiddenGroups.has(groupName))
         } else {
           child.visible = true
@@ -138,7 +173,7 @@ export default function InteractiveBuildingModel({
 
         if (!preserveOriginalMaterials) {
           if (groupMaterialCache && gNames.length > 0) {
-            const groupName = findGroupForMesh(child, gNames)
+            const groupName = findGroupNameForMesh(child, gNames)
             const groupMat = groupName ? groupMaterialCache.get(groupName) : null
             child.material = groupMat || material
           } else {
@@ -185,19 +220,11 @@ export default function InteractiveBuildingModel({
   // 호버 해제 시 원래 재질 복원
   const restoreHovered = useCallback(() => {
     if (hoveredMeshRef.current && originalMaterialRef.current) {
-      const highlight = hoveredMeshRef.current.material
       hoveredMeshRef.current.material = originalMaterialRef.current
-      // 호버용으로 clone한 하이라이트 material 해제 (GPU 메모리 누수 방지)
-      if (highlight && highlight !== originalMaterialRef.current && !Array.isArray(highlight)) {
-        highlight.dispose()
-      }
     }
     hoveredMeshRef.current = null
     originalMaterialRef.current = null
   }, [])
-
-  // 언마운트 시 남아있는 호버 하이라이트 정리
-  useEffect(() => restoreHovered, [restoreHovered])
 
   // 그룹명 목록 (groups prop 기반)
   const groupNames = useMemo(() => groups?.map((g) => g.name) ?? [], [groups])
@@ -220,7 +247,7 @@ export default function InteractiveBuildingModel({
 
     // 그룹명 추출
     const groupName = groupNames.length > 0
-      ? findGroupForMesh(e.object, groupNames) ?? undefined
+      ? findGroupNameForMesh(e.object, groupNames)
       : undefined
 
     return {

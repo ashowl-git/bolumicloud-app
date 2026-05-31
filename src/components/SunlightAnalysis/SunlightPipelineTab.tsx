@@ -32,7 +32,7 @@ export default function SunlightPipelineTab() {
   const { t } = useLocalizedText()
   const { apiUrl } = useApi()
   const {
-    phase, sessionId, modelId, importData, sceneUrl, modelMeta, progress, results,
+    phase, sessionId, sceneUrl, modelMeta, progress, results,
     error, isCancelled, estimatedRemainingSec, windowPoints,
     uploadFile, runAnalysis, cancelAnalysis, reset,
   } = useSunlightPipelineContext()
@@ -150,13 +150,13 @@ export default function SunlightPipelineTab() {
         <div className="flex gap-2">
           {currentStep === 4 && sessionId && (
             <button onClick={() => setCurrentStep(2)}
-              className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-4 py-3 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300">
+              className="border border-gray-200 hover:border-gray-400 px-4 py-3 text-sm text-gray-700 hover:text-gray-900 transition-all duration-300">
               {t(txt.backToSettings)}
             </button>
           )}
           {currentStep > 1 && (
             <button onClick={() => setShowResetConfirm(true)}
-              className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-4 py-3 text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300">
+              className="border border-gray-200 hover:border-red-600/30 px-4 py-3 text-sm text-gray-900 hover:text-red-600 transition-all duration-300">
               {t(txt.reset)}
             </button>
           )}
@@ -206,13 +206,12 @@ export default function SunlightPipelineTab() {
         {currentStep === 3 && (
           <motion.div key="step-3" variants={fadeVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
             <ProgressStep progress={progress} estimatedRemainingSec={estimatedRemainingSec}
-              isRunning={isRunning} onCancel={cancelAnalysis} onRetry={handleStartAnalysis} />
+              isRunning={isRunning} onCancel={cancelAnalysis} />
           </motion.div>
         )}
         {currentStep === 4 && results && (
           <motion.div key="step-4" variants={fadeVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
             <ResultsStep sessionId={sessionId} results={results} config={config}
-              modelId={modelId} canExportSn5f={!!importData?.sessionId}
               modelScene={modelScene} modelBbox={modelBbox} shadow={shadow}
               placementPoints={placement.points} selectedPointId={placement.selectedPointId}
               onPointSelect={placement.selectPoint} causeResult={causeResult} onCauseAnalysis={setCauseResult}

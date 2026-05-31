@@ -4,7 +4,6 @@ import { ScanEye, Wrench, ShieldCheck } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { NAVIGATION } from '@/lib/navigationConfig'
 import type { LocalizedText } from '@/lib/types/i18n'
-import Card from '@/components/common/Card'
 
 const txt = {
   title: { ko: '플랫폼 현황', en: 'Platform Overview' } as LocalizedText,
@@ -34,24 +33,21 @@ export default function StatsSummary() {
   const totalActive = stats.reduce((sum, s) => sum + s.count, 0)
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-      <Card padding="md">
-        <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{t(txt.totalModules)}</p>
-        <p className="text-3xl font-semibold text-gray-900 dark:text-slate-100 tabular-nums leading-none">{totalActive}</p>
-      </Card>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div className="border border-gray-200 p-5">
+        <p className="text-xs text-gray-500 mb-1">{t(txt.totalModules)}</p>
+        <p className="text-3xl font-light text-gray-900">{totalActive}</p>
+      </div>
       {stats.map((stat) => {
         const Icon = stat.Icon
         return (
-          <Card key={stat.id} padding="md">
-            <div className="flex items-center gap-1.5 mb-2 text-gray-500 dark:text-slate-400">
-              <Icon size={13} strokeWidth={1.75} />
-              <p className="text-xs">{t(stat.name)}</p>
+          <div key={stat.id} className="border border-gray-200 p-5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Icon size={12} strokeWidth={1.5} className="text-gray-400" />
+              <p className="text-xs text-gray-500">{t(stat.name)}</p>
             </div>
-            <p className="text-3xl font-semibold text-gray-900 dark:text-slate-100 tabular-nums leading-none">
-              {stat.count}
-              <span className="text-base font-normal text-gray-400 dark:text-slate-500">/{stat.total}</span>
-            </p>
-          </Card>
+            <p className="text-3xl font-light text-gray-900">{stat.count}</p>
+          </div>
         )
       })}
     </div>

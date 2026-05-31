@@ -5,7 +5,6 @@ import { Sun, Eye, EyeOff, CheckCircle2, AlertCircle, Clock, ArrowRight, FolderO
 import { useProjectList, type ProjectEntry } from '@/hooks/useProjectList'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import type { LocalizedText } from '@/lib/types/i18n'
-import Card from '@/components/common/Card'
 
 const txt = {
   title: { ko: '최근 프로젝트', en: 'Recent Projects' } as LocalizedText,
@@ -48,14 +47,14 @@ function ProjectRow({ project }: { project: ProjectEntry }) {
   return (
     <Link
       href={mod.href}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors group"
+      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
     >
       <ModIcon size={16} className={mod.color} />
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-800 dark:text-slate-200 truncate">
+        <p className="text-sm text-gray-800 truncate">
           {project.model_name || '(이름 없음)'}
         </p>
-        <p className="text-[11px] text-gray-400 dark:text-slate-500">{mod.label} | {formatRelativeDate(project.created_at)}</p>
+        <p className="text-[11px] text-gray-400">{mod.label} | {formatRelativeDate(project.created_at)}</p>
       </div>
       <StatIcon
         size={14}
@@ -70,15 +69,15 @@ export default function RecentProjects() {
   const { projects, isLoading } = useProjectList({ limit: 5 })
 
   return (
-    <Card padding="none" className="mb-8 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
+    <div className="border border-gray-200 mb-8 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <FolderOpen size={14} className="text-gray-400 dark:text-slate-500" />
-          <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
+          <FolderOpen size={14} className="text-gray-400" />
+          <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
         </div>
         <Link
           href="/projects"
-          className="text-[11px] text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex items-center gap-1 transition-colors"
+          className="text-[11px] text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
         >
           {t(txt.viewAll)}
           <ArrowRight size={12} />
@@ -93,12 +92,12 @@ export default function RecentProjects() {
           <p className="text-xs text-gray-300 mt-1">{t(txt.emptyHint)}</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100 dark:divide-slate-800">
+        <div className="divide-y divide-gray-100">
           {projects.map((p) => (
             <ProjectRow key={p.session_id} project={p} />
           ))}
         </div>
       )}
-    </Card>
+    </div>
   )
 }

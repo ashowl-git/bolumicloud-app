@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Loader2, RotateCcw } from 'lucide-react'
+import { CheckCircle2, Loader2 } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import { SUNLIGHT_STAGE_LABELS } from '@/lib/types/sunlight'
 import { formatDuration, formatEta } from '@/lib/utils/format'
@@ -12,7 +12,6 @@ const txt = {
   running: { ko: '분석 중...', en: 'Analyzing...' } as LocalizedText,
   cancel: { ko: '분석 취소', en: 'Cancel Analysis' } as LocalizedText,
   overall: { ko: '전체', en: 'Overall' } as LocalizedText,
-  retry: { ko: '다시 시도', en: 'Retry' } as LocalizedText,
 }
 
 export interface ProgressStepProps {
@@ -20,8 +19,6 @@ export interface ProgressStepProps {
   estimatedRemainingSec: number | null
   isRunning: boolean
   onCancel: () => void
-  /** 에러 발생 시 재시도 핸들러 (제공 시 에러 박스에 '다시 시도' 버튼 표시) */
-  onRetry?: () => void
 }
 
 export default function ProgressStep({
@@ -29,7 +26,6 @@ export default function ProgressStep({
   estimatedRemainingSec,
   isRunning,
   onCancel,
-  onRetry,
 }: ProgressStepProps) {
   const { t } = useLocalizedText()
 
@@ -39,9 +35,9 @@ export default function ProgressStep({
         <SunlightProgressView progress={progress} estimatedRemainingSec={estimatedRemainingSec} />
       )}
       {!progress && isRunning && (
-        <div className="border border-gray-200 dark:border-slate-700 p-8 text-center">
+        <div className="border border-gray-200 p-8 text-center">
           <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">{t(txt.running)}</p>
+          <p className="text-sm text-gray-500">{t(txt.running)}</p>
         </div>
       )}
       {isRunning && (
@@ -49,28 +45,16 @@ export default function ProgressStep({
           <button
             onClick={onCancel}
             aria-label="분석 취소"
-            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-              text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300"
+            className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
           >
             {t(txt.cancel)}
           </button>
         </div>
       )}
       {progress?.status === 'error' && progress.error && (
-        <div className="mt-4 border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 rounded-lg" role="alert">
-          <p className="text-sm text-red-700 dark:text-red-300">{progress.error}</p>
-          {onRetry && (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs
-                border border-red-300 dark:border-red-500/40 text-red-700 dark:text-red-300
-                hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
-            >
-              <RotateCcw size={13} aria-hidden="true" />
-              {t(txt.retry)}
-            </button>
-          )}
+        <div className="mt-4 border border-red-200 bg-red-50 p-4" role="alert">
+          <p className="text-sm text-red-700">{progress.error}</p>
         </div>
       )}
     </div>
@@ -92,7 +76,7 @@ function SunlightProgressView({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border border-gray-200 dark:border-slate-700 p-6"
+      className="border border-gray-200 p-6"
       aria-live="polite"
     >
       {/* Stage Checklist */}
@@ -111,7 +95,7 @@ function SunlightProgressView({
                 ) : stage.status === 'error' ? (
                   <div className="w-4 h-4 rounded-full bg-red-600" />
                 ) : (
-                  <div className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-600" />
+                  <div className="w-4 h-4 rounded-full border border-gray-300" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -119,18 +103,18 @@ function SunlightProgressView({
                   <span
                     className={`text-sm ${
                       stage.status === 'completed'
-                        ? 'text-gray-700 dark:text-slate-300'
+                        ? 'text-gray-700'
                         : stage.status === 'processing'
                         ? 'text-blue-700 font-medium'
                         : stage.status === 'error'
                         ? 'text-red-700'
-                        : 'text-gray-400 dark:text-slate-500'
+                        : 'text-gray-400'
                     }`}
                   >
                     {idx + 1}. {stageLabel}
                   </span>
                   {stage.duration_sec !== null && (
-                    <span className="text-xs text-gray-400 dark:text-slate-500">({stage.duration_sec.toFixed(1)}s)</span>
+                    <span className="text-xs text-gray-400">({stage.duration_sec.toFixed(1)}s)</span>
                   )}
                 </div>
 
@@ -138,7 +122,7 @@ function SunlightProgressView({
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
                       <div
-                        className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
+                        className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
                         role="progressbar"
                         aria-valuenow={progress.stage_progress.completed}
                         aria-valuemin={0}
@@ -152,7 +136,7 @@ function SunlightProgressView({
                           }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-slate-400 tabular-nums">
+                      <span className="text-xs text-gray-500 tabular-nums">
                         {progress.stage_progress.completed}/{progress.stage_progress.total}
                       </span>
                     </div>
@@ -165,21 +149,21 @@ function SunlightProgressView({
       </div>
 
       {/* Overall Progress Bar */}
-      <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
+      <div className="border-t border-gray-100 pt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600 dark:text-slate-300">{t(txt.overall)}</span>
-          <span className="text-sm text-gray-600 dark:text-slate-300 tabular-nums">
+          <span className="text-sm text-gray-600">{t(txt.overall)}</span>
+          <span className="text-sm text-gray-600 tabular-nums">
             {progress.overall_progress}% ({formatDuration(progress.elapsed_sec)})
             {estimatedRemainingSec !== null && estimatedRemainingSec > 0 && (
               <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
             )}
             {estimatedRemainingSec === null && progress.overall_progress < 5 && progress.status === 'processing' && (
-              <span className="animate-pulse"> | 계산 중...</span>
+              <> | 계산 중...</>
             )}
           </span>
         </div>
         <div
-          className="w-full h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
+          className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={progress.overall_progress}
           aria-valuemin={0}

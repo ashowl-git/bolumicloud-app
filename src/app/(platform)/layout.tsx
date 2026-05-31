@@ -10,7 +10,6 @@ import Sidebar from '@/components/Navigation/Sidebar'
 import SidebarMobileOverlay from '@/components/Navigation/SidebarMobileOverlay'
 import PlatformNavbar from '@/components/Navigation/PlatformNavbar'
 import Breadcrumb from '@/components/Navigation/Breadcrumb'
-import WorkspaceHeader from '@/components/Navigation/WorkspaceHeader'
 import Footer from '@/components/Navigation/Footer'
 import type { Locale } from '@/lib/types/i18n'
 
@@ -30,8 +29,8 @@ function MainContent({ children, isWorkspace }: { children: ReactNode; isWorkspa
         ${isOpen ? 'md:ml-64' : 'md:ml-16'}`}
     >
       <PlatformNavbar />
-      {isWorkspace ? <WorkspaceHeader /> : <Breadcrumb />}
-      <main className={`flex-1 bg-white dark:bg-slate-900 ${isWorkspace ? 'overflow-hidden p-0' : ''}`}>
+      {!isWorkspace && <Breadcrumb />}
+      <main className={`flex-1 bg-white ${isWorkspace ? 'overflow-hidden p-0' : ''}`}>
         {children}
       </main>
       {!isWorkspace && <Footer />}

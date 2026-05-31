@@ -120,15 +120,15 @@ export default function OptimizationPanel({
   }, [api, sessionId, causeResult, measurementPoints, config, heightMin, heightMax, heightStep, canRun])
 
   return (
-    <div className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-amber-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">AI 최적안 검토</span>
+          <span className="text-sm font-medium text-gray-700">AI 최적안 검토</span>
         </div>
         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
@@ -142,7 +142,7 @@ export default function OptimizationPanel({
               className={`px-2.5 py-1 text-[10px] font-medium rounded-full transition-colors ${
                 activeTab === 'sweep'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
               높이 스윕
@@ -152,7 +152,7 @@ export default function OptimizationPanel({
               className={`px-2.5 py-1 text-[10px] font-medium rounded-full transition-colors ${
                 activeTab === 'bayesian'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
               자동 최적화
@@ -172,7 +172,7 @@ export default function OptimizationPanel({
           {/* Height range inputs */}
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] text-gray-500 dark:text-slate-400 block">최소 높이(m)</label>
+              <label className="text-[10px] text-gray-500 block">최소 높이(m)</label>
               <input
                 type="number"
                 value={heightMin}
@@ -182,7 +182,7 @@ export default function OptimizationPanel({
               />
             </div>
             <div>
-              <label className="text-[10px] text-gray-500 dark:text-slate-400 block">최대 높이(m)</label>
+              <label className="text-[10px] text-gray-500 block">최대 높이(m)</label>
               <input
                 type="number"
                 value={heightMax}
@@ -192,7 +192,7 @@ export default function OptimizationPanel({
               />
             </div>
             <div>
-              <label className="text-[10px] text-gray-500 dark:text-slate-400 block">간격(m)</label>
+              <label className="text-[10px] text-gray-500 block">간격(m)</label>
               <input
                 type="number"
                 value={heightStep}
@@ -215,7 +215,7 @@ export default function OptimizationPanel({
           </button>
 
           {!canRun && !isRunning && (
-            <p className="text-[10px] text-gray-400 dark:text-slate-500">원인 분석 완료 후 사용 가능</p>
+            <p className="text-[10px] text-gray-400">원인 분석 완료 후 사용 가능</p>
           )}
 
           {/* Results */}
@@ -224,9 +224,9 @@ export default function OptimizationPanel({
               {/* Best scenario highlight */}
               <div className="bg-amber-50 border border-amber-200 rounded-md p-2">
                 <div className="text-[10px] text-amber-600 font-medium mb-1">최적 시나리오</div>
-                <div className="text-xs text-gray-800 dark:text-slate-200">
+                <div className="text-xs text-gray-800">
                   {result.best_scenario.building_id}{' '}
-                  <span className="text-gray-400 dark:text-slate-500">
+                  <span className="text-gray-400">
                     {result.best_scenario.original_height}m
                   </span>
                   {' → '}
@@ -234,7 +234,7 @@ export default function OptimizationPanel({
                 </div>
                 <div className="text-xs mt-0.5">
                   적합률{' '}
-                  <span className="text-gray-400 dark:text-slate-500">{result.original_compliance_rate}%</span>
+                  <span className="text-gray-400">{result.original_compliance_rate}%</span>
                   {' → '}
                   <span className="font-semibold text-green-600">
                     {result.best_scenario.compliance_rate}%
@@ -248,7 +248,7 @@ export default function OptimizationPanel({
               {/* Scenarios table */}
               <div className="max-h-40 overflow-y-auto">
                 <table className="w-full text-[10px]">
-                  <thead className="text-gray-400 dark:text-slate-500 sticky top-0 bg-white dark:bg-slate-800">
+                  <thead className="text-gray-400 sticky top-0 bg-white">
                     <tr>
                       <th className="text-left py-0.5">건물</th>
                       <th className="text-right">높이</th>
@@ -256,13 +256,13 @@ export default function OptimizationPanel({
                       <th className="text-right">변화</th>
                     </tr>
                   </thead>
-                  <tbody className="text-gray-600 dark:text-slate-300">
+                  <tbody className="text-gray-600">
                     {result.scenarios.map((s, i) => (
                       <tr key={i} className={s.delta_rate > 0 ? 'bg-green-50/50' : ''}>
                         <td className="py-0.5">{s.building_id}</td>
                         <td className="text-right">{s.new_height}m</td>
                         <td className="text-right">{s.compliance_rate}%</td>
-                        <td className={`text-right ${s.delta_rate > 0 ? 'text-green-600' : s.delta_rate < 0 ? 'text-red-500' : 'text-gray-400 dark:text-slate-500'}`}>
+                        <td className={`text-right ${s.delta_rate > 0 ? 'text-green-600' : s.delta_rate < 0 ? 'text-red-500' : 'text-gray-400'}`}>
                           {s.delta_rate > 0 ? '+' : ''}{s.delta_rate}%
                         </td>
                       </tr>

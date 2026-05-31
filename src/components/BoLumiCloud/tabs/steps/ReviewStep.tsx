@@ -66,16 +66,16 @@ export default function ReviewStep({
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
-          className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
-            text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
+          className="border border-gray-200 hover:border-gray-400 px-6 py-3
+            text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
         >
           {t(txt.back)}
         </button>
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3
-            text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+          className="border border-gray-200 hover:border-red-600/30 px-8 py-3
+            text-gray-900 hover:text-red-600 transition-all duration-300
             disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isRunning ? t(txt.running) : t(txt.startPipeline)}

@@ -28,8 +28,6 @@ const txt = {
 
 export interface ResultsStepProps {
   sessionId: string | null
-  modelId?: string | null
-  canExportSn5f?: boolean
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: any
   config: SunlightConfigState
@@ -49,8 +47,6 @@ export interface ResultsStepProps {
 
 export default function ResultsStep({
   sessionId,
-  modelId,
-  canExportSn5f,
   results,
   config,
   modelScene,
@@ -120,13 +116,13 @@ export default function ResultsStep({
         </div>
       )}
       {shadow.isComputing && (
-        <div className="border border-gray-200 dark:border-slate-700 p-6 text-center" aria-live="polite">
+        <div className="border border-gray-200 p-6 text-center" aria-live="polite">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-xs text-gray-500 dark:text-slate-400">
+          <p className="text-xs text-gray-500">
             그림자 계산 중... {shadow.computeProgress.toFixed(0)}%
           </p>
           <div
-            className="w-48 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mx-auto mt-2"
+            className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden mx-auto mt-2"
             role="progressbar"
             aria-valuenow={Math.round(shadow.computeProgress)}
             aria-valuemin={0}
@@ -145,8 +141,6 @@ export default function ResultsStep({
       {sessionId && (
         <ReportDownloadPanel
           sessionId={sessionId}
-          modelId={modelId}
-          canExportSn5f={canExportSn5f}
           results={results}
           config={config}
           onCauseAnalysis={onCauseAnalysis}
@@ -170,7 +164,7 @@ export default function ResultsStep({
       )}
 
       {/* Bottom Navigation */}
-      <div className="flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-slate-800">
+      <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
         <button
           onClick={onBackToSettings}
           className="border border-red-600/30 hover:bg-red-50 px-6 py-3
@@ -180,15 +174,15 @@ export default function ResultsStep({
         </button>
         <button
           onClick={onBackToSettings}
-          className="border border-gray-200 dark:border-slate-700 hover:border-gray-400 px-6 py-3
-            text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 transition-all duration-300"
+          className="border border-gray-200 hover:border-gray-400 px-6 py-3
+            text-sm text-gray-700 hover:text-gray-900 transition-all duration-300"
         >
           {t(txt.backToSettings)}
         </button>
         <button
           onClick={onReset}
-          className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-            text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
+          className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+            text-sm text-gray-900 hover:text-red-600 transition-all duration-300"
         >
           {t(txt.reset)}
         </button>

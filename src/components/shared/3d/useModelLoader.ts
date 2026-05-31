@@ -125,12 +125,11 @@ export function useModelLoader(config: ModelConfig | null): ModelLoadResult {
   const [scene, setScene] = useState<THREE.Group | null>(null)
   const [bbox, setBbox] = useState<BoundingBox | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const prevUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // 가드는 config 부재만 검사한다. url/format/zUp/autoCenter/mergeGroups 중
-    // 무엇이 바뀌든 deps 배열이 재실행을 정확히 게이트하므로, 같은 url에서
-    // zUp·format 등을 토글해도 반영된다 (이전 url-only 가드는 이를 삼켰음).
-    if (!config) return
+    if (!config || config.url === prevUrlRef.current) return
+    prevUrlRef.current = config.url
 
     setState('loading')
     setError(null)
@@ -252,10 +251,6 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
     }))
     setModels(initial)
 
-    // 언마운트/entries 변경 시 in-flight 로드 콜백이 stale state 를 쓰거나
-    // 이미 dispose 된 group 을 추가하는 것을 막는다 (단일 로더의 settled 가드와 동일)
-    let cancelled = false
-
     // Track groups for cleanup
     const groups: THREE.Group[] = []
 
@@ -265,7 +260,6 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
       groups.push(group)
 
       const onLoad = (loaded: THREE.Object3D) => {
-        if (cancelled) return
         if (entry.config.zUp !== false) {
           loaded.rotation.x = -Math.PI / 2
           loaded.updateMatrixWorld(true)
@@ -299,7 +293,6 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
       }
 
       const onError = (err: unknown) => {
-        if (cancelled) return
         const msg = err instanceof Error ? err.message : 'Load failed'
         setModels(prev => {
           const updated = [...prev]
@@ -318,7 +311,6 @@ export function useMultiModelLoader(entries: ModelEntry[]): MultiModelLoadResult
     })
 
     return () => {
-      cancelled = true
       // Dispose geometries and materials to prevent GPU memory leaks
       groups.forEach(group => {
         group.traverse((child) => {

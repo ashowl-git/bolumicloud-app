@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useApiClient, buildUserMessage } from '@/lib/api'
-import { gzipFile } from '@/lib/gzip'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
 import type {
@@ -132,15 +131,12 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     setUploadProgress(0)
 
     const ext = objFile.name.split('.').pop()?.toLowerCase()
-    // 대용량 전송 단축: sn5f/obj 는 gzip 압축해 보낸다(백엔드가 투명 해제).
-    // 알 수 없는 확장자(fallback 경로)는 백엔드 해제가 없으므로 원본 사용.
-    const compressed = (ext === 'sn5f' || ext === 'obj') ? await gzipFile(objFile) : objFile
 
     try {
       // ── SN5F: POST /import/sn5f ──
       if (ext === 'sn5f') {
         const formData = new FormData()
-        formData.append('file', compressed)
+        formData.append('file', objFile)
 
         const data = await api.postFormData('/import/sn5f', formData, {
           onProgress: setUploadProgress,
@@ -213,7 +209,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
       // ── OBJ: POST /import/obj ──
       if (ext === 'obj') {
         const formData = new FormData()
-        formData.append('file', compressed)
+        formData.append('file', objFile)
         if (mtlFile) {
           formData.append('mtl_file', mtlFile)
         }

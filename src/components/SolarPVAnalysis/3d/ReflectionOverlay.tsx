@@ -140,7 +140,7 @@ function ReflectionOverlayInner({ frame, maxIntensity = 0.11 }: ReflectionOverla
             <div>
               반사 강도: <span className="font-semibold text-amber-300">{(hoveredPoint.intensity * 100).toFixed(1)}%</span>
             </div>
-            <div className="text-gray-400 dark:text-slate-500">{hoveredPoint.surface_id}</div>
+            <div className="text-gray-400">{hoveredPoint.surface_id}</div>
           </div>
         </Html>
       )}

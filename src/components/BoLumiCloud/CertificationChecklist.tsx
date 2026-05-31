@@ -84,21 +84,21 @@ export default function CertificationChecklist() {
     const progress = calculateProgress(checks, items.length)
 
     return (
-      <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
+      <div className="border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100">{title}</h3>
-            <p className="text-sm text-gray-800 dark:text-slate-200 mt-1">{subtitle}</p>
+            <h3 className="text-lg font-normal text-gray-900">{title}</h3>
+            <p className="text-sm text-gray-800 mt-1">{subtitle}</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-light text-red-600">{progress}%</div>
-            <div className="text-xs text-gray-800 dark:text-slate-200">
+            <div className="text-xs text-gray-800">
               {Object.values(checks).filter(Boolean).length}/{items.length}
             </div>
           </div>
         </div>
 
-        <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full mb-6">
+        <div className="w-full h-1.5 bg-gray-100 rounded-full mb-6">
           <div
             className="h-full bg-red-600 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -109,7 +109,7 @@ export default function CertificationChecklist() {
           {items.map((item) => (
             <label
               key={item.id}
-              className="flex items-start gap-3 p-3 border border-gray-200 dark:border-slate-700
+              className="flex items-start gap-3 p-3 border border-gray-200
                 hover:border-gray-300 transition-colors cursor-pointer group"
             >
               <input
@@ -119,10 +119,10 @@ export default function CertificationChecklist() {
                 className="mt-0.5 w-4 h-4 accent-red-600"
               />
               <div className="flex-1">
-                <div className="text-sm text-gray-900 dark:text-slate-100 group-hover:text-red-600 transition-colors">
+                <div className="text-sm text-gray-900 group-hover:text-red-600 transition-colors">
                   {item.title}
                 </div>
-                <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">
+                <div className="text-xs text-gray-800 mt-1">
                   {item.category}
                 </div>
               </div>
@@ -139,12 +139,12 @@ export default function CertificationChecklist() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-6">
+        <h2 className="text-3xl font-light text-gray-900 mb-6">
           인증 체크리스트
         </h2>
         <div className="w-24 h-px bg-gray-300 mb-6" />
 
-        <p className="text-base text-gray-800 dark:text-slate-200 mb-8 leading-relaxed">
+        <p className="text-base text-gray-800 mb-8 leading-relaxed">
           녹색건축 인증, LEED, WELL Building Standard의 조명/환경 관련 필수 기준을 확인하세요.
         </p>
 
@@ -173,26 +173,26 @@ export default function CertificationChecklist() {
         )}
 
         {/* 설명 */}
-        <div className="mt-8 p-6 border border-gray-200 dark:border-slate-700">
-          <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">참고 사항</h4>
+        <div className="mt-8 p-6 border border-gray-200">
+          <h4 className="font-medium text-gray-900 mb-3">참고 사항</h4>
 
-          <div className="space-y-3 text-sm text-gray-800 dark:text-slate-200">
+          <div className="space-y-3 text-sm text-gray-800">
             <p>
-              <span className="font-medium text-gray-900 dark:text-slate-100">녹색건축 인증:</span>
+              <span className="font-medium text-gray-900">녹색건축 인증:</span>
               한국 국토교통부가 인증하는 친환경 건축물 인증제도입니다.
               조명/채광 분야는 필수 항목입니다.
             </p>
             <p>
-              <span className="font-medium text-gray-900 dark:text-slate-100">LEED:</span>
+              <span className="font-medium text-gray-900">LEED:</span>
               미국 USGBC에서 운영하는 세계적인 친환경 건축 인증입니다.
               EQc7 (Daylight)는 2-3점을 획득할 수 있습니다.
             </p>
             <p>
-              <span className="font-medium text-gray-900 dark:text-slate-100">WELL:</span>
+              <span className="font-medium text-gray-900">WELL:</span>
               건강 중심 건축 인증으로, 거주자의 웰빙을 중시합니다.
               L07 (Glare Control)은 UGR 19 이하를 요구합니다.
             </p>
-            <p className="text-xs text-gray-800 dark:text-slate-200 mt-4">
+            <p className="text-xs text-gray-800 mt-4">
               이 체크리스트는 참고용입니다. 정확한 인증 기준은 공식 문서를 확인하세요.
             </p>
           </div>

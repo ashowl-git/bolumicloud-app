@@ -68,9 +68,10 @@ describe('useSunlightPipeline', () => {
   })
 
   it('transitions to uploading then idle on successful OBJ upload', async () => {
-    // OBJ upload: postFormData /import/obj → post /sunlight/register
-    mockPostFormData.mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
-    mockPost.mockResolvedValueOnce({ session_id: 'session-1' }) // /sunlight/register
+    // OBJ upload: first postFormData for /import/obj, second for /sunlight/upload
+    mockPostFormData
+      .mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
+      .mockResolvedValueOnce({ session_id: 'session-1' })
 
     const { result } = renderHook(() => useSunlightPipeline({ apiUrl: API_URL }))
 
@@ -103,8 +104,9 @@ describe('useSunlightPipeline', () => {
     const { result } = renderHook(() => useSunlightPipeline({ apiUrl: API_URL }))
 
     // Upload OBJ
-    mockPostFormData.mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
-    mockPost.mockResolvedValueOnce({ session_id: 'session-1' }) // /sunlight/register
+    mockPostFormData
+      .mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
+      .mockResolvedValueOnce({ session_id: 'session-1' })
 
     const file = new File(['test'], 'model.obj', { type: 'text/plain' })
     await act(async () => {
@@ -147,8 +149,9 @@ describe('useSunlightPipeline', () => {
     const { result } = renderHook(() => useSunlightPipeline({ apiUrl: API_URL }))
 
     // Upload
-    mockPostFormData.mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
-    mockPost.mockResolvedValueOnce({ session_id: 'session-1' }) // /sunlight/register
+    mockPostFormData
+      .mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
+      .mockResolvedValueOnce({ session_id: 'session-1' })
 
     const file = new File(['test'], 'model.obj', { type: 'text/plain' })
     await act(async () => {
@@ -181,8 +184,9 @@ describe('useSunlightPipeline', () => {
     const { result } = renderHook(() => useSunlightPipeline({ apiUrl: API_URL }))
 
     // Upload to get some state
-    mockPostFormData.mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
-    mockPost.mockResolvedValueOnce({ session_id: 'session-1' }) // /sunlight/register
+    mockPostFormData
+      .mockResolvedValueOnce({ model_id: 'model-1', scene_url: '/scene/1.glb' })
+      .mockResolvedValueOnce({ session_id: 'session-1' })
 
     const file = new File(['test'], 'model.obj', { type: 'text/plain' })
     await act(async () => {

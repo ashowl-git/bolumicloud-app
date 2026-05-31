@@ -42,20 +42,20 @@ export default function SunlightComplianceSummary({ summary }: SunlightComplianc
           ) : (
             <XCircle size={24} className="text-red-600" />
           )}
-          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">{t(txt.complianceTitle)}</h3>
+          <h3 className="text-lg font-medium text-gray-900">{t(txt.complianceTitle)}</h3>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.totalPoints)}</p>
-            <p className="text-3xl font-light text-gray-900 dark:text-slate-100">{summary.total_points}</p>
+            <p className="text-xs text-gray-500 mb-1">{t(txt.totalPoints)}</p>
+            <p className="text-3xl font-light text-gray-900">{summary.total_points}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.compliantPoints)}</p>
+            <p className="text-xs text-gray-500 mb-1">{t(txt.compliantPoints)}</p>
             <p className="text-3xl font-light text-green-600">{summary.compliant_points}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.complianceRate)}</p>
+            <p className="text-xs text-gray-500 mb-1">{t(txt.complianceRate)}</p>
             <p
               className={`text-3xl font-light ${
                 isFullyCompliant ? 'text-green-600' : 'text-red-600'
@@ -65,11 +65,11 @@ export default function SunlightComplianceSummary({ summary }: SunlightComplianc
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">{t(txt.regulation)}</p>
-            <p className="text-sm text-gray-700 dark:text-slate-300 mt-2">{summary.regulation_reference}</p>
+            <p className="text-xs text-gray-500 mb-1">{t(txt.regulation)}</p>
+            <p className="text-sm text-gray-700 mt-2">{summary.regulation_reference}</p>
             <div className="flex items-center gap-1 mt-1">
-              <Building2 size={12} className="text-gray-400 dark:text-slate-500" />
-              <span className="text-xs text-gray-500 dark:text-slate-400">
+              <Building2 size={12} className="text-gray-400" />
+              <span className="text-xs text-gray-500">
                 {t(BUILDING_TYPE_LABELS[summary.building_type])}
               </span>
             </div>
@@ -78,8 +78,8 @@ export default function SunlightComplianceSummary({ summary }: SunlightComplianc
       </div>
 
       {/* Criteria explanation */}
-      <div className="border border-gray-200 dark:border-slate-700 p-4">
-        <p className="text-xs text-gray-500 dark:text-slate-400">
+      <div className="border border-gray-200 p-4">
+        <p className="text-xs text-gray-500">
           {summary.building_type === 'apartment'
             ? '공동주택(아파트): 동지 기준 총일조 4시간 이상 또는 연속일조 2시간 이상 (OR 조건)'
             : summary.building_type === 'detached'

@@ -8,7 +8,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer id="contact" className="relative py-16 px-6 border-t border-gray-200 dark:border-slate-700 overflow-hidden">
+    <footer id="contact" className="relative py-16 px-6 border-t border-gray-200 overflow-hidden">
       <div className="max-w-6xl mx-auto relative z-10">
 
         {/* Sitemap Links */}
@@ -61,7 +61,7 @@ export default function Footer() {
         </div>
 
         {/* Contact & Info */}
-        <div className="grid md:grid-cols-2 gap-12 mb-12 border-t border-gray-200 dark:border-slate-700 pt-12">
+        <div className="grid md:grid-cols-2 gap-12 mb-12 border-t border-gray-200 pt-12">
           <div>
             <a
               href={HOMEPAGE_URL}
@@ -95,7 +95,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
+        <div className="border-t border-gray-200 pt-6">
           <p className="text-xs text-slate-400 font-normal text-center">
             &copy; {currentYear} EAN Technology Research Division. All rights reserved.
           </p>

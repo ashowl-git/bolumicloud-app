@@ -72,12 +72,12 @@ export default function PrivacyResultsTable({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
+      <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
 
-      <div className="border border-gray-200 dark:border-slate-700 overflow-x-auto">
+      <div className="border border-gray-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+            <tr className="bg-gray-50 border-b border-gray-200">
               {([
                 { key: 'id' as SortKey, label: txt.pair },
                 { key: 'id' as SortKey, label: txt.observer },
@@ -91,12 +91,12 @@ export default function PrivacyResultsTable({
                   key={idx}
                   scope="col"
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500
                     cursor-pointer hover:text-gray-700 select-none"
                 >
                   <div className="flex items-center gap-1">
                     {t(col.label)}
-                    <ArrowUpDown size={12} className="text-gray-400 dark:text-slate-500" />
+                    <ArrowUpDown size={12} className="text-gray-400" />
                   </div>
                 </th>
               ))}
@@ -107,23 +107,23 @@ export default function PrivacyResultsTable({
               <tr
                 key={pair.id}
                 onClick={() => onPairSelect?.(pair.id)}
-                className={`border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                   selectedPairId === pair.id
                     ? 'bg-red-50 ring-1 ring-inset ring-red-200'
                     : ''
                 }`}
               >
-                <td className="px-3 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">#{pair.id}</td>
-                <td className="px-3 py-3 text-gray-700 dark:text-slate-300 text-xs">
+                <td className="px-3 py-3 text-gray-500 font-mono text-xs">#{pair.id}</td>
+                <td className="px-3 py-3 text-gray-700 text-xs">
                   {pair.observer.building_name} {pair.observer.floor}F
                 </td>
-                <td className="px-3 py-3 text-gray-700 dark:text-slate-300 text-xs">
+                <td className="px-3 py-3 text-gray-700 text-xs">
                   {pair.target.building_name} {pair.target.floor}F
                 </td>
-                <td className="px-3 py-3 tabular-nums text-gray-700 dark:text-slate-300">
+                <td className="px-3 py-3 tabular-nums text-gray-700">
                   {pair.distance.toFixed(1)}
                 </td>
-                <td className="px-3 py-3 tabular-nums text-gray-700 dark:text-slate-300">
+                <td className="px-3 py-3 tabular-nums text-gray-700">
                   {(pair.visibility_factor * 100).toFixed(0)}%
                 </td>
                 <td className="px-3 py-3 tabular-nums font-mono text-xs">
@@ -138,7 +138,7 @@ export default function PrivacyResultsTable({
         </table>
       </div>
 
-      <p className="text-xs text-gray-400 dark:text-slate-500">
+      <p className="text-xs text-gray-400">
         {pairs.length}개 분석 쌍
       </p>
     </div>

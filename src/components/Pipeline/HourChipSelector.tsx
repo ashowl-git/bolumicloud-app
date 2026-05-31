@@ -42,7 +42,7 @@ export default function HourChipSelector({ selectedHours, onChange, disabled }: 
               className={`px-3 py-1.5 text-sm cursor-pointer transition-all duration-300 ${
                 isSelected
                   ? 'border border-red-600 bg-red-50 text-red-600'
-                  : 'border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:border-gray-400'
+                  : 'border border-gray-200 text-gray-700 hover:border-gray-400'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {hour}:00
@@ -51,12 +51,12 @@ export default function HourChipSelector({ selectedHours, onChange, disabled }: 
         })}
       </div>
       <div className="flex items-center gap-3 mt-2">
-        <span className="text-xs text-gray-500 dark:text-slate-400">{selectedHours.length}개 시간 선택됨</span>
+        <span className="text-xs text-gray-500">{selectedHours.length}개 시간 선택됨</span>
         <button
           type="button"
           onClick={selectAll}
           disabled={disabled}
-          className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-600 transition-colors disabled:opacity-50"
+          className="text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
         >
           전체 선택
         </button>
@@ -64,7 +64,7 @@ export default function HourChipSelector({ selectedHours, onChange, disabled }: 
           type="button"
           onClick={clearAll}
           disabled={disabled}
-          className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-600 transition-colors disabled:opacity-50"
+          className="text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
         >
           초기화
         </button>

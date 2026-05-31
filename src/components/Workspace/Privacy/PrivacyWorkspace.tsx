@@ -123,13 +123,13 @@ export default function PrivacyWorkspace() {
   // Role toggle extra control for toolbar
   const roleToggle = (
     <>
-      <div className="w-px h-5 bg-gray-200 dark:bg-slate-700 mx-1" />
+      <div className="w-px h-5 bg-gray-200 mx-1" />
       <button
         onClick={() => setActiveRole('target')}
         className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
           activeRole === 'target'
             ? 'bg-orange-500 text-white shadow-sm'
-            : 'text-gray-400 dark:text-slate-500 hover:text-orange-600 hover:bg-orange-50'
+            : 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'
         }`}
       >
         대상
@@ -139,7 +139,7 @@ export default function PrivacyWorkspace() {
         className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
           activeRole === 'observer'
             ? 'bg-blue-500 text-white shadow-sm'
-            : 'text-gray-400 dark:text-slate-500 hover:text-blue-600 hover:bg-blue-50'
+            : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
         }`}
       >
         관찰
@@ -161,11 +161,11 @@ export default function PrivacyWorkspace() {
               <>
                 {roleToggle}
                 <div className="flex items-center gap-0.5 ml-1">
-                  <div className="w-px h-5 bg-gray-200 dark:bg-slate-700" />
+                  <div className="w-px h-5 bg-gray-200" />
                   <button
                     onClick={placement.undo}
                     disabled={!placement.canUndo}
-                    className="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
                     title="실행 취소 (Ctrl+Z)"
                   >
                     <Undo2 size={14} />
@@ -173,7 +173,7 @@ export default function PrivacyWorkspace() {
                   <button
                     onClick={placement.redo}
                     disabled={!placement.canRedo}
-                    className="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
                     title="다시 실행 (Ctrl+Shift+Z)"
                   >
                     <Redo2 size={14} />

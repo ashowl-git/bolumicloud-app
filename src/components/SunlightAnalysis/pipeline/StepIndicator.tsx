@@ -28,17 +28,17 @@ export default function StepIndicator({ currentStep, completedSteps }: StepIndic
               <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
                 isCompleted ? 'bg-green-600 text-white'
                   : isActive ? 'border-2 border-red-600 text-red-600 ring-2 ring-red-600/20'
-                  : 'border border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500'
+                  : 'border border-gray-300 text-gray-400'
               }`}>
                 {isCompleted ? <CheckCircle2 size={18} strokeWidth={2} /> : <Icon size={16} strokeWidth={1.5} />}
               </div>
               <span className={`text-xs mt-1.5 ${
-                isActive ? 'text-red-600 font-medium' : isCompleted ? 'text-green-600' : 'text-gray-400 dark:text-slate-500'
+                isActive ? 'text-red-600 font-medium' : isCompleted ? 'text-green-600' : 'text-gray-400'
               }`}>{step.label}</span>
             </div>
             {idx < STEPS.length - 1 && (
               <div className={`w-12 sm:w-20 h-0.5 mx-1 transition-all duration-300 ${
-                isCompleted ? 'bg-green-600' : 'bg-gray-200 dark:bg-slate-700'
+                isCompleted ? 'bg-green-600' : 'bg-gray-200'
               }`} />
             )}
           </div>

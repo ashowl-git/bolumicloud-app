@@ -69,7 +69,7 @@ export default function ShadowAnimationPlayer({
   return (
     <div className="space-y-0">
       {/* 3D 뷰어 */}
-      <div className="border border-gray-200 dark:border-slate-700 border-b-0 relative">
+      <div className="border border-gray-200 border-b-0 relative">
         <ThreeViewer bbox={modelBbox} height="450px">
           <SceneLighting sunDirection={sunDirection} enableShadow={!!currentFrame} />
           {modelScene && (

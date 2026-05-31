@@ -273,7 +273,7 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
   if (!content) {
     return (
       <div className="py-24 text-center">
-        <p className="text-gray-800 dark:text-slate-200">준비 중입니다.</p>
+        <p className="text-gray-800">준비 중입니다.</p>
       </div>
     )
   }
@@ -290,25 +290,25 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
         {/* 아이콘 + 제목 */}
         <div className="text-center mb-12">
           <div className="mb-4 flex justify-center">
-            <Icon size={48} strokeWidth={1} className="text-gray-400 dark:text-slate-500" />
+            <Icon size={48} strokeWidth={1} className="text-gray-400" />
           </div>
-          <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-3">
+          <h2 className="text-3xl font-light text-gray-900 mb-3">
             {content.title}
           </h2>
           <div className="w-24 h-px bg-gray-300 mx-auto mb-4" />
-          <p className="text-base text-gray-800 dark:text-slate-200 max-w-2xl mx-auto">
+          <p className="text-base text-gray-800 max-w-2xl mx-auto">
             {content.description}
           </p>
         </div>
 
         {/* 주요 기능 */}
-        <div className="border border-gray-200 dark:border-slate-700 p-8 mb-8">
-          <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
+        <div className="border border-gray-200 p-8 mb-8">
+          <h3 className="text-lg font-normal text-gray-900 mb-4">
             주요 기능
           </h3>
           <ul className="space-y-2">
             {content.features.map((feature, i) => (
-              <li key={i} className="flex gap-3 text-sm text-gray-700 dark:text-slate-300">
+              <li key={i} className="flex gap-3 text-sm text-gray-700">
                 <span className="text-red-600 flex-shrink-0">--</span>
                 <span>{feature}</span>
               </li>
@@ -317,10 +317,10 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
         </div>
 
         {/* 사용 예시 */}
-        <div className="border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 p-6 mb-8">
-          <p className="text-sm text-gray-700 dark:text-slate-300">
+        <div className="border border-gray-200 bg-gray-50 p-6 mb-8">
+          <p className="text-sm text-gray-700">
             <span className="flex items-center gap-2">
-              <Lightbulb size={14} strokeWidth={1.5} className="text-gray-500 dark:text-slate-400 flex-shrink-0" />
+              <Lightbulb size={14} strokeWidth={1.5} className="text-gray-500 flex-shrink-0" />
               <span className="font-medium">{content.example}</span>
             </span>
           </p>
@@ -328,23 +328,23 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
 
         {/* 기술 정보 */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
-            <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">pyradiance 함수</h4>
+          <div className="border border-gray-200 p-6">
+            <h4 className="font-medium text-gray-900 mb-3">pyradiance 함수</h4>
             <div className="space-y-1">
               {content.pyradianceFunctions.map((func, i) => (
-                <code key={i} className="block text-xs text-gray-800 dark:text-slate-200 font-mono">
+                <code key={i} className="block text-xs text-gray-800 font-mono">
                   {func}()
                 </code>
               ))}
             </div>
           </div>
 
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
-            <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">예상 완성</h4>
+          <div className="border border-gray-200 p-6">
+            <h4 className="font-medium text-gray-900 mb-3">예상 완성</h4>
             <p className="text-2xl font-light text-red-600">
               {content.timeline}
             </p>
-            <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">
+            <p className="text-xs text-gray-800 mt-2">
               pyradiance 마스터플랜 기준
             </p>
           </div>
@@ -352,7 +352,7 @@ export default function ComingSoonContent({ category, subTab }: ComingSoonConten
 
         {/* 액션 */}
         <div className="text-center space-y-4">
-          <p className="text-sm text-gray-800 dark:text-slate-200">
+          <p className="text-sm text-gray-800">
             상단 카테고리 탭에서 다른 기능을 둘러보세요
           </p>
         </div>

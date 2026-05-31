@@ -49,16 +49,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko" className="scroll-smooth" suppressHydrationWarning>
-      <head>
-        {/* 무플래시 테마 적용: 페인트 전 동기 실행 (명시적 'dark' 선택 시에만) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{if(localStorage.getItem('bolumicloud-theme')==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})()",
-          }}
-        />
-      </head>
+    <html lang="ko" className="scroll-smooth">
       <body className={`${inter.className} antialiased`}>
         <a
           href="#main-content"

@@ -565,7 +565,7 @@ export default function SolarPVWorkspace() {
         ) : undefined
       }
     >
-      <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400 dark:text-slate-500">3D 로딩 중...</div>}>
+      <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400">3D 로딩 중...</div>}>
         <SolarPVViewport
           sunDirection={sunDirection}
           modelScene={modelScene}

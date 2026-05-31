@@ -33,7 +33,7 @@ interface WorkspaceStatusBarProps {
 }
 
 const stateStyles: Record<StatusBarState, string> = {
-  idle: 'bg-gray-100/95 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300',
+  idle: 'bg-gray-100/95 border-gray-200 text-gray-600',
   uploading: 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-600 text-white',
   running: 'bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-700 text-white animate-status-pulse',
   completed: 'bg-emerald-500 border-emerald-600 text-white',
@@ -91,7 +91,7 @@ export default function WorkspaceStatusBar({
             {state === 'running' && onCancel && (
               <button
                 onClick={onCancel}
-                className="p-1 bg-white/15 dark:bg-slate-800/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
+                className="p-1 bg-white/15 hover:bg-white/25 rounded transition-colors flex-shrink-0"
                 aria-label="분석 취소"
               >
                 <X size={14} />
@@ -99,9 +99,9 @@ export default function WorkspaceStatusBar({
             )}
           </div>
           {progress !== undefined && (
-            <div className="w-full h-1.5 bg-white/20 dark:bg-slate-800/20 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white/80 dark:bg-slate-800/80 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-white/80 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -132,7 +132,7 @@ export default function WorkspaceStatusBar({
           {state === 'completed' && onViewResults && (
             <button
               onClick={onViewResults}
-              className="px-3 py-1 bg-white/20 dark:bg-slate-800/20 hover:bg-white/30 rounded text-[11px]
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[11px]
                 font-medium transition-colors flex-shrink-0"
             >
               결과 보기

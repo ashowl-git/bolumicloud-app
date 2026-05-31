@@ -22,7 +22,7 @@ export default function CategoryTabs({ active, onChange }: CategoryTabsProps) {
   const { t } = useLocalizedText()
 
   return (
-    <div className="border-b border-gray-200 dark:border-slate-700">
+    <div className="border-b border-gray-200">
       <div className="flex gap-2" role="tablist" aria-label="Main categories">
         {categories.map((cat) => {
           const Icon = cat.icon
@@ -39,7 +39,7 @@ export default function CategoryTabs({ active, onChange }: CategoryTabsProps) {
               className={`px-4 py-3 transition-all duration-300 relative ${
                 isActive
                   ? 'text-red-600'
-                  : 'text-gray-800 dark:text-slate-200 hover:text-gray-900'
+                  : 'text-gray-800 hover:text-gray-900'
               }`}
             >
               <div className="flex items-center gap-2">

@@ -108,21 +108,21 @@ export default function DaylightAnalysis() {
       className="space-y-8"
     >
       <div>
-        <h2 className="text-2xl font-normal text-gray-900 dark:text-slate-100 mb-4">일조 확인</h2>
-        <p className="text-sm text-gray-800 dark:text-slate-200 mb-6">
+        <h2 className="text-2xl font-normal text-gray-900 mb-4">일조 확인</h2>
+        <p className="text-sm text-gray-800 mb-6">
           Radiance rtrace를 사용한 Daylight Factor 분석
         </p>
 
-        <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-4">
+        <div className="border border-gray-200 p-6 space-y-4">
           {/* 씬 파일 선택 */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm text-gray-700 mb-2">
               씬 파일 (필수)
             </label>
             <select
               value={sceneFile}
               onChange={(e) => setSceneFile(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+              className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
             >
               <option value="">씬 파일을 선택하세요 (.rad, .oct)</option>
               {files.map((file) => (
@@ -136,7 +136,7 @@ export default function DaylightAnalysis() {
           {/* 공간 크기 */}
           <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">폭 (m)</label>
+              <label className="block text-sm text-gray-700 mb-2">폭 (m)</label>
               <input
                 type="number"
                 value={roomWidth}
@@ -144,11 +144,11 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={1}
                 max={20}
-                className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">깊이 (m)</label>
+              <label className="block text-sm text-gray-700 mb-2">깊이 (m)</label>
               <input
                 type="number"
                 value={roomDepth}
@@ -156,11 +156,11 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={1}
                 max={20}
-                className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">높이 (m)</label>
+              <label className="block text-sm text-gray-700 mb-2">높이 (m)</label>
               <input
                 type="number"
                 value={roomHeight}
@@ -168,14 +168,14 @@ export default function DaylightAnalysis() {
                 step={0.1}
                 min={2}
                 max={5}
-                className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+                className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
               />
             </div>
           </div>
 
           {/* 그리드 크기 */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm text-gray-700 mb-2">
               그리드 크기: {gridSize}m
             </label>
             <input
@@ -187,7 +187,7 @@ export default function DaylightAnalysis() {
               step={0.1}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-gray-800 dark:text-slate-200 mt-1">
+            <div className="flex justify-between text-xs text-gray-800 mt-1">
               <span>0.1m (정밀)</span>
               <span>2.0m (빠름)</span>
             </div>
@@ -197,8 +197,8 @@ export default function DaylightAnalysis() {
           <button
             onClick={handleAnalyze}
             disabled={!sceneFile || loading}
-            className="w-full border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+            className="w-full border border-gray-200 hover:border-red-600/30 px-6 py-3
+              text-gray-900 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? '분석 중...' : '일조 분석 시작'}
@@ -210,52 +210,52 @@ export default function DaylightAnalysis() {
       {result && (
         <div className="space-y-6">
           {/* 통계 */}
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
-            <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">통계</h3>
+          <div className="border border-gray-200 p-6">
+            <h3 className="text-lg font-normal text-gray-900 mb-4">통계</h3>
             <div className="grid md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-gray-800 dark:text-slate-200 mb-1">평균 DF</p>
-                <p className="text-2xl font-normal text-gray-900 dark:text-slate-100">
+                <p className="text-gray-800 mb-1">평균 DF</p>
+                <p className="text-2xl font-normal text-gray-900">
                   {result.stats.mean}%
                 </p>
               </div>
               <div>
-                <p className="text-gray-800 dark:text-slate-200 mb-1">최대 DF</p>
-                <p className="text-2xl font-normal text-gray-900 dark:text-slate-100">
+                <p className="text-gray-800 mb-1">최대 DF</p>
+                <p className="text-2xl font-normal text-gray-900">
                   {result.stats.max}%
                 </p>
               </div>
               <div>
-                <p className="text-gray-800 dark:text-slate-200 mb-1">최소 DF</p>
-                <p className="text-2xl font-normal text-gray-900 dark:text-slate-100">
+                <p className="text-gray-800 mb-1">최소 DF</p>
+                <p className="text-2xl font-normal text-gray-900">
                   {result.stats.min}%
                 </p>
               </div>
               <div>
-                <p className="text-gray-800 dark:text-slate-200 mb-1">표준편차</p>
-                <p className="text-2xl font-normal text-gray-900 dark:text-slate-100">
+                <p className="text-gray-800 mb-1">표준편차</p>
+                <p className="text-2xl font-normal text-gray-900">
                   {result.stats.std}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-700 dark:text-slate-300 mt-4">
+            <p className="text-xs text-gray-700 mt-4">
               그리드 포인트: {result.grid_count}개 (크기: {result.grid_size}m)
             </p>
           </div>
 
           {/* 히트맵 */}
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
+          <div className="border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100">히트맵</h3>
+              <h3 className="text-lg font-normal text-gray-900">히트맵</h3>
               <button
                 onClick={handleDownloadImage}
-                className="px-4 py-2 text-xs border border-gray-200 dark:border-slate-700 hover:border-red-600/30 transition-colors"
+                className="px-4 py-2 text-xs border border-gray-200 hover:border-red-600/30 transition-colors"
               >
                 이미지 다운로드
               </button>
             </div>
 
-            <div className="border border-gray-200 dark:border-slate-700 p-4 bg-amber-50/50 relative min-h-[200px]">
+            <div className="border border-gray-200 p-4 bg-amber-50/50 relative min-h-[200px]">
               <Image
                 src={`data:image/png;base64,${btoa(result.heatmap.match(/.{1,2}/g)?.map(byte => String.fromCharCode(parseInt(byte, 16))).join('') || '')}`}
                 alt="Daylight heatmap"
@@ -266,24 +266,24 @@ export default function DaylightAnalysis() {
               />
             </div>
 
-            <div className="flex justify-between text-xs text-gray-800 dark:text-slate-200 mt-2">
+            <div className="flex justify-between text-xs text-gray-800 mt-2">
               <span>Low DF (파랑)</span>
               <span>High DF (빨강)</span>
             </div>
           </div>
 
           {/* CSV 다운로드 */}
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
+          <div className="border border-gray-200 p-6">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-1">데이터</h3>
-                <p className="text-xs text-gray-800 dark:text-slate-200">
+                <h3 className="text-lg font-normal text-gray-900 mb-1">데이터</h3>
+                <p className="text-xs text-gray-800">
                   X, Y, Z 좌표 및 Daylight Factor 값
                 </p>
               </div>
               <button
                 onClick={handleDownloadCSV}
-                className="px-4 py-2 text-xs border border-gray-200 dark:border-slate-700 hover:border-red-600/30 transition-colors"
+                className="px-4 py-2 text-xs border border-gray-200 hover:border-red-600/30 transition-colors"
               >
                 CSV 다운로드
               </button>
@@ -292,7 +292,7 @@ export default function DaylightAnalysis() {
 
           {/* 프로토타입 안내 */}
           {result.note && (
-            <div className="border border-gray-200 dark:border-slate-700 p-4 bg-amber-50/50 text-xs text-gray-800 dark:text-slate-200">
+            <div className="border border-gray-200 p-4 bg-amber-50/50 text-xs text-gray-800">
               <p className="font-medium text-amber-900 mb-1">개발 중 기능</p>
               <p>{result.note}</p>
             </div>
@@ -300,11 +300,11 @@ export default function DaylightAnalysis() {
         </div>
       )}
 
-      <div className="border border-gray-200 dark:border-slate-700 p-6 text-sm text-gray-800 dark:text-slate-200">
-        <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-2">Daylight Factor란?</h4>
+      <div className="border border-gray-200 p-6 text-sm text-gray-800">
+        <h4 className="font-medium text-gray-900 mb-2">Daylight Factor란?</h4>
         <p>실내 특정 지점의 조도를 실외 전천공 조도로 나눈 값입니다.</p>
         <p className="mt-2">DF = (실내 조도 / 실외 조도) × 100%</p>
-        <p className="mt-2 text-xs text-gray-800 dark:text-slate-200">
+        <p className="mt-2 text-xs text-gray-800">
           권장값: 거실 2%, 침실 1%, 주방 3%, 작업공간 5%
         </p>
       </div>

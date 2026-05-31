@@ -92,21 +92,21 @@ export default function RenderScene() {
       className="space-y-8"
     >
       <div>
-        <h2 className="text-2xl font-normal text-gray-900 dark:text-slate-100 mb-4">3D 렌더링</h2>
-        <p className="text-sm text-gray-800 dark:text-slate-200 mb-6">
+        <h2 className="text-2xl font-normal text-gray-900 mb-4">3D 렌더링</h2>
+        <p className="text-sm text-gray-800 mb-6">
           Radiance rpict를 사용한 포토리얼리스틱 렌더링
         </p>
 
-        <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-4">
+        <div className="border border-gray-200 p-6 space-y-4">
           {/* 씬 파일 선택 */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm text-gray-700 mb-2">
               씬 파일 (필수)
             </label>
             <select
               value={sceneFile}
               onChange={(e) => setSceneFile(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+              className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
             >
               <option value="">씬 파일을 선택하세요 (.rad, .oct)</option>
               {files.filter(f => /\.(rad|oct)$/i.test(f)).map((file) => (
@@ -119,13 +119,13 @@ export default function RenderScene() {
 
           {/* 뷰 파일 선택 (선택사항) */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm text-gray-700 mb-2">
               뷰 파일 (선택사항)
             </label>
             <select
               value={viewFile}
               onChange={(e) => setViewFile(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
+              className="w-full border border-gray-200 px-4 py-2 focus:outline-none focus:border-red-600/30 transition-colors"
             >
               <option value="">기본 뷰 사용</option>
               {files.filter(f => /\.vf$/i.test(f)).map((file) => (
@@ -138,7 +138,7 @@ export default function RenderScene() {
 
           {/* 품질 선택 */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">품질</label>
+            <label className="block text-sm text-gray-700 mb-2">품질</label>
             <div className="grid md:grid-cols-3 gap-3">
               {(['low', 'medium', 'high'] as const).map((q) => (
                 <button
@@ -146,15 +146,15 @@ export default function RenderScene() {
                   onClick={() => setQuality(q)}
                   className={`border-2 p-4 text-sm transition-all duration-300 ${
                     quality === q
-                      ? 'border-red-600 bg-red-50 text-gray-900 dark:text-slate-100'
-                      : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30 text-gray-700 dark:text-slate-300'
+                      ? 'border-red-600 bg-red-50 text-gray-900'
+                      : 'border-gray-200 hover:border-red-600/30 text-gray-700'
                   }`}
                 >
                   <div className="font-medium">{qualityInfo[q].label}</div>
-                  <div className="text-xs text-gray-800 dark:text-slate-200 mt-1">
+                  <div className="text-xs text-gray-800 mt-1">
                     {qualityInfo[q].desc}
                   </div>
-                  <div className="text-xs text-gray-700 dark:text-slate-300 mt-1">
+                  <div className="text-xs text-gray-700 mt-1">
                     {qualityInfo[q].params}
                   </div>
                 </button>
@@ -164,7 +164,7 @@ export default function RenderScene() {
 
           {/* 출력 포맷 */}
           <div>
-            <label className="block text-sm text-gray-700 dark:text-slate-300 mb-2">출력 포맷</label>
+            <label className="block text-sm text-gray-700 mb-2">출력 포맷</label>
             <div className="flex gap-4">
               {(['png', 'jpg', 'hdr'] as const).map((format) => (
                 <label key={format} className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function RenderScene() {
                     onChange={() => setOutputFormat(format)}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-gray-700 dark:text-slate-300">
+                  <span className="text-sm text-gray-700">
                     {format.toUpperCase()}
                   </span>
                 </label>
@@ -186,8 +186,8 @@ export default function RenderScene() {
           <button
             onClick={handleRender}
             disabled={!sceneFile || loading}
-            className="w-full border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+            className="w-full border border-gray-200 hover:border-red-600/30 px-6 py-3
+              text-gray-900 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? '렌더링 중...' : '렌더링 시작'}
@@ -197,29 +197,29 @@ export default function RenderScene() {
 
       {/* 결과 */}
       {result && (
-        <div className="border border-gray-200 dark:border-slate-700 p-6">
+        <div className="border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100">렌더링 결과</h3>
+            <h3 className="text-lg font-normal text-gray-900">렌더링 결과</h3>
             <div className="flex gap-3 items-center">
-              <span className="text-xs text-gray-800 dark:text-slate-200">
+              <span className="text-xs text-gray-800">
                 소요 시간: {renderTime.toFixed(1)}초
               </span>
               <button
                 onClick={handleDownload}
-                className="px-4 py-2 text-xs border border-gray-200 dark:border-slate-700 hover:border-red-600/30 transition-colors"
+                className="px-4 py-2 text-xs border border-gray-200 hover:border-red-600/30 transition-colors"
               >
                 다운로드
               </button>
             </div>
           </div>
 
-          <div className="border border-gray-200 dark:border-slate-700">
+          <div className="border border-gray-200">
             {outputFormat === 'hdr' ? (
               <div className="p-8 bg-amber-50/50 text-center">
-                <p className="text-sm text-gray-800 dark:text-slate-200">
+                <p className="text-sm text-gray-800">
                   HDR 파일이 다운로드되었습니다.
                 </p>
-                <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">
+                <p className="text-xs text-gray-800 mt-2">
                   HDR 뷰어로 확인하세요.
                 </p>
               </div>
@@ -236,7 +236,7 @@ export default function RenderScene() {
             )}
           </div>
 
-          <div className="mt-4 grid md:grid-cols-2 gap-4 text-xs text-gray-800 dark:text-slate-200">
+          <div className="mt-4 grid md:grid-cols-2 gap-4 text-xs text-gray-800">
             <div>
               <span className="font-medium">씬:</span> {sceneFile}
             </div>
@@ -253,14 +253,14 @@ export default function RenderScene() {
         </div>
       )}
 
-      <div className="border border-gray-200 dark:border-slate-700 p-6 text-sm text-gray-800 dark:text-slate-200">
-        <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-2">품질 옵션</h4>
+      <div className="border border-gray-200 p-6 text-sm text-gray-800">
+        <h4 className="font-medium text-gray-900 mb-2">품질 옵션</h4>
         <ul className="space-y-1">
           <li>• <span className="font-medium">Low</span>: 빠른 프리뷰 (ab=2, ar=64)</li>
           <li>• <span className="font-medium">Medium</span>: 균형 (ab=3, ar=128)</li>
           <li>• <span className="font-medium">High</span>: 고품질 (ab=5, ar=256)</li>
         </ul>
-        <p className="mt-4 text-xs text-gray-800 dark:text-slate-200">
+        <p className="mt-4 text-xs text-gray-800">
           ab: Ambient bounces | ar: Ambient resolution | ad: Ambient divisions
         </p>
       </div>

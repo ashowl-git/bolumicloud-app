@@ -23,18 +23,18 @@ export default function ComingSoonPage() {
         className="max-w-md mx-auto text-center"
       >
         <div className="mb-6 flex justify-center">
-          <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-full">
-            <Icon size={40} strokeWidth={1} className="text-gray-300 dark:text-slate-600" />
+          <div className="p-4 bg-gray-50 rounded-full">
+            <Icon size={40} strokeWidth={1} className="text-gray-300" />
           </div>
         </div>
 
-        <h2 className="text-xl font-light text-gray-900 dark:text-slate-100 mb-2">{moduleName}</h2>
+        <h2 className="text-xl font-light text-gray-900 mb-2">{moduleName}</h2>
 
         {moduleDesc && (
-          <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">{moduleDesc}</p>
+          <p className="text-sm text-gray-500 mb-6">{moduleDesc}</p>
         )}
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-sm text-gray-500">
           <Clock size={14} />
           {t({ ko: '준비 중입니다', en: 'Coming soon' })}
         </div>

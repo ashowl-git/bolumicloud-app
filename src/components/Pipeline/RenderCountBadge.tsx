@@ -14,7 +14,7 @@ export default function RenderCountBadge({ vfCount, dateCount, hourCount }: Rend
 
   let colorClass: string
   if (total === 0) {
-    colorClass = 'text-gray-400 dark:text-slate-500 border-gray-200 dark:border-slate-700'
+    colorClass = 'text-gray-400 border-gray-200'
   } else if (ratio <= 0.5) {
     colorClass = 'text-green-600 border-green-200 bg-green-50'
   } else if (ratio <= 0.8) {

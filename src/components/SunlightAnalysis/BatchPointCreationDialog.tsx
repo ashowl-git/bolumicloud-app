@@ -100,7 +100,7 @@ export default function BatchPointCreationDialog({
 
   if (!open) return null
 
-  const inputClass = `w-full border border-gray-200 dark:border-slate-700 px-2 py-1.5 text-xs tabular-nums
+  const inputClass = `w-full border border-gray-200 px-2 py-1.5 text-xs tabular-nums
     focus:outline-none focus:border-red-600/30 disabled:opacity-50`
 
   return (
@@ -114,18 +114,18 @@ export default function BatchPointCreationDialog({
       ref={modalRef}
     >
       <div
-        className="bg-white dark:bg-slate-800 w-full max-w-md mx-4 shadow-xl"
+        className="bg-white w-full max-w-md mx-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Grid3X3 size={16} className="text-gray-500 dark:text-slate-400" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">측정점 일괄 생성</h3>
+            <Grid3X3 size={16} className="text-gray-500" />
+            <h3 className="text-sm font-semibold text-gray-900">측정점 일괄 생성</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X size={16} />
           </button>
@@ -135,7 +135,7 @@ export default function BatchPointCreationDialog({
         <div className="px-4 py-4 space-y-3">
           {/* 동 이름 */}
           <div>
-            <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">
               동 이름 (Group Name)
             </label>
             <input
@@ -150,7 +150,7 @@ export default function BatchPointCreationDialog({
           {/* 시작층 / 끝층 */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">시작층</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">시작층</label>
               <input
                 type="number"
                 min={1}
@@ -160,7 +160,7 @@ export default function BatchPointCreationDialog({
               />
             </div>
             <div>
-              <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">끝층</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">끝층</label>
               <input
                 type="number"
                 min={startFloor}
@@ -173,7 +173,7 @@ export default function BatchPointCreationDialog({
 
           {/* 층고 */}
           <div>
-            <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">층고 (m)</label>
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">층고 (m)</label>
             <input
               type="number"
               min={0.1}
@@ -187,7 +187,7 @@ export default function BatchPointCreationDialog({
           {/* 호수 / 호 간격 */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">수평 분할 수</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">수평 분할 수</label>
               <input
                 type="number"
                 min={1}
@@ -197,7 +197,7 @@ export default function BatchPointCreationDialog({
               />
             </div>
             <div>
-              <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">수평 간격 (m)</label>
+              <label className="text-[10px] font-medium text-gray-500 block mb-1">수평 간격 (m)</label>
               <input
                 type="number"
                 min={0.5}
@@ -211,12 +211,12 @@ export default function BatchPointCreationDialog({
 
           {/* 기준점 */}
           <div>
-            <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">
               기준점 (그리드 좌측 하단)
             </label>
             <div className="grid grid-cols-3 gap-1.5">
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">X</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">X</label>
                 <input
                   type="number"
                   step={0.1}
@@ -226,7 +226,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">Y</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Y</label>
                 <input
                   type="number"
                   step={0.1}
@@ -236,7 +236,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">Z</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Z</label>
                 <input
                   type="number"
                   step={0.1}
@@ -263,12 +263,12 @@ export default function BatchPointCreationDialog({
 
           {/* 입면 방향 */}
           <div>
-            <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1">
+            <label className="text-[10px] font-medium text-gray-500 block mb-1">
               그리드 수평 방향
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">X</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">X</label>
                 <input
                   type="number"
                   step={0.1}
@@ -278,7 +278,7 @@ export default function BatchPointCreationDialog({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">Y</label>
+                <label className="text-[10px] text-gray-500 block mb-0.5">Y</label>
                 <input
                   type="number"
                   step={0.1}
@@ -291,9 +291,9 @@ export default function BatchPointCreationDialog({
           </div>
 
           {/* 그리드 배치 가이드 + 미리보기 요약 */}
-          <div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded px-3 py-2">
+          <div className="bg-gray-50 border border-gray-200 rounded px-3 py-2">
             <div className="flex items-start gap-3 mb-1.5">
-              <pre className="text-[9px] leading-tight text-gray-400 dark:text-slate-500 font-mono whitespace-pre select-none">{
+              <pre className="text-[9px] leading-tight text-gray-400 font-mono whitespace-pre select-none">{
 `       수평 방향 →
   ┌──┬──┬──┬──┐ ${endFloor}층
   │  │  │  │  │
@@ -303,7 +303,7 @@ export default function BatchPointCreationDialog({
 ★ 기준점(좌측 하단)`
               }</pre>
             </div>
-            <p className="text-xs text-gray-700 dark:text-slate-300">
+            <p className="text-xs text-gray-700">
               <span className="font-medium">{floorCount}층</span>
               {' x '}
               <span className="font-medium">{unitCount}열</span>
@@ -325,10 +325,10 @@ export default function BatchPointCreationDialog({
         </div>
 
         {/* 푸터 */}
-        <div className="flex items-center justify-end gap-2 border-t border-gray-200 dark:border-slate-700 px-4 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-xs text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700
+            className="px-4 py-1.5 text-xs text-gray-600 border border-gray-200
               hover:border-gray-400 transition-colors"
           >
             취소

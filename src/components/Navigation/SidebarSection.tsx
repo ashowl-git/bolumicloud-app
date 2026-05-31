@@ -22,7 +22,7 @@ export default function SidebarSection({ section, collapsed, onNavigate }: Sideb
     return (
       <div className="mb-2 px-2">
         <div className="flex items-center justify-center py-2 mb-0.5">
-          <div className="w-5 h-px bg-gray-200 dark:bg-slate-700" />
+          <div className="w-5 h-px bg-gray-200" />
         </div>
         {section.modules.map((mod) => (
           <SidebarLink
@@ -41,7 +41,7 @@ export default function SidebarSection({ section, collapsed, onNavigate }: Sideb
     <div className="mb-1">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-slate-200 transition-colors duration-150"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors duration-150"
       >
         <Icon size={14} strokeWidth={1.5} />
         <span className="flex-1 text-left">{t(section.name)}</span>

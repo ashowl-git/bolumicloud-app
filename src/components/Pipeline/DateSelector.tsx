@@ -50,7 +50,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
     <div className="space-y-4">
       {/* Preset toggles */}
       <div>
-        <span className="text-xs text-gray-500 dark:text-slate-400 mb-2 block">날짜 프리셋</span>
+        <span className="text-xs text-gray-500 mb-2 block">날짜 프리셋</span>
         <div className="flex flex-wrap gap-2" role="group" aria-label="날짜 프리셋">
           {DATE_PRESETS.map((preset) => {
             const active = isPresetSelected(preset)
@@ -63,10 +63,10 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                 aria-pressed={active}
                 aria-label={`${preset.label} ${preset.month}월 ${preset.day}일`}
                 className={`border px-4 py-2 text-sm transition-all duration-300 disabled:opacity-50
-                  focus:outline-2 focus:outline-offset-2 focus:outline-red-600 ${
+                  focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 ${
                   active
                     ? 'border-red-600 bg-red-50 text-red-600'
-                    : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30 text-gray-700 dark:text-slate-300 hover:text-red-600'
+                    : 'border-gray-200 hover:border-red-600/30 text-gray-700 hover:text-red-600'
                 }`}
               >
                 {preset.label} ({preset.month}/{preset.day})
@@ -78,7 +78,7 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
 
       {/* Custom date input */}
       <div>
-        <span className="text-xs text-gray-500 dark:text-slate-400 mb-2 block">커스텀 날짜 추가</span>
+        <span className="text-xs text-gray-500 mb-2 block">커스텀 날짜 추가</span>
         <div className="flex items-center gap-2">
           <div>
             <label htmlFor={monthId} className="sr-only">월</label>
@@ -87,8 +87,8 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
               value={customMonth}
               onChange={(e) => setCustomMonth(Number(e.target.value))}
               disabled={disabled}
-              className="border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
-                focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
+              className="border border-gray-200 px-3 py-2 text-sm
+                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={m}>{m}월</option>
@@ -105,8 +105,8 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
               value={customDay}
               onChange={(e) => setCustomDay(Number(e.target.value))}
               disabled={disabled}
-              className="w-20 border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm
-                focus:outline-2 focus:outline-offset-2 focus:outline-red-600 disabled:opacity-50"
+              className="w-20 border border-gray-200 px-3 py-2 text-sm
+                focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 disabled:opacity-50"
               placeholder="일"
             />
           </div>
@@ -115,9 +115,9 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
             onClick={addCustomDate}
             disabled={disabled}
             aria-label={`${customMonth}월 ${customDay}일 추가`}
-            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-4 py-2
-              text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300 disabled:opacity-50
-              focus:outline-2 focus:outline-offset-2 focus:outline-red-600"
+            className="border border-gray-200 hover:border-red-600/30 px-4 py-2
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300 disabled:opacity-50
+              focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
           >
             추가
           </button>
@@ -127,16 +127,16 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
       {/* Selected dates list */}
       {selectedDates.length > 0 && (
         <div>
-          <span className="text-xs text-gray-500 dark:text-slate-400 mb-2 block" aria-live="polite">
+          <span className="text-xs text-gray-500 mb-2 block" aria-live="polite">
             선택된 날짜 ({selectedDates.length}개)
           </span>
           <div className="flex flex-wrap gap-2">
             {selectedDates.map((date, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3 py-1.5 text-sm"
+                className="inline-flex items-center gap-1.5 border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm"
               >
-                <span className="text-gray-700 dark:text-slate-300">
+                <span className="text-gray-700">
                   {date.label !== 'custom' ? `${date.label} ` : ''}{date.month}/{date.day}
                 </span>
                 {!disabled && (
@@ -144,8 +144,8 @@ export default function DateSelector({ selectedDates, onChange, disabled }: Date
                     type="button"
                     onClick={() => removeDate(idx)}
                     aria-label={`${date.label !== 'custom' ? date.label + ' ' : ''}${date.month}월 ${date.day}일 제거`}
-                    className="text-gray-400 dark:text-slate-500 hover:text-red-500 transition-colors
-                      focus:outline-2 focus:outline-offset-1 focus:outline-red-600"
+                    className="text-gray-400 hover:text-red-500 transition-colors
+                      focus:outline-2 focus:outline-offset-1 focus:outline-blue-500"
                   >
                     x
                   </button>

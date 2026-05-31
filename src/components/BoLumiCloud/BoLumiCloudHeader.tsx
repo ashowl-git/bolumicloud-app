@@ -46,7 +46,7 @@ export default function BoLumiCloudHeader({
   const { t } = useLocalizedText()
 
   return (
-    <section className="py-16 px-8 border-b border-gray-200 dark:border-slate-700">
+    <section className="py-16 px-8 border-b border-gray-200">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -54,16 +54,16 @@ export default function BoLumiCloudHeader({
           transition={{ duration: 0.6 }}
         >
           <div className="flex items-center gap-4 mb-4">
-            <BoLumiCloudMark size={48} className="text-gray-900 dark:text-slate-100" />
-            <h1 className="text-5xl font-extralight text-gray-900 dark:text-slate-100 tracking-tighter">
+            <BoLumiCloudMark size={48} className="text-gray-900" />
+            <h1 className="text-5xl font-extralight text-gray-900 tracking-tighter">
               B<span className="text-red-600">o</span>LumiCloud
             </h1>
           </div>
           <div className="w-24 h-px bg-gray-300 mb-4" />
-          <p className="text-base text-gray-800 dark:text-slate-200 font-normal max-w-3xl leading-[1.8]">
+          <p className="text-base text-gray-800 font-normal max-w-3xl leading-[1.8]">
             {t(headerText.description)}
           </p>
-          <p className="text-sm text-gray-700 dark:text-slate-300 mt-2">
+          <p className="text-sm text-gray-700 mt-2">
             {t(headerText.phaseNote)}
           </p>
         </motion.div>
@@ -81,7 +81,7 @@ export default function BoLumiCloudHeader({
               inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-full
               ${backendStatus === 'healthy' ? 'border-green-200 bg-green-50 text-green-800' : ''}
               ${backendStatus === 'unhealthy' ? 'border-red-200 bg-red-50 text-red-800' : ''}
-              ${backendStatus === 'checking' ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300' : ''}
+              ${backendStatus === 'checking' ? 'border-gray-200 bg-gray-50 text-gray-600' : ''}
             `}>
               <Activity size={14} strokeWidth={1.5} />
               {backendStatus === 'checking' && (
@@ -96,9 +96,9 @@ export default function BoLumiCloudHeader({
             </div>
 
             {backendStatus === 'healthy' && backendInfo && (
-              <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-slate-300">
+              <div className="flex items-center gap-3 text-xs text-gray-600">
                 <span>pyradiance {backendInfo.pyradiance_version}</span>
-                <span className="text-gray-300 dark:text-slate-600">|</span>
+                <span className="text-gray-300">|</span>
                 <span>{backendInfo.cpu_count} CPU cores</span>
               </div>
             )}

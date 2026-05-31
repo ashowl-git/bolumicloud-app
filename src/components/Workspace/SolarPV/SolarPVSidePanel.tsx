@@ -89,11 +89,11 @@ function scoreColor(score: number): string {
 function ShadowCalendarMini({ calendar }: { calendar: ShadowCalendar }) {
   return (
     <div className="mt-2">
-      <p className="text-[10px] text-gray-500 dark:text-slate-400 mb-1">Shadow Calendar (월 x 시)</p>
+      <p className="text-[10px] text-gray-500 mb-1">Shadow Calendar (월 x 시)</p>
       <div className="flex flex-col gap-px">
         {calendar.matrix.map((row, mi) => (
           <div key={mi} className="flex gap-px items-center">
-            <span className="text-[7px] text-gray-500 dark:text-slate-400 w-3 text-right">{mi + 1}</span>
+            <span className="text-[7px] text-gray-500 w-3 text-right">{mi + 1}</span>
             {row.map((val, hi) => (
               <div
                 key={hi}
@@ -110,11 +110,11 @@ function ShadowCalendarMini({ calendar }: { calendar: ShadowCalendar }) {
         <div className="flex gap-px items-center mt-0.5">
           <span className="w-3" />
           {calendar.hours.filter((_, i) => i % 3 === 0).map(h => (
-            <span key={h} className="text-[7px] text-gray-500 dark:text-slate-400" style={{ width: `${3 * 12}px` }}>{h}</span>
+            <span key={h} className="text-[7px] text-gray-500" style={{ width: `${3 * 12}px` }}>{h}</span>
           ))}
         </div>
       </div>
-      <div className="flex gap-2 mt-1 text-[8px] text-gray-500 dark:text-slate-400">
+      <div className="flex gap-2 mt-1 text-[8px] text-gray-500">
         <span className="flex items-center gap-0.5"><span className="w-2 h-2 bg-green-500 rounded-sm inline-block" /> 0-5%</span>
         <span className="flex items-center gap-0.5"><span className="w-2 h-2 bg-yellow-500 rounded-sm inline-block" /> 5-50%</span>
         <span className="flex items-center gap-0.5"><span className="w-2 h-2 bg-red-600 rounded-sm inline-block" /> 50%+</span>
@@ -198,7 +198,7 @@ export default function SolarPVSidePanel({
             transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
             ${error
               ? 'border-red-300 text-red-600 hover:border-red-500 hover:bg-red-50'
-              : 'border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 hover:border-amber-500/50 hover:text-amber-700'
+              : 'border-gray-200 text-gray-900 hover:border-amber-500/50 hover:text-amber-700'
             }`}
         >
           <Zap size={14} />
@@ -206,7 +206,7 @@ export default function SolarPVSidePanel({
         </button>
       )}
       {noPanelSelected && !isRunning && !error && (
-        <p className="text-[10px] text-gray-500 dark:text-slate-400 text-center">
+        <p className="text-[10px] text-gray-500 text-center">
           PV 패널 레이어를 1개 이상 지정하세요 (번개 아이콘)
         </p>
       )}
@@ -222,13 +222,13 @@ export default function SolarPVSidePanel({
       footer={footer}
     >
       {/* Tab bar */}
-      <div className="flex border border-gray-200 dark:border-slate-700 rounded overflow-hidden mb-2">
+      <div className="flex border border-gray-200 rounded overflow-hidden mb-2">
         <button
           onClick={() => onTabChange('settings')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs transition-colors
             ${activeTab === 'settings'
               ? 'bg-gray-900 text-white'
-              : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50'
+              : 'bg-white text-gray-500 hover:bg-gray-50'
             }`}
         >
           <Settings size={12} />
@@ -241,7 +241,7 @@ export default function SolarPVSidePanel({
             disabled:opacity-40 disabled:cursor-not-allowed
             ${activeTab === 'results'
               ? 'bg-gray-900 text-white'
-              : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50'
+              : 'bg-white text-gray-500 hover:bg-gray-50'
             }`}
         >
           <BarChart3 size={12} />
@@ -283,10 +283,10 @@ export default function SolarPVSidePanel({
                 onTogglePanelLayer={onTogglePanelLayer}
                 onToggleAll={onToggleAllLayers}
               />
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-gray-400 dark:text-slate-500 mt-2">
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-gray-400 mt-2">
                 <span className="flex items-center gap-0.5"><Zap size={9} className="text-amber-500" /> PV 패널</span>
                 <span className="flex items-center gap-0.5"><Target size={9} className="text-red-500" /> 그림자 영향</span>
-                <span className="flex items-center gap-0.5"><Eye size={9} className="text-gray-500 dark:text-slate-400" /> 3D 표시</span>
+                <span className="flex items-center gap-0.5"><Eye size={9} className="text-gray-500" /> 3D 표시</span>
               </div>
             </WorkspacePanelSection>
           )}
@@ -297,7 +297,7 @@ export default function SolarPVSidePanel({
               value={config.module_preset}
               onChange={e => onConfigChange({ module_preset: e.target.value as SolarPVRunConfig['module_preset'] })}
               disabled={isRunning}
-              className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+              className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
             >
               {Object.entries(MODULE_PRESET_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -305,7 +305,7 @@ export default function SolarPVSidePanel({
             </select>
 
             {presetInfo && (
-              <div className="mt-1.5 grid grid-cols-2 gap-1 text-[10px] text-gray-500 dark:text-slate-400">
+              <div className="mt-1.5 grid grid-cols-2 gap-1 text-[10px] text-gray-500">
                 <span>출력: {presetInfo.pdc0_w}W</span>
                 <span>효율: {(presetInfo.efficiency * 100).toFixed(1)}%</span>
                 {presetInfo.bifaciality > 0 && (
@@ -319,23 +319,23 @@ export default function SolarPVSidePanel({
           <WorkspacePanelSection title="시스템 설정" icon={<Battery size={14} />} defaultOpen={false}>
             <div className="space-y-2">
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400">인버터 효율</label>
+                <label className="text-[10px] text-gray-500">인버터 효율</label>
                 <input
                   type="number"
                   value={config.inverter_efficiency}
                   onChange={e => onConfigChange({ inverter_efficiency: parseFloat(e.target.value) || 0.96 })}
                   min={0.8} max={1.0} step={0.01}
                   disabled={isRunning}
-                  className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                  className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400">손실 프로파일</label>
+                <label className="text-[10px] text-gray-500">손실 프로파일</label>
                 <select
                   value={config.loss_profile}
                   onChange={e => onConfigChange({ loss_profile: e.target.value as SolarPVRunConfig['loss_profile'] })}
                   disabled={isRunning}
-                  className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                  className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                 >
                   {Object.entries(LOSS_PROFILE_LABELS).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
@@ -343,12 +343,12 @@ export default function SolarPVSidePanel({
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 dark:text-slate-400">지면 반사율 (Albedo)</label>
+                <label className="text-[10px] text-gray-500">지면 반사율 (Albedo)</label>
                 <select
                   value={String(config.ground_albedo)}
                   onChange={e => onConfigChange({ ground_albedo: parseFloat(e.target.value) })}
                   disabled={isRunning}
-                  className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                  className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                 >
                   {Object.entries(GROUND_ALBEDO_PRESETS).map(([key, preset]) => (
                     <option key={key} value={String(preset.value)}>{preset.label} ({preset.value})</option>
@@ -360,47 +360,47 @@ export default function SolarPVSidePanel({
 
           {/* Economics */}
           <WorkspacePanelSection title="경제성 분석" icon={<DollarSign size={14} />} defaultOpen={false}>
-            <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300 mb-2 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-gray-700 mb-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={config.economics_enabled}
                 onChange={e => onConfigChange({ economics_enabled: e.target.checked })}
                 disabled={isRunning}
-                className="rounded border-gray-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500"
+                className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
               />
               경제성 분석 포함
             </label>
             {config.economics_enabled && (
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">전기요금 (원/kWh)</label>
+                  <label className="text-[10px] text-gray-500">전기요금 (원/kWh)</label>
                   <input
                     type="number"
                     value={config.electricity_price_krw}
                     onChange={e => onConfigChange({ electricity_price_krw: parseFloat(e.target.value) || 120 })}
                     disabled={isRunning}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">설치비 (원/kW)</label>
+                  <label className="text-[10px] text-gray-500">설치비 (원/kW)</label>
                   <input
                     type="number"
                     value={config.install_cost_krw_per_kw}
                     onChange={e => onConfigChange({ install_cost_krw_per_kw: parseFloat(e.target.value) || 1200000 })}
                     disabled={isRunning}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">연간 열화율 (%)</label>
+                  <label className="text-[10px] text-gray-500">연간 열화율 (%)</label>
                   <input
                     type="number"
                     value={(config.degradation_rate * 100).toFixed(1)}
                     onChange={e => onConfigChange({ degradation_rate: (parseFloat(e.target.value) || 0.5) / 100 })}
                     min={0} max={5} step={0.1}
                     disabled={isRunning}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -411,15 +411,15 @@ export default function SolarPVSidePanel({
           <WorkspacePanelSection title="그림자 시각화" icon={<Sun size={14} />} defaultOpen={false}>
             <div className="space-y-2">
               {/* Single-day shadow animation */}
-              <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">애니메이션 (단일 날짜)</p>
+              <p className="text-[10px] text-gray-400 font-medium">애니메이션 (단일 날짜)</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">월</label>
+                  <label className="text-[10px] text-gray-500">월</label>
                   <select
                     value={shadowDate.month}
                     onChange={e => onShadowDateChange({ ...shadowDate, month: parseInt(e.target.value) })}
                     disabled={isRunning || shadowIsComputing}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
                       <option key={m} value={m}>{m}월</option>
@@ -427,21 +427,21 @@ export default function SolarPVSidePanel({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">일</label>
+                  <label className="text-[10px] text-gray-500">일</label>
                   <input
                     type="number"
                     value={shadowDate.day}
                     onChange={e => onShadowDateChange({ ...shadowDate, day: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
                     min={1} max={31}
                     disabled={isRunning || shadowIsComputing}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
               </div>
               <button
                 onClick={onComputeShadows}
                 disabled={shadowIsComputing || isRunning}
-                className="w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-700 py-2 text-xs
+                className="w-full flex items-center justify-center gap-2 border border-gray-200 py-2 text-xs
                   transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
                   hover:border-amber-500/50 hover:text-amber-700"
               >
@@ -469,7 +469,7 @@ export default function SolarPVSidePanel({
                       transition-all duration-300 disabled:opacity-40
                       ${showShadowHeatmap
                         ? 'border-amber-400 bg-amber-50 text-amber-700'
-                        : 'border-gray-200 dark:border-slate-700 hover:border-amber-500/50 hover:text-amber-700'
+                        : 'border-gray-200 hover:border-amber-500/50 hover:text-amber-700'
                       }`}
                   >
                     {shadowHeatmapLoading ? (
@@ -488,16 +488,16 @@ export default function SolarPVSidePanel({
               )}
 
               {/* Range accumulation (date range) */}
-              <div className="border-t border-gray-100 dark:border-slate-800 pt-2 mt-2" />
-              <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">누적 영역도 (날짜 범위)</p>
+              <div className="border-t border-gray-100 pt-2 mt-2" />
+              <p className="text-[10px] text-gray-400 font-medium">누적 영역도 (날짜 범위)</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">시작월</label>
+                  <label className="text-[10px] text-gray-500">시작월</label>
                   <select
                     value={shadowDateRange.startMonth}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startMonth: parseInt(e.target.value) })}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
                       <option key={m} value={m}>{m}월</option>
@@ -505,23 +505,23 @@ export default function SolarPVSidePanel({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">시작일</label>
+                  <label className="text-[10px] text-gray-500">시작일</label>
                   <input
                     type="number"
                     value={shadowDateRange.startDay}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startDay: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
                     min={1} max={31}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">끝월</label>
+                  <label className="text-[10px] text-gray-500">끝월</label>
                   <select
                     value={shadowDateRange.endMonth}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endMonth: parseInt(e.target.value) })}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
                       <option key={m} value={m}>{m}월</option>
@@ -529,25 +529,25 @@ export default function SolarPVSidePanel({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">끝일</label>
+                  <label className="text-[10px] text-gray-500">끝일</label>
                   <input
                     type="number"
                     value={shadowDateRange.endDay}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endDay: Math.max(1, Math.min(31, parseInt(e.target.value) || 1)) })}
                     min={1} max={31}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">시작시</label>
+                  <label className="text-[10px] text-gray-500">시작시</label>
                   <select
                     value={shadowDateRange.startHour}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, startHour: parseInt(e.target.value) })}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {Array.from({ length: 16 }, (_, i) => i + 5).map(h => (
                       <option key={h} value={h}>{h}시</option>
@@ -555,12 +555,12 @@ export default function SolarPVSidePanel({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">끝시</label>
+                  <label className="text-[10px] text-gray-500">끝시</label>
                   <select
                     value={shadowDateRange.endHour}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, endHour: parseInt(e.target.value) })}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {Array.from({ length: 16 }, (_, i) => i + 5).map(h => (
                       <option key={h} value={h}>{h}시</option>
@@ -568,12 +568,12 @@ export default function SolarPVSidePanel({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 dark:text-slate-400">샘플</label>
+                  <label className="text-[10px] text-gray-500">샘플</label>
                   <select
                     value={shadowDateRange.sampleCount}
                     onChange={e => onShadowDateRangeChange({ ...shadowDateRange, sampleCount: parseInt(e.target.value) })}
                     disabled={isRunning || rangeAccumLoading}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded text-xs text-gray-900 dark:text-slate-100 p-1.5 disabled:opacity-50"
+                    className="w-full border border-gray-200 rounded text-xs text-gray-900 p-1.5 disabled:opacity-50"
                   >
                     {[6, 12, 24].map(n => (
                       <option key={n} value={n}>{n}일</option>
@@ -588,7 +588,7 @@ export default function SolarPVSidePanel({
                   transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed
                   ${showShadowHeatmap
                     ? 'border-purple-400 bg-purple-50 text-purple-700'
-                    : 'border-gray-200 dark:border-slate-700 hover:border-purple-500/50 hover:text-purple-700'
+                    : 'border-gray-200 hover:border-purple-500/50 hover:text-purple-700'
                   }`}
               >
                 {rangeAccumLoading ? (
@@ -613,7 +613,7 @@ export default function SolarPVSidePanel({
                     transition-all duration-300 disabled:opacity-40
                     ${showReflection
                       ? 'border-yellow-400 bg-yellow-50 text-yellow-700'
-                      : 'border-gray-200 dark:border-slate-700 hover:border-yellow-500/50 hover:text-yellow-700'
+                      : 'border-gray-200 hover:border-yellow-500/50 hover:text-yellow-700'
                     }`}
                 >
                   {reflectionLoading ? (
@@ -640,25 +640,25 @@ export default function SolarPVSidePanel({
           {/* Summary Cards */}
           <WorkspacePanelSection title="요약" icon={<TrendingUp size={14} />}>
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2 border border-gray-100 dark:border-slate-800">
-                <p className="text-[10px] text-gray-500 dark:text-slate-400">총 용량</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{results.summary.total_capacity_kwp.toFixed(1)} kWp</p>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <p className="text-[10px] text-gray-500">총 용량</p>
+                <p className="text-sm font-semibold text-gray-900">{results.summary.total_capacity_kwp.toFixed(1)} kWp</p>
               </div>
               <div className="bg-amber-50 rounded-lg p-2 border border-amber-100">
                 <p className="text-[10px] text-amber-600">연간 발전량</p>
                 <p className="text-sm font-semibold text-amber-700">{results.summary.annual_generation_kwh.toLocaleString()} kWh</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2 border border-gray-100 dark:border-slate-800">
-                <p className="text-[10px] text-gray-500 dark:text-slate-400">비발전량</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{results.summary.specific_yield_kwh_kwp.toFixed(0)} kWh/kWp</p>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <p className="text-[10px] text-gray-500">비발전량</p>
+                <p className="text-sm font-semibold text-gray-900">{results.summary.specific_yield_kwh_kwp.toFixed(0)} kWh/kWp</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
                 <p className="text-[10px] text-blue-600">성능비 (PR)</p>
                 <p className="text-sm font-semibold text-blue-700">{(results.summary.avg_performance_ratio * 100).toFixed(1)}%</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2 border border-gray-100 dark:border-slate-800">
-                <p className="text-[10px] text-gray-500 dark:text-slate-400">이용률 (CF)</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{(results.summary.capacity_factor * 100).toFixed(1)}%</p>
+              <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <p className="text-[10px] text-gray-500">이용률 (CF)</p>
+                <p className="text-sm font-semibold text-gray-900">{(results.summary.capacity_factor * 100).toFixed(1)}%</p>
               </div>
               <div className="bg-red-50 rounded-lg p-2 border border-red-100">
                 <p className="text-[10px] text-red-600">그림자 손실</p>
@@ -685,7 +685,7 @@ export default function SolarPVSidePanel({
                       style={{ height: `${height}%` }}
                       title={`${mt.month}월: ${mt.generation_kwh.toFixed(0)} kWh (그림자 ${mt.avg_shadow_loss_pct.toFixed(0)}%)`}
                     />
-                    <span className="text-[8px] text-gray-500 dark:text-slate-400">{mt.month}</span>
+                    <span className="text-[8px] text-gray-500">{mt.month}</span>
                   </div>
                 )
               })}
@@ -704,7 +704,7 @@ export default function SolarPVSidePanel({
                     className={`w-full text-left p-2 rounded text-xs transition-colors border ${
                       s.surface_id === selectedSurface
                         ? 'bg-amber-50 border-amber-300'
-                        : 'bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-800 hover:bg-gray-100'
+                        : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex justify-between items-center">
@@ -712,11 +712,11 @@ export default function SolarPVSidePanel({
                         <span className={`text-sm font-bold ${scoreColor(s.surface_score)}`}>
                           {s.surface_score.toFixed(0)}
                         </span>
-                        <span className="text-gray-700 dark:text-slate-300">#{i + 1} {s.surface_id.split('_')[0]}</span>
+                        <span className="text-gray-700">#{i + 1} {s.surface_id.split('_')[0]}</span>
                       </div>
                       <span className="text-amber-700 font-medium">{s.annual_ac_kwh.toFixed(0)} kWh</span>
                     </div>
-                    <div className="flex gap-2 mt-1 text-[10px] text-gray-500 dark:text-slate-400">
+                    <div className="flex gap-2 mt-1 text-[10px] text-gray-500">
                       <span>{s.n_modules}모듈</span>
                       <span>{s.capacity_kwp.toFixed(1)}kWp</span>
                       <span>PR {(s.performance_ratio * 100).toFixed(0)}%</span>
@@ -736,7 +736,7 @@ export default function SolarPVSidePanel({
           {/* Selected Surface Shadow Calendar */}
           {selectedSurfaceData?.shadow_calendar && (
             <WorkspacePanelSection title="Shadow Calendar" icon={<Sun size={14} />}>
-              <p className="text-[10px] text-gray-500 dark:text-slate-400 mb-1">{selectedSurfaceData.surface_id}</p>
+              <p className="text-[10px] text-gray-500 mb-1">{selectedSurfaceData.surface_id}</p>
               <ShadowCalendarMini calendar={selectedSurfaceData.shadow_calendar} />
             </WorkspacePanelSection>
           )}
@@ -745,13 +745,13 @@ export default function SolarPVSidePanel({
           {results.economics && (
             <WorkspacePanelSection title="경제성" icon={<DollarSign size={14} />}>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2 border border-gray-100 dark:border-slate-800">
-                  <p className="text-[10px] text-gray-500 dark:text-slate-400">LCOE</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{results.economics.lcoe_krw_kwh.toFixed(0)} 원/kWh</p>
+                <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                  <p className="text-[10px] text-gray-500">LCOE</p>
+                  <p className="text-sm font-semibold text-gray-900">{results.economics.lcoe_krw_kwh.toFixed(0)} 원/kWh</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-2 border border-gray-100 dark:border-slate-800">
-                  <p className="text-[10px] text-gray-500 dark:text-slate-400">투자회수</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{results.economics.simple_payback_years.toFixed(1)} 년</p>
+                <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                  <p className="text-[10px] text-gray-500">투자회수</p>
+                  <p className="text-sm font-semibold text-gray-900">{results.economics.simple_payback_years.toFixed(1)} 년</p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-2 border border-green-100">
                   <p className="text-[10px] text-green-600">연간 절감</p>
@@ -762,7 +762,7 @@ export default function SolarPVSidePanel({
                     ? 'bg-green-50 border-green-100'
                     : 'bg-red-50 border-red-100'
                 }`}>
-                  <p className="text-[10px] text-gray-500 dark:text-slate-400">NPV</p>
+                  <p className="text-[10px] text-gray-500">NPV</p>
                   <p className={`text-sm font-semibold ${results.economics.npv_krw >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                     {(results.economics.npv_krw / 10000).toFixed(0)} 만원
                   </p>
@@ -772,10 +772,10 @@ export default function SolarPVSidePanel({
               {/* 25-Year Cashflow Mini Chart */}
               {results.economics.annual_cashflow.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-[10px] text-gray-500 dark:text-slate-400 mb-1">
+                  <p className="text-[10px] text-gray-500 mb-1">
                     {results.economics.annual_cashflow.length}년 누적 수익
                   </p>
-                  <div className="flex items-end gap-px h-16 bg-gray-50 dark:bg-slate-800 rounded p-1">
+                  <div className="flex items-end gap-px h-16 bg-gray-50 rounded p-1">
                     {results.economics.annual_cashflow.map(cf => {
                       const maxVal = Math.max(
                         ...results.economics!.annual_cashflow.map(c => Math.abs(c.cumulative_savings_krw))
@@ -796,7 +796,7 @@ export default function SolarPVSidePanel({
                       )
                     })}
                   </div>
-                  <div className="flex justify-between text-[8px] text-gray-400 dark:text-slate-500 mt-0.5">
+                  <div className="flex justify-between text-[8px] text-gray-400 mt-0.5">
                     <span>1년</span>
                     <span>{results.economics.annual_cashflow.length}년</span>
                   </div>
@@ -804,7 +804,7 @@ export default function SolarPVSidePanel({
               )}
 
               {results.economics.lifetime_generation_kwh > 0 && (
-                <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-2">
+                <p className="text-[10px] text-gray-500 mt-2">
                   수명기간 총 발전: {(results.economics.lifetime_generation_kwh / 1000).toFixed(0)} MWh
                 </p>
               )}
@@ -828,7 +828,7 @@ export default function SolarPVSidePanel({
                   </p>
                 </div>
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-300">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
                 <TreePine className="w-3 h-3 text-green-600" />
                 소나무 {results.economics.co2_reduction.equivalent_trees.toLocaleString()}그루에 해당
               </div>
@@ -847,14 +847,14 @@ export default function SolarPVSidePanel({
                 Excel 보고서 다운로드
               </a>
             ) : isGeneratingReport ? (
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 py-2">
+              <div className="flex items-center gap-2 text-xs text-gray-500 py-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 보고서 생성 중...
               </div>
             ) : onGenerateReport ? (
               <button
                 onClick={onGenerateReport}
-                className="w-full py-2 border border-gray-200 dark:border-slate-700 hover:border-gray-400 text-gray-700 dark:text-slate-300 text-xs rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2 border border-gray-200 hover:border-gray-400 text-gray-700 text-xs rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <FileDown className="w-3.5 h-3.5" />
                 보고서 생성
@@ -863,7 +863,7 @@ export default function SolarPVSidePanel({
           </WorkspacePanelSection>
         </>
       ) : activeTab === 'results' ? (
-        <div className="text-center text-gray-500 dark:text-slate-400 text-sm py-8">
+        <div className="text-center text-gray-500 text-sm py-8">
           분석을 실행하면 결과가 표시됩니다
         </div>
       ) : null}

@@ -94,8 +94,8 @@ export default function WorkspaceToolbar({
     <>
       <div
         ref={toolbarRef}
-        className="flex items-center gap-0.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm
-        border border-gray-200 dark:border-slate-700 rounded-lg p-0.5 shadow-md"
+        className="flex items-center gap-0.5 bg-white/95 backdrop-blur-sm
+        border border-gray-200 rounded-lg p-0.5 shadow-md"
       >
         {/* Mode buttons */}
         {modes.map(({ id, icon: Icon, label, shortcut }) => {
@@ -111,7 +111,7 @@ export default function WorkspaceToolbar({
                   rounded-md transition-all duration-150
                   ${isActive
                     ? 'bg-red-600 text-white shadow-sm'
-                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 hover:bg-gray-100'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
                   }
                   ${isActive ? 'px-2 py-1' : 'p-1.5'}
                 `}
@@ -152,14 +152,14 @@ export default function WorkspaceToolbar({
         {/* Point count + clear */}
         {pointCount !== undefined && pointCount > 0 && (
           <>
-            <div className="w-px h-5 bg-gray-200 dark:bg-slate-700 mx-0.5" />
-            <span className="text-xs text-gray-500 dark:text-slate-400 px-1 tabular-nums">{pointCount}점</span>
+            <div className="w-px h-5 bg-gray-200 mx-0.5" />
+            <span className="text-xs text-gray-500 px-1 tabular-nums">{pointCount}점</span>
             {onClearAll && (
               <div className="relative group">
                 <button
                   onClick={onClearAll}
                   aria-label="전체 삭제"
-                  className="p-1 text-gray-400 dark:text-slate-500 hover:text-red-500 transition-colors rounded"
+                  className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -225,10 +225,10 @@ export function KeyboardShortcutOverlay({
       aria-label="단축키 안내"
     >
       <div
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-5 max-w-xs w-full mx-4"
+        className="bg-white rounded-xl shadow-2xl p-5 max-w-xs w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-3">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
           단축키 안내
         </h3>
         <div className="space-y-2">
@@ -236,43 +236,43 @@ export function KeyboardShortcutOverlay({
           {modes.map(({ label, shortcut }) => (
             shortcut && (
               <div key={shortcut} className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-slate-300">{label}</span>
-                <kbd className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200 dark:border-slate-700">
+                <span className="text-gray-600">{label}</span>
+                <kbd className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200">
                   {shortcut}
                 </kbd>
               </div>
             )
           ))}
-          <div className="border-t border-gray-100 dark:border-slate-800 my-2" />
+          <div className="border-t border-gray-100 my-2" />
           {/* Global shortcuts */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-slate-300">탐색 모드로 복귀</span>
-            <kbd className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200 dark:border-slate-700">
+            <span className="text-gray-600">탐색 모드로 복귀</span>
+            <kbd className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200">
               Esc
             </kbd>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-slate-300">패널 열기/닫기</span>
-            <kbd className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200 dark:border-slate-700">
+            <span className="text-gray-600">패널 열기/닫기</span>
+            <kbd className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200">
               Tab
             </kbd>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-slate-300">그림자 재생/정지</span>
-            <kbd className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200 dark:border-slate-700">
+            <span className="text-gray-600">그림자 재생/정지</span>
+            <kbd className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200">
               Space
             </kbd>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-slate-300">단축키 도움말</span>
-            <kbd className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200 dark:border-slate-700">
+            <span className="text-gray-600">단축키 도움말</span>
+            <kbd className="bg-gray-100 text-gray-700 text-xs px-1.5 py-0.5 rounded font-mono border border-gray-200">
               ?
             </kbd>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="mt-4 w-full text-center text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 transition-colors"
+          className="mt-4 w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
           닫기 (Esc)
         </button>

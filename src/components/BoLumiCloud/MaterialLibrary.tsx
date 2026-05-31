@@ -190,8 +190,8 @@ export default function MaterialLibrary() {
       className="space-y-8"
     >
       <div>
-        <h2 className="text-2xl font-normal text-gray-900 dark:text-slate-100 mb-4">{t(materialLibraryText.title)}</h2>
-        <p className="text-sm text-gray-800 dark:text-slate-200 mb-6">
+        <h2 className="text-2xl font-normal text-gray-900 mb-4">{t(materialLibraryText.title)}</h2>
+        <p className="text-sm text-gray-800 mb-6">
           {t(materialLibraryText.description)}
         </p>
 
@@ -202,7 +202,7 @@ export default function MaterialLibrary() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t(materialLibraryText.searchPlaceholder)}
-            className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:border-red-600/30 transition-colors"
+            className="w-full px-4 py-2 border border-gray-200 text-sm focus:outline-none focus:border-red-600/30 transition-colors"
           />
         </div>
 
@@ -214,8 +214,8 @@ export default function MaterialLibrary() {
               onClick={() => setCategory(cat.id)}
               className={`px-4 py-2 text-sm whitespace-nowrap transition-all duration-300
                 ${category === cat.id
-                  ? 'border-b-2 border-red-600 text-gray-900 dark:text-slate-100 font-medium'
-                  : 'text-gray-800 dark:text-slate-200 hover:text-gray-900'
+                  ? 'border-b-2 border-red-600 text-gray-900 font-medium'
+                  : 'text-gray-800 hover:text-gray-900'
                 }`}
             >
               {cat.label}
@@ -228,18 +228,18 @@ export default function MaterialLibrary() {
           {loading ? (
             // 로딩 스켈레톤
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="border border-gray-200 dark:border-slate-700 p-4 animate-pulse">
+              <div key={i} className="border border-gray-200 p-4 animate-pulse">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-gray-200 dark:bg-slate-700 flex-shrink-0" />
-                  <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-24" />
+                  <div className="w-8 h-8 bg-gray-200 flex-shrink-0" />
+                  <div className="h-4 bg-gray-200 rounded w-24" />
                 </div>
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-16" />
+                <div className="h-3 bg-gray-200 rounded w-16" />
               </div>
             ))
           ) : filtered.length === 0 ? (
             // 빈 상태
             <div className="col-span-3 py-12 text-center">
-              <p className="text-sm text-gray-500 dark:text-slate-400">검색 결과가 없습니다</p>
+              <p className="text-sm text-gray-500">검색 결과가 없습니다</p>
             </div>
           ) : (
             filtered.map((mat) => (
@@ -249,21 +249,21 @@ export default function MaterialLibrary() {
                 className={`border p-4 cursor-pointer transition-all duration-300
                   ${selected === mat.name
                     ? 'border-red-600 bg-red-50'
-                    : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30'
+                    : 'border-gray-200 hover:border-red-600/30'
                   }`}
               >
                 <div className="flex items-center gap-3 mb-2">
                   {/* 색상 칩 */}
                   <div
-                    className="w-8 h-8 border border-gray-300 dark:border-slate-600 flex-shrink-0"
+                    className="w-8 h-8 border border-gray-300 flex-shrink-0"
                     style={{
                       background: mat.color,
                       boxShadow: mat.type === 'mirror' || mat.type === 'metal' ? 'inset 0 1px 2px rgba(255,255,255,0.5)' : 'none'
                     }}
                   />
-                  <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{mat.name}</p>
+                  <p className="text-sm font-medium text-gray-900">{mat.name}</p>
                 </div>
-                <p className="text-xs text-gray-800 dark:text-slate-200">{mat.type}</p>
+                <p className="text-xs text-gray-800">{mat.type}</p>
               </div>
             ))
           )}
@@ -271,25 +271,25 @@ export default function MaterialLibrary() {
 
         {/* 재질 정의 */}
         {definition && (
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
+          <div className="border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100">{t(materialLibraryText.materialDefinition)}</h3>
+              <h3 className="text-lg font-normal text-gray-900">{t(materialLibraryText.materialDefinition)}</h3>
               <button
                 onClick={handleCopy}
-                className="px-4 py-2 text-xs border border-gray-200 dark:border-slate-700 hover:border-red-600/30 transition-colors"
+                className="px-4 py-2 text-xs border border-gray-200 hover:border-red-600/30 transition-colors"
               >
                 {copied ? t(materialLibraryText.copied) : t(materialLibraryText.copy)}
               </button>
             </div>
-            <pre className="text-xs font-mono bg-amber-50/50 p-4 overflow-x-auto border border-gray-200 dark:border-slate-700">
+            <pre className="text-xs font-mono bg-amber-50/50 p-4 overflow-x-auto border border-gray-200">
               {definition}
             </pre>
           </div>
         )}
       </div>
 
-      <div className="border border-gray-200 dark:border-slate-700 p-6 text-sm text-gray-800 dark:text-slate-200">
-        <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-2">{t(materialLibraryText.materialTypes)}</h4>
+      <div className="border border-gray-200 p-6 text-sm text-gray-800">
+        <h4 className="font-medium text-gray-900 mb-2">{t(materialLibraryText.materialTypes)}</h4>
         <ul className="space-y-1">
           <li>• <span className="font-medium">plastic</span>: {t(materialLibraryText.plasticDesc)}</li>
           <li>• <span className="font-medium">glass</span>: {t(materialLibraryText.glassDesc)}</li>

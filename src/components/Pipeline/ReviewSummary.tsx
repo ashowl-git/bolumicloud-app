@@ -50,47 +50,47 @@ export default function ReviewSummary({ config, vfNames, hasMtl, quality, resolu
       : '-'
 
   return (
-    <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-4">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-2">분석 요약</h3>
+    <div className="border border-gray-200 p-6 space-y-4">
+      <h3 className="text-sm font-medium text-gray-900 mb-2">분석 요약</h3>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Location</span>
-          <span className="text-gray-900 dark:text-slate-100">
+          <span className="text-gray-500">Location</span>
+          <span className="text-gray-900">
             ({config.latitude.toFixed(2)}, {config.longitude.toFixed(2)})
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Timezone</span>
-          <span className="text-gray-900 dark:text-slate-100">+{config.timezone}</span>
+          <span className="text-gray-500">Timezone</span>
+          <span className="text-gray-900">+{config.timezone}</span>
         </div>
         <div className="flex justify-between col-span-2">
-          <span className="text-gray-500 dark:text-slate-400">VF ({vfCount}개)</span>
-          <span className="text-gray-900 dark:text-slate-100 text-right">
+          <span className="text-gray-500">VF ({vfCount}개)</span>
+          <span className="text-gray-900 text-right">
             {vfNames.join(', ')}
           </span>
         </div>
         <div className="flex justify-between col-span-2">
-          <span className="text-gray-500 dark:text-slate-400">Dates ({dateCount}개)</span>
-          <span className="text-gray-900 dark:text-slate-100 text-right">
+          <span className="text-gray-500">Dates ({dateCount}개)</span>
+          <span className="text-gray-900 text-right">
             {config.dates.map(d =>
               d.label !== 'custom' ? `${d.label}(${d.month}/${d.day})` : `${d.month}/${d.day}`
             ).join(', ')}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Hours</span>
-          <span className="text-gray-900 dark:text-slate-100">
+          <span className="text-gray-500">Hours</span>
+          <span className="text-gray-900">
             {hourRange} ({hourCount}개)
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Sky</span>
-          <span className="text-gray-900 dark:text-slate-100">{SKY_LABELS[config.skyType]}</span>
+          <span className="text-gray-500">Sky</span>
+          <span className="text-gray-900">{SKY_LABELS[config.skyType]}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Quality</span>
-          <span className="text-gray-900 dark:text-slate-100">
+          <span className="text-gray-500">Quality</span>
+          <span className="text-gray-900">
             {isCustom
               ? `Custom (${resolution}x${resolution}, ab${renderParams.ab} ad${renderParams.ad} as${renderParams.as})`
               : `${quality.charAt(0).toUpperCase() + quality.slice(1)} (${resolution}x${resolution}, ab${renderParams.ab})`
@@ -98,7 +98,7 @@ export default function ReviewSummary({ config, vfNames, hasMtl, quality, resolu
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-500 dark:text-slate-400">Materials</span>
+          <span className="text-gray-500">Materials</span>
           <span className={hasMtl ? 'text-green-600' : 'text-amber-500'}>
             {hasMtl ? 'MTL 포함' : 'MTL 없음 (회색 기본값)'}
           </span>
@@ -106,13 +106,13 @@ export default function ReviewSummary({ config, vfNames, hasMtl, quality, resolu
       </div>
 
       {/* Estimation banner */}
-      <div className="border-t border-gray-100 dark:border-slate-800 pt-4 mt-4">
-        <div className={`p-4 ${exceeds ? 'bg-red-50' : 'bg-gray-50 dark:bg-slate-800'}`}>
-          <p className="text-sm text-gray-700 dark:text-slate-300">
+      <div className="border-t border-gray-100 pt-4 mt-4">
+        <div className={`p-4 ${exceeds ? 'bg-red-50' : 'bg-gray-50'}`}>
+          <p className="text-sm text-gray-700">
             <span className="font-medium">{vfCount}</span> VFs x{' '}
             <span className="font-medium">{dateCount}</span> dates x{' '}
             <span className="font-medium">{hourCount}</span> hours ={' '}
-            <span className={`font-medium ${exceeds ? 'text-red-600' : 'text-gray-900 dark:text-slate-100'}`}>
+            <span className={`font-medium ${exceeds ? 'text-red-600' : 'text-gray-900'}`}>
               {renderCount} renders
             </span>
             {' '} x ~{perRender}s ={' '}

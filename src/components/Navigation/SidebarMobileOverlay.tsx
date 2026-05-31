@@ -49,10 +49,10 @@ export default function SidebarMobileOverlay() {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="md:hidden fixed top-0 left-0 w-[280px] h-screen bg-white dark:bg-slate-800 z-50 flex flex-col shadow-xl"
+            className="md:hidden fixed top-0 left-0 w-[280px] h-screen bg-white z-50 flex flex-col shadow-xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileOpen(false)}>
                 <BoLumiCloudMark size={24} className="text-slate-900" />
                 <span className="text-lg font-normal tracking-wide text-slate-900">
@@ -61,7 +61,7 @@ export default function SidebarMobileOverlay() {
               </Link>
               <button
                 onClick={() => setIsMobileOpen(false)}
-                className="p-1.5 text-gray-500 dark:text-slate-400 hover:text-gray-900 transition-colors"
+                className="p-1.5 text-gray-500 hover:text-gray-900 transition-colors"
                 aria-label="Close menu"
               >
                 <X size={20} />

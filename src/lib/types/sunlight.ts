@@ -378,7 +378,7 @@ export interface LayerConfig {
 
 // ─── 보고서 양식 ─────────────────────────────
 
-export type ReportFormat = 'bolumicloud' | 'sanalyst' | 'timetable'
+export type ReportFormat = 'bolumicloud' | 'sanalyst'
 
 export const REPORT_FORMAT_LABELS: Record<ReportFormat, { ko: string; en: string; description: string }> = {
   bolumicloud: {
@@ -390,11 +390,6 @@ export const REPORT_FORMAT_LABELS: Record<ReportFormat, { ko: string; en: string
     ko: '인허가 모드',
     en: 'Permit Mode',
     description: 'Sanalyst 산출계산서 양식 (인허가 제출용)',
-  },
-  timetable: {
-    ko: '일조시간표',
-    en: 'Sunlight Timetable',
-    description: 'Sanalyst 일조시간표 양식 (측정점별 총·연속일조 시간, 셀 단위 동일)',
   },
 }
 

@@ -30,8 +30,8 @@ export default function WorkspaceProgressStepper({
   const currentIdx = STEP_INDEX[currentStep]
 
   return (
-    <div className="flex items-center gap-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg
-      border border-gray-200 dark:border-slate-700 shadow-sm px-3 py-1.5 select-none">
+    <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg
+      border border-gray-200 shadow-sm px-3 py-1.5 select-none">
       {STEPS.map((step, i) => {
         const isCompleted = i < currentIdx
         const isCurrent = i === currentIdx
@@ -48,7 +48,7 @@ export default function WorkspaceProgressStepper({
                   ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
                   : isCompleted
                   ? 'text-emerald-600'
-                  : 'text-gray-400 dark:text-slate-500'
+                  : 'text-gray-400'
                 }`}
             >
               {isCompleted ? (
@@ -67,7 +67,7 @@ export default function WorkspaceProgressStepper({
             {i < STEPS.length - 1 && (
               <div
                 className={`w-4 h-px transition-colors duration-300
-                  ${i < currentIdx ? 'bg-emerald-300' : isFuture ? 'bg-gray-200 dark:bg-slate-700' : 'bg-blue-200'}`}
+                  ${i < currentIdx ? 'bg-emerald-300' : isFuture ? 'bg-gray-200' : 'bg-blue-200'}`}
               />
             )}
           </div>

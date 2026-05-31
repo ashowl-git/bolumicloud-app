@@ -125,7 +125,7 @@ export default function SunTimeSlider({
   [])
 
   const dateDisplay = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
-  const altitudeColor = altitude <= 0 ? 'text-gray-500 dark:text-slate-400' : altitude < 20 ? 'text-orange-400' : 'text-amber-300'
+  const altitudeColor = altitude <= 0 ? 'text-gray-500' : altitude < 20 ? 'text-orange-400' : 'text-amber-300'
 
   // Thumb color: red when shadow frames active, amber otherwise
   const thumbColor = hasShadow
@@ -162,7 +162,7 @@ export default function SunTimeSlider({
             step={5}
             value={Math.max(sunrise, Math.min(sunset, timeMinute))}
             onChange={handleTimeSlider}
-            className={`w-full h-1.5 bg-white/15 dark:bg-slate-800/15 rounded-full appearance-none cursor-pointer
+            className={`w-full h-1.5 bg-white/15 rounded-full appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5
               [&::-webkit-slider-thumb]:rounded-full ${thumbColor}
@@ -176,7 +176,7 @@ export default function SunTimeSlider({
             {timeLabels.map((tl) => (
               <span
                 key={tl.minute}
-                className="absolute text-[9px] text-gray-400 dark:text-slate-500 tabular-nums -translate-x-1/2"
+                className="absolute text-[9px] text-gray-400 tabular-nums -translate-x-1/2"
                 style={{ left: `${tl.pct}%` }}
               >
                 {tl.label}
@@ -185,7 +185,7 @@ export default function SunTimeSlider({
           </div>
         </div>
 
-        <span className="text-[10px] text-gray-400 dark:text-slate-500 min-w-[30px] text-right">
+        <span className="text-[10px] text-gray-400 min-w-[30px] text-right">
           {altitude > 0 ? `${altitude.toFixed(0)}` : '--'}
         </span>
 
@@ -193,7 +193,7 @@ export default function SunTimeSlider({
         {hasShadow && (
           <button
             onClick={handleSpeedCycle}
-            className="px-1.5 py-0.5 text-[10px] text-red-400 font-semibold bg-white/10 dark:bg-slate-800/10 rounded transition-colors hover:bg-white/20"
+            className="px-1.5 py-0.5 text-[10px] text-red-400 font-semibold bg-white/10 rounded transition-colors hover:bg-white/20"
           >
             {shadowPlayback.speed}x
           </button>
@@ -206,7 +206,7 @@ export default function SunTimeSlider({
             className={`px-2 py-0.5 text-[10px] rounded-full transition-colors ${
               showAccumulation
                 ? 'bg-blue-500 text-white font-semibold'
-                : 'bg-white/10 dark:bg-slate-800/10 text-gray-400 dark:text-slate-500 hover:bg-white/20'
+                : 'bg-white/10 text-gray-400 hover:bg-white/20'
             }`}
           >
             영역도
@@ -227,7 +227,7 @@ export default function SunTimeSlider({
             step={1}
             value={currentDoy}
             onChange={handleDateSlider}
-            className="w-full h-1 bg-white/10 dark:bg-slate-800/10 rounded-full appearance-none cursor-pointer
+            className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-400
@@ -239,7 +239,7 @@ export default function SunTimeSlider({
             {monthTicks.map((tick) => (
               <span
                 key={tick.label}
-                className="absolute text-[8px] text-gray-500 dark:text-slate-400 -translate-x-1/2"
+                className="absolute text-[8px] text-gray-500 -translate-x-1/2"
                 style={{ left: `${tick.pct}%` }}
               >
                 {tick.label}

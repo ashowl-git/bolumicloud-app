@@ -53,15 +53,15 @@ export default function ConfirmDialog({
         aria-modal="true"
         aria-label={title}
         onKeyDown={handleKeyDown}
-        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 max-w-md mx-4"
+        className="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4"
       >
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-gray-600 dark:text-slate-300 mb-6">{message}</p>
+        <p className="text-gray-600 mb-6">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             ref={cancelRef}
             onClick={onCancel}
-            className="px-4 py-2 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded hover:bg-gray-50"
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
           >
             {cancelLabel}
           </button>

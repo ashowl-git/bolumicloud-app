@@ -78,14 +78,14 @@ export default function PerformanceGradeTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Star size={28} strokeWidth={1.2} className="text-gray-400 dark:text-slate-500" />
+          <Star size={28} strokeWidth={1.2} className="text-gray-400" />
           <div>
-            <h1 className="text-2xl font-light text-gray-900 dark:text-slate-100">{t(txt.title)}</h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400">{t(txt.subtitle)}</p>
+            <h1 className="text-2xl font-light text-gray-900">{t(txt.title)}</h1>
+            <p className="text-sm text-gray-500">{t(txt.subtitle)}</p>
           </div>
         </div>
         {step > 1 && (
-          <button onClick={handleReset} className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition-colors">
+          <button onClick={handleReset} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition-colors">
             <RotateCcw size={14} /> {t(txt.reset)}
           </button>
         )}
@@ -101,14 +101,14 @@ export default function PerformanceGradeTab() {
                 step === s.id
                   ? 'text-red-600 border-b-2 border-red-600'
                   : s.id < step || (s.id === 4 && results)
-                  ? 'text-gray-700 dark:text-slate-300 cursor-pointer hover:text-red-600'
-                  : 'text-gray-400 dark:text-slate-500'
+                  ? 'text-gray-700 cursor-pointer hover:text-red-600'
+                  : 'text-gray-400'
               }`}
             >
               <s.icon size={14} />
               {t(s.label)}
             </button>
-            {idx < STEPS.length - 1 && <span className="text-gray-300 dark:text-slate-600">—</span>}
+            {idx < STEPS.length - 1 && <span className="text-gray-300">—</span>}
           </div>
         ))}
       </div>
@@ -125,46 +125,46 @@ export default function PerformanceGradeTab() {
         {/* Step 1: Complex Info */}
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-4">
+            <div className="border border-gray-200 p-6 space-y-4">
               <div>
-                <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.complexName)}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{t(txt.complexName)}</label>
                 <input
                   type="text"
                   value={complexInfo.name}
                   onChange={(e) => setComplexInfo({ name: e.target.value })}
-                  className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
+                  className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.address)}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{t(txt.address)}</label>
                 <input
                   type="text"
                   value={complexInfo.address}
                   onChange={(e) => setComplexInfo({ address: e.target.value })}
-                  className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
+                  className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.totalUnits)}</label>
+                  <label className="text-xs text-gray-500 mb-1 block">{t(txt.totalUnits)}</label>
                   <input
                     type="number"
                     min={500}
                     value={complexInfo.totalUnits}
                     onChange={(e) => setComplexInfo({ totalUnits: Number(e.target.value) })}
-                    className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
+                    className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
                   />
                   {complexInfo.totalUnits < 500 && (
                     <p className="text-xs text-red-500 mt-1">{t(txt.minUnitsWarning)}</p>
                   )}
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">{t(txt.siteArea)}</label>
+                  <label className="text-xs text-gray-500 mb-1 block">{t(txt.siteArea)}</label>
                   <input
                     type="number"
                     value={complexInfo.siteArea}
                     onChange={(e) => setComplexInfo({ siteArea: Number(e.target.value) })}
-                    className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
+                    className="w-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-red-600/30"
                   />
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function PerformanceGradeTab() {
               <button
                 onClick={() => setStep(2)}
                 disabled={complexInfo.totalUnits < 500 || !complexInfo.name}
-                className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
+                className="border border-gray-200 px-6 py-2.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50"
               >
                 {t(txt.next)}
               </button>
@@ -184,12 +184,12 @@ export default function PerformanceGradeTab() {
         {/* Step 2: Buildings */}
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <div className="border border-gray-200 dark:border-slate-700 p-6">
+            <div className="border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.step2)}</h3>
+                <h3 className="text-sm font-medium text-gray-900">{t(txt.step2)}</h3>
                 <button
                   onClick={handleAddBuilding}
-                  className="border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all"
+                  className="border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all"
                 >
                   + {t(txt.addBuilding)}
                 </button>
@@ -198,22 +198,22 @@ export default function PerformanceGradeTab() {
               {buildings.length > 0 ? (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-                      <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">{t(txt.buildingName)}</th>
-                      <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">{t(txt.stories)}</th>
-                      <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400">{t(txt.height)}</th>
-                      <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-400 w-12"></th>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-3 py-2 text-left text-xs text-gray-500">{t(txt.buildingName)}</th>
+                      <th className="px-3 py-2 text-left text-xs text-gray-500">{t(txt.stories)}</th>
+                      <th className="px-3 py-2 text-left text-xs text-gray-500">{t(txt.height)}</th>
+                      <th className="px-3 py-2 text-left text-xs text-gray-500 w-12"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {buildings.map((b) => (
-                      <tr key={b.id} className="border-b border-gray-100 dark:border-slate-800">
+                      <tr key={b.id} className="border-b border-gray-100">
                         <td className="px-3 py-2">
                           <input
                             type="text"
                             value={b.name}
                             onChange={(e) => setBuildings(buildings.map((bb) => bb.id === b.id ? { ...bb, name: e.target.value } : bb))}
-                            className="border border-gray-200 dark:border-slate-700 px-2 py-1 text-sm w-full focus:outline-none focus:border-red-600/30"
+                            className="border border-gray-200 px-2 py-1 text-sm w-full focus:outline-none focus:border-red-600/30"
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -221,7 +221,7 @@ export default function PerformanceGradeTab() {
                             type="number"
                             value={b.stories}
                             onChange={(e) => setBuildings(buildings.map((bb) => bb.id === b.id ? { ...bb, stories: Number(e.target.value) } : bb))}
-                            className="border border-gray-200 dark:border-slate-700 px-2 py-1 text-sm w-20 focus:outline-none focus:border-red-600/30"
+                            className="border border-gray-200 px-2 py-1 text-sm w-20 focus:outline-none focus:border-red-600/30"
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -229,11 +229,11 @@ export default function PerformanceGradeTab() {
                             type="number"
                             value={b.height}
                             onChange={(e) => setBuildings(buildings.map((bb) => bb.id === b.id ? { ...bb, height: Number(e.target.value) } : bb))}
-                            className="border border-gray-200 dark:border-slate-700 px-2 py-1 text-sm w-20 focus:outline-none focus:border-red-600/30"
+                            className="border border-gray-200 px-2 py-1 text-sm w-20 focus:outline-none focus:border-red-600/30"
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <button onClick={() => handleRemoveBuilding(b.id)} className="text-gray-400 dark:text-slate-500 hover:text-red-600">
+                          <button onClick={() => handleRemoveBuilding(b.id)} className="text-gray-400 hover:text-red-600">
                             <X size={14} />
                           </button>
                         </td>
@@ -242,15 +242,15 @@ export default function PerformanceGradeTab() {
                   </tbody>
                 </table>
               ) : (
-                <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-8">건물을 추가하세요</p>
+                <p className="text-sm text-gray-400 text-center py-8">건물을 추가하세요</p>
               )}
             </div>
 
             <div className="flex justify-between">
-              <button onClick={() => setStep(1)} className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 transition-colors">
+              <button onClick={() => setStep(1)} className="border border-gray-200 px-6 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                 {t(txt.prev)}
               </button>
-              <button onClick={() => setStep(3)} className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all duration-300">
+              <button onClick={() => setStep(3)} className="border border-gray-200 px-6 py-2.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all duration-300">
                 {t(txt.next)}
               </button>
             </div>
@@ -266,13 +266,13 @@ export default function PerformanceGradeTab() {
               disabled={phase === 'calculating'}
             />
             <div className="flex justify-between">
-              <button onClick={() => setStep(2)} className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 transition-colors">
+              <button onClick={() => setStep(2)} className="border border-gray-200 px-6 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                 {t(txt.prev)}
               </button>
               <button
                 onClick={handleCalculate}
                 disabled={phase === 'calculating'}
-                className="border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
+                className="border border-gray-200 px-6 py-2.5 text-sm text-gray-700 hover:text-red-600 hover:border-red-600/30 transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
               >
                 {phase === 'calculating' && <Loader2 size={14} className="animate-spin" />}
                 {phase === 'calculating' ? t(txt.calculating) : t(txt.calculate)}

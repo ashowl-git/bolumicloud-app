@@ -15,7 +15,7 @@ const MODULE_META: Record<string, { icon: typeof Sun; label: string; color: stri
 }
 
 const STATUS_META: Record<string, { icon: typeof CheckCircle2; label: string; color: string }> = {
-  uploaded: { icon: Clock, label: '대기', color: 'text-gray-500 dark:text-slate-400' },
+  uploaded: { icon: Clock, label: '대기', color: 'text-gray-500' },
   running: { icon: Loader2, label: '진행 중', color: 'text-blue-600' },
   completed: { icon: CheckCircle2, label: '완료', color: 'text-emerald-600' },
   error: { icon: AlertCircle, label: '오류', color: 'text-red-500' },
@@ -50,7 +50,7 @@ function ProjectCard({ project, onDelete }: { project: ProjectEntry; onDelete: (
     : null
 
   return (
-    <div className="group border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all">
+    <div className="group border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all">
       <div className="flex items-start gap-3">
         {/* Module icon */}
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${mod.color}`}>
@@ -60,7 +60,7 @@ function ProjectCard({ project, onDelete }: { project: ProjectEntry; onDelete: (
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
+            <h3 className="text-sm font-medium text-gray-900 truncate">
               {project.model_name || '(이름 없음)'}
             </h3>
             <span className={`flex items-center gap-1 text-[11px] font-medium ${stat.color}`}>
@@ -68,7 +68,7 @@ function ProjectCard({ project, onDelete }: { project: ProjectEntry; onDelete: (
               {stat.label}
             </span>
           </div>
-          <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-400 dark:text-slate-500">
+          <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-400">
             <span>{mod.label}</span>
             {configStr && <span>{configStr}</span>}
             {project.elapsed_sec > 0 && <span>{formatElapsed(project.elapsed_sec)}</span>}
@@ -98,7 +98,7 @@ function ProjectCard({ project, onDelete }: { project: ProjectEntry; onDelete: (
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="px-2 py-1 text-[11px] text-gray-500 dark:text-slate-400 hover:text-gray-700
+                className="px-2 py-1 text-[11px] text-gray-500 hover:text-gray-700
                   rounded transition-colors"
               >
                 취소
@@ -107,7 +107,7 @@ function ProjectCard({ project, onDelete }: { project: ProjectEntry; onDelete: (
           ) : (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="p-1.5 text-gray-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100
+              className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100
                 transition-all rounded"
               title="삭제"
             >
@@ -155,7 +155,7 @@ export default function ProjectList() {
             onClick={() => setModuleFilter(moduleFilter === key ? undefined : key)}
           />
         ))}
-        <div className="w-px h-5 bg-gray-200 dark:bg-slate-700 mx-1" />
+        <div className="w-px h-5 bg-gray-200 mx-1" />
         <FilterPill
           label="완료"
           active={statusFilter === 'completed'}
@@ -168,7 +168,7 @@ export default function ProjectList() {
         />
         <button
           onClick={refresh}
-          className="ml-auto p-1.5 text-gray-400 dark:text-slate-500 hover:text-gray-600 transition-colors rounded"
+          className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded"
           title="새로고침"
         >
           <RefreshCw size={14} />
@@ -177,12 +177,12 @@ export default function ProjectList() {
 
       {/* List */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-gray-400 dark:text-slate-500">
+        <div className="flex items-center justify-center py-20 text-gray-400">
           <Loader2 size={20} className="animate-spin mr-2" />
           불러오는 중...
         </div>
       ) : error ? (
-        <div className="text-center py-20 text-gray-400 dark:text-slate-500">
+        <div className="text-center py-20 text-gray-400">
           <AlertCircle size={24} className="mx-auto mb-2 text-red-400" />
           <p className="text-sm">{error}</p>
           <button onClick={refresh} className="mt-2 text-xs text-blue-500 hover:underline">
@@ -190,7 +190,7 @@ export default function ProjectList() {
           </button>
         </div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-20 text-gray-400 dark:text-slate-500">
+        <div className="text-center py-20 text-gray-400">
           <p className="text-sm">분석 기록이 없습니다.</p>
           <p className="text-xs mt-1">일조/조망/사생활 분석을 실행하면 여기에 표시됩니다.</p>
         </div>
@@ -209,21 +209,21 @@ export default function ProjectList() {
       {/* Pagination */}
       {total > limit && (
         <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-gray-400 dark:text-slate-500">
+          <span className="text-xs text-gray-400">
             {offset + 1}-{Math.min(offset + limit, total)} / {total}건
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={prevPage}
               disabled={!hasPrevPage}
-              className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+              className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={nextPage}
               disabled={!hasNextPage}
-              className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
+              className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-30 transition-colors rounded"
             >
               <ChevronRight size={16} />
             </button>
@@ -241,7 +241,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
       className={`px-3 py-1 text-xs rounded-full border transition-colors
         ${active
           ? 'bg-gray-900 text-white border-gray-900'
-          : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-700 hover:border-gray-400'
+          : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
         }`}
     >
       {label}

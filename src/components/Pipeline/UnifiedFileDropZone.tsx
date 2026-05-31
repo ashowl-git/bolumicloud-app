@@ -124,10 +124,10 @@ export default function UnifiedFileDropZone({
         onClick={() => !disabled && !isProcessing && inputRef.current?.click()}
         className={`border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
           disabled || isProcessing
-            ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 cursor-not-allowed opacity-60'
+            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
             : isDragging
             ? 'border-red-600 bg-red-50'
-            : 'border-gray-300 dark:border-slate-600 hover:border-red-600/30'
+            : 'border-gray-300 hover:border-red-600/30'
         }`}
       >
         <input
@@ -143,15 +143,15 @@ export default function UnifiedFileDropZone({
         {isProcessing ? (
           <div className="space-y-2">
             <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-sm text-gray-600 dark:text-slate-300">업로드 중...</p>
+            <p className="text-sm text-gray-600">업로드 중...</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400 dark:text-slate-500" />
-            <p className="text-sm text-gray-700 dark:text-slate-300">
+            <CloudUpload size={32} strokeWidth={1.5} className="mx-auto text-gray-400" />
+            <p className="text-sm text-gray-700">
               SketchUp 파일을 드래그하거나 클릭하세요
             </p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">
+            <p className="text-xs text-gray-400">
               .vf (복수), .obj, .mtl 파일을 한 번에 업로드할 수 있습니다
             </p>
           </div>

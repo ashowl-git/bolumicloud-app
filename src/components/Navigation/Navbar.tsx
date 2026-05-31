@@ -31,7 +31,7 @@ export default function Navbar() {
         }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <div className="relative px-8 py-4 backdrop-blur-2xl border border-slate-200/60 bg-white dark:bg-slate-800 text-slate-900 shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_32px_rgba(0,0,0,0.06)] rounded-2xl">
+        <div className="relative px-8 py-4 backdrop-blur-2xl border border-slate-200/60 bg-white text-slate-900 shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_32px_rgba(0,0,0,0.06)] rounded-2xl">
 
           {/* Top ruler */}
           <div className="absolute top-0 left-0 right-0 h-3 border-b border-slate-200">

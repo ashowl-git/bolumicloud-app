@@ -56,7 +56,7 @@ export default function PipelineImageGallery({
       case '감지': return 'bg-yellow-100 text-yellow-800'
       case '방해': return 'bg-orange-100 text-orange-800'
       case '견딜수없음': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -71,8 +71,8 @@ export default function PipelineImageGallery({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-4">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">이미지 갤러리</h3>
+    <div className="border border-gray-200 p-6 space-y-4">
+      <h3 className="text-sm font-medium text-gray-900">이미지 갤러리</h3>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -80,7 +80,7 @@ export default function PipelineImageGallery({
           <select
             value={filterViewpoint}
             onChange={(e) => setFilterViewpoint(e.target.value)}
-            className="border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 뷰포인트</option>
             {viewpoints.map(vp => (
@@ -93,7 +93,7 @@ export default function PipelineImageGallery({
           <select
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 날짜</option>
             {dateLabels.map(dl => (
@@ -106,7 +106,7 @@ export default function PipelineImageGallery({
           <select
             value={filterHour}
             onChange={(e) => setFilterHour(e.target.value)}
-            className="border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
+            className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
           >
             <option value="all">모든 시간</option>
             {hours.map(h => (
@@ -118,7 +118,7 @@ export default function PipelineImageGallery({
         <select
           value={filterRating}
           onChange={(e) => setFilterRating(e.target.value)}
-          className="border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
+          className="border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:border-red-600/30"
         >
           <option value="all">모든 등급</option>
           {ratings.map(r => (
@@ -126,7 +126,7 @@ export default function PipelineImageGallery({
           ))}
         </select>
 
-        <span className="text-xs text-gray-500 dark:text-slate-400 self-center">
+        <span className="text-xs text-gray-500 self-center">
           {filtered.length} / {results.length}
         </span>
       </div>
@@ -138,13 +138,13 @@ export default function PipelineImageGallery({
             key={result.file}
             type="button"
             onClick={() => onImageClick(result)}
-            className="group border border-gray-200 dark:border-slate-700 hover:border-red-600/30
+            className="group border border-gray-200 hover:border-red-600/30
               transition-all duration-300 overflow-hidden text-left"
           >
             {/* Thumbnail */}
-            <div className="aspect-video bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
+            <div className="aspect-video bg-gray-100 relative overflow-hidden">
               {brokenImages.has(result.file) ? (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-slate-500 text-xs">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
                   Preview N/A
                 </div>
               ) : (
@@ -169,16 +169,16 @@ export default function PipelineImageGallery({
 
             {/* Info */}
             <div className="p-2">
-              <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate font-mono">{result.file}</p>
+              <p className="text-[10px] text-gray-500 truncate font-mono">{result.file}</p>
               <div className="flex items-center gap-1 mt-0.5">
                 {result.viewp && (
-                  <span className="text-[10px] text-gray-400 dark:text-slate-500">{result.viewp}</span>
+                  <span className="text-[10px] text-gray-400">{result.viewp}</span>
                 )}
                 {result.date_label && (
-                  <span className="text-[10px] text-gray-400 dark:text-slate-500">| {result.date_label}</span>
+                  <span className="text-[10px] text-gray-400">| {result.date_label}</span>
                 )}
                 {result.time && (
-                  <span className="text-[10px] text-gray-400 dark:text-slate-500">| {result.time}시</span>
+                  <span className="text-[10px] text-gray-400">| {result.time}시</span>
                 )}
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function PipelineImageGallery({
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center text-gray-800 dark:text-slate-200 py-8 text-sm">
+        <div className="text-center text-gray-800 py-8 text-sm">
           필터 조건에 맞는 이미지가 없습니다
         </div>
       )}

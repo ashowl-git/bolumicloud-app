@@ -48,8 +48,8 @@ export default function PrivacySidePanel({
     <button
       onClick={onStartAnalysis}
       disabled={isRunning || disabled}
-      className="w-full border border-gray-200 dark:border-slate-700 hover:border-red-600/30 py-2.5
-        text-sm text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+      className="w-full border border-gray-200 hover:border-red-600/30 py-2.5
+        text-sm text-gray-900 hover:text-red-600 transition-all duration-300
         disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isRunning ? '분석 중...' : '분석 시작'}
@@ -68,18 +68,18 @@ export default function PrivacySidePanel({
       <WorkspacePanelSection title="분석 파라미터" icon={<Ruler size={14} />}>
         <div className="space-y-3">
           <div>
-            <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">거리 임계값 (m)</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">거리 임계값 (m)</label>
             <input
               type="number" step="10" min="10" max="500"
               value={config.distanceThreshold}
               onChange={(e) => onConfigChange({ distanceThreshold: Number(e.target.value) })}
               disabled={disabled}
-              className="w-full border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs
+              className="w-full border border-gray-200 px-2 py-1 text-xs
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-1">서브그리드 해상도</label>
+            <label className="text-[10px] text-gray-500 block mb-1">서브그리드 해상도</label>
             <div className="grid grid-cols-2 gap-1.5">
               {(Object.entries(SUB_GRID_LABELS) as [string, { ko: string; description: string }][]).map(
                 ([value, info]) => {
@@ -94,16 +94,16 @@ export default function PrivacySidePanel({
                       className={`border p-2.5 text-left transition-all disabled:opacity-50 rounded ${
                         isSelected
                           ? 'border-red-600 bg-red-50 shadow-sm'
-                          : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30 hover:bg-gray-50/50'
+                          : 'border-gray-200 hover:border-red-600/30 hover:bg-gray-50/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <p className={`text-xs font-medium ${isSelected ? 'text-red-600' : 'text-gray-900 dark:text-slate-100'}`}>{info.ko}</p>
-                        <span className={`text-[10px] tabular-nums ${isSelected ? 'text-red-500' : 'text-gray-400 dark:text-slate-500'}`}>
+                        <p className={`text-xs font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>{info.ko}</p>
+                        <span className={`text-[10px] tabular-nums ${isSelected ? 'text-red-500' : 'text-gray-400'}`}>
                           {value}
                         </span>
                       </div>
-                      <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">{info.description}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{info.description}</p>
                     </button>
                   )
                 }
@@ -111,13 +111,13 @@ export default function PrivacySidePanel({
             </div>
           </div>
           <div>
-            <label className="text-[10px] text-gray-500 dark:text-slate-400 block mb-0.5">PII 임계값</label>
+            <label className="text-[10px] text-gray-500 block mb-0.5">PII 임계값</label>
             <input
               type="number" step="0.0001" min="0"
               value={config.piiThreshold}
               onChange={(e) => onConfigChange({ piiThreshold: Number(e.target.value) })}
               disabled={disabled}
-              className="w-full border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs
+              className="w-full border border-gray-200 px-2 py-1 text-xs
                 focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
@@ -136,10 +136,10 @@ export default function PrivacySidePanel({
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-orange-50 border border-orange-200/60 mb-2">
               <span className="text-[10px] text-orange-600 font-medium">Step 1</span>
             </div>
-            <p className="text-xs text-gray-400 dark:text-slate-500">
+            <p className="text-xs text-gray-400">
               도구 모음에서 <span className="text-orange-600 font-medium">대상</span> 역할을 선택한 후
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">벽면을 클릭하여 피관찰 창문을 배치하세요</p>
+            <p className="text-xs text-gray-500">벽면을 클릭하여 피관찰 창문을 배치하세요</p>
           </div>
         ) : (
           <div className="max-h-32 overflow-y-auto space-y-1">
@@ -165,10 +165,10 @@ export default function PrivacySidePanel({
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-50 border border-blue-200/60 mb-2">
               <span className="text-[10px] text-blue-600 font-medium">Step 2</span>
             </div>
-            <p className="text-xs text-gray-400 dark:text-slate-500">
+            <p className="text-xs text-gray-400">
               도구 모음에서 <span className="text-blue-600 font-medium">관찰</span> 역할로 전환한 후
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">벽면을 클릭하여 관찰자 창문을 배치하세요</p>
+            <p className="text-xs text-gray-500">벽면을 클릭하여 관찰자 창문을 배치하세요</p>
           </div>
         ) : (
           <div className="max-h-32 overflow-y-auto space-y-1">
@@ -201,8 +201,8 @@ export default function PrivacySidePanel({
                 <button
                   onClick={onGenerateReport}
                   disabled={isGeneratingReport}
-                  className="flex items-center gap-1 border border-gray-200 dark:border-slate-700 hover:border-red-600/30
-                    px-3 py-1.5 text-xs text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all disabled:opacity-50"
+                  className="flex items-center gap-1 border border-gray-200 hover:border-red-600/30
+                    px-3 py-1.5 text-xs text-gray-900 hover:text-red-600 transition-all disabled:opacity-50"
                 >
                   {isGeneratingReport ? '생성 중...' : 'Excel 보고서 생성'}
                 </button>

@@ -41,10 +41,10 @@ export default function SanalystProjectInfoForm({
   ]
 
   return (
-    <div className="border border-gray-200 dark:border-slate-700 p-4 space-y-3">
+    <div className="border border-gray-200 p-4 space-y-3">
       <div className="flex items-center gap-2 mb-2">
-        <Building2 size={16} className="text-gray-500 dark:text-slate-400" />
-        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
+        <Building2 size={16} className="text-gray-500" />
+        <span className="text-sm font-medium text-gray-900">
           프로젝트 정보 (인허가 모드)
         </span>
       </div>
@@ -52,13 +52,13 @@ export default function SanalystProjectInfoForm({
       <div className="grid grid-cols-2 gap-3">
         {fields.map(({ key, label, placeholder }) => (
           <div key={key} className={key === 'address' ? 'col-span-2' : ''}>
-            <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">{label}</label>
+            <label className="block text-xs text-gray-500 mb-1">{label}</label>
             <input
               type="text"
               value={value[key]}
               onChange={(e) => handleChange(key, e.target.value)}
               placeholder={placeholder}
-              className="w-full border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm
+              className="w-full border border-gray-200 px-3 py-1.5 text-sm
                 focus:outline-none focus:border-gray-400 transition-colors"
             />
           </div>
@@ -66,12 +66,12 @@ export default function SanalystProjectInfoForm({
       </div>
 
       <div>
-        <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">비고</label>
+        <label className="block text-xs text-gray-500 mb-1">비고</label>
         <textarea
           value={value.notes}
           onChange={(e) => handleChange('notes', e.target.value)}
           rows={2}
-          className="w-full border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-sm resize-none
+          className="w-full border border-gray-200 px-3 py-1.5 text-sm resize-none
             focus:outline-none focus:border-gray-400 transition-colors"
         />
       </div>

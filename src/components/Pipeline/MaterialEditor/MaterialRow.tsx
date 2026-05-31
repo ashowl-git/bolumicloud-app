@@ -57,7 +57,7 @@ export default function MaterialRow({
   const glareRisk: GlareRisk = getGlareRisk(vlr)
 
   return (
-    <div className="border border-gray-100 dark:border-slate-800">
+    <div className="border border-gray-100">
       {/* Row header */}
       <button
         type="button"
@@ -66,14 +66,14 @@ export default function MaterialRow({
         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
       >
         <div
-          className="w-6 h-6 border border-gray-300 dark:border-slate-600 flex-shrink-0"
+          className="w-6 h-6 border border-gray-300 flex-shrink-0"
           style={{
             backgroundColor: hex,
             opacity: isTranslucent ? 0.5 + (1 - mat.transmissivity) * 0.5 : 1,
           }}
         />
-        <span className="text-sm font-mono text-gray-700 dark:text-slate-300 flex-1 truncate">{mat.name}</span>
-        <span className="text-xs text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700 px-2 py-0.5">
+        <span className="text-sm font-mono text-gray-700 flex-1 truncate">{mat.name}</span>
+        <span className="text-xs text-gray-500 border border-gray-200 px-2 py-0.5">
           {typeLabel(mat)}
         </span>
         {/* Glare risk mini badge on header for glass materials */}
@@ -82,15 +82,15 @@ export default function MaterialRow({
             R{(vlr * 100).toFixed(0)}%
           </span>
         )}
-        <span className="text-gray-400 dark:text-slate-500 text-xs">{isEditing ? '▲' : '▼'}</span>
+        <span className="text-gray-400 text-xs">{isEditing ? '▲' : '▼'}</span>
       </button>
 
       {/* Editor panel */}
       {isEditing && (
-        <div className="border-t border-gray-100 dark:border-slate-800 p-4 space-y-5 bg-gray-50/50">
+        <div className="border-t border-gray-100 p-4 space-y-5 bg-gray-50/50">
           {/* 1. Color */}
           <div>
-            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">
+            <label className="text-xs text-gray-500 mb-1.5 block">
               색상 (R:{mat.r.toFixed(2)} G:{mat.g.toFixed(2)} B:{mat.b.toFixed(2)})
             </label>
             <div className="flex items-center gap-3">
@@ -99,14 +99,14 @@ export default function MaterialRow({
                 value={hex}
                 onChange={(e) => onColorChange(e.target.value)}
                 disabled={disabled}
-                className="w-10 h-8 border border-gray-200 dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="w-10 h-8 border border-gray-200 cursor-pointer disabled:opacity-50"
               />
               <input
                 type="text"
                 value={hex}
                 onChange={(e) => onColorChange(e.target.value)}
                 disabled={disabled}
-                className="w-24 border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs font-mono
+                className="w-24 border border-gray-200 px-2 py-1 text-xs font-mono
                   focus:outline-none focus:border-red-600/30 disabled:opacity-50"
               />
             </div>
@@ -114,7 +114,7 @@ export default function MaterialRow({
 
           {/* 2. Metal toggle */}
           <div className="flex items-center gap-3">
-            <label className="text-xs text-gray-500 dark:text-slate-400">금속 재질</label>
+            <label className="text-xs text-gray-500">금속 재질</label>
             <button
               type="button"
               onClick={onToggleMetal}
@@ -122,20 +122,20 @@ export default function MaterialRow({
               className={`px-3 py-1 text-xs border transition-all ${
                 isMetal
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-gray-400'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
               } disabled:opacity-50`}
             >
               {isMetal ? 'ON' : 'OFF'}
             </button>
             {isTranslucent && (
-              <span className="text-[10px] text-gray-400 dark:text-slate-500">{'투과율 > 0이면 금속 불가'}</span>
+              <span className="text-[10px] text-gray-400">{'투과율 > 0이면 금속 불가'}</span>
             )}
           </div>
 
           {/* 3. Specularity + Roughness */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">
+              <label className="text-xs text-gray-500 mb-1.5 block">
                 경면 반사: {mat.specularity.toFixed(2)}
               </label>
               <input
@@ -146,12 +146,12 @@ export default function MaterialRow({
                 disabled={disabled}
                 className="w-full accent-red-600"
               />
-              <div className="flex justify-between text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
                 <span>무광</span><span>고광택</span>
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">
+              <label className="text-xs text-gray-500 mb-1.5 block">
                 거칠기: {mat.roughness.toFixed(2)}
               </label>
               <input
@@ -162,7 +162,7 @@ export default function MaterialRow({
                 disabled={disabled}
                 className="w-full accent-red-600"
               />
-              <div className="flex justify-between text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
                 <span>매끈</span><span>거친</span>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function MaterialRow({
 
           {/* 4. Transmissivity */}
           <div>
-            <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">
+            <label className="text-xs text-gray-500 mb-1.5 block">
               투과율: {mat.transmissivity.toFixed(2)}
               {mat.transmissivity === 0 && ' (불투명)'}
               {mat.transmissivity > 0 && mat.transmissivity < 0.5 && ' (반투명)'}
@@ -184,7 +184,7 @@ export default function MaterialRow({
               disabled={disabled}
               className="w-full accent-red-600"
             />
-            <div className="flex justify-between text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+            <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
               <span>불투명 (벽, 바닥)</span><span>완전 투명 (유리)</span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function MaterialRow({
           {/* 6. Trans specular */}
           {isTranslucent && (
             <div>
-              <label className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 block">
+              <label className="text-xs text-gray-500 mb-1.5 block">
                 투과 선명도: {mat.trans_specular.toFixed(2)}
                 {mat.trans_specular >= 0.9 && ' (투명 유리)'}
                 {mat.trans_specular >= 0.5 && mat.trans_specular < 0.9 && ' (반투명)'}
@@ -217,7 +217,7 @@ export default function MaterialRow({
                 disabled={disabled}
                 className="w-full accent-red-600"
               />
-              <div className="flex justify-between text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
                 <span>확산 (frosted glass)</span><span>직진 투과 (clear glass)</span>
               </div>
             </div>
@@ -244,9 +244,9 @@ export default function MaterialRow({
           )}
 
           {/* Auto type indicator */}
-          <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
-            <p className="text-[10px] text-gray-400 dark:text-slate-500">
-              Radiance 타입: <span className="font-mono text-gray-600 dark:text-slate-300">{autoType(mat)}</span>
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-[10px] text-gray-400">
+              Radiance 타입: <span className="font-mono text-gray-600">{autoType(mat)}</span>
               {' '} (속성에 따라 자동 결정)
             </p>
           </div>

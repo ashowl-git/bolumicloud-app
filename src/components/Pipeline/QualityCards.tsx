@@ -73,20 +73,20 @@ export default function QualityCards({
               className={`p-4 text-left cursor-pointer transition-all duration-300 border-2 ${
                 isSelected
                   ? 'border-red-600 bg-red-50'
-                  : 'border-gray-200 dark:border-slate-700 hover:border-red-600/30'
+                  : 'border-gray-200 hover:border-red-600/30'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <div className="flex items-center gap-2 mb-2">
-                <Icon size={16} strokeWidth={1.5} className={isSelected ? 'text-red-600' : 'text-gray-500 dark:text-slate-400'} />
-                <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900 dark:text-slate-100'}`}>
+                <Icon size={16} strokeWidth={1.5} className={isSelected ? 'text-red-600' : 'text-gray-500'} />
+                <p className={`text-sm font-medium ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>
                   {label.title}
                 </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-slate-400">
+              <p className="text-xs text-gray-500">
                 {detail.resolution} x {detail.resolution}
               </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">ab{detail.ab}</p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">{label.time}</p>
+              <p className="text-xs text-gray-500">ab{detail.ab}</p>
+              <p className="text-xs text-gray-400 mt-2">{label.time}</p>
             </button>
           )
         })}
@@ -106,7 +106,7 @@ export default function QualityCards({
         type="button"
         onClick={() => setExpanded(!expanded)}
         disabled={disabled}
-        className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700
           transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -114,7 +114,7 @@ export default function QualityCards({
       </button>
 
       {expanded && (
-        <div className="border border-gray-200 dark:border-slate-700 p-6 space-y-6">
+        <div className="border border-gray-200 p-6 space-y-6">
           {/* Resolution Slider */}
           <SliderRow
             label="Resolution"
@@ -166,10 +166,10 @@ export default function QualityCards({
           {/* ar (read-only, derived from ad) */}
           <div className="flex items-center justify-between text-sm">
             <div>
-              <span className="font-mono text-gray-700 dark:text-slate-300">ar</span>
-              <span className="text-gray-400 dark:text-slate-500 ml-2">= ad / 32 (자동 연동)</span>
+              <span className="font-mono text-gray-700">ar</span>
+              <span className="text-gray-400 ml-2">= ad / 32 (자동 연동)</span>
             </div>
-            <span className="font-mono text-gray-900 dark:text-slate-100">{renderParams.ar}</span>
+            <span className="font-mono text-gray-900">{renderParams.ar}</span>
           </div>
         </div>
       )}
@@ -200,10 +200,10 @@ function SliderRow({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-sm font-mono text-gray-700 dark:text-slate-300">{label}</span>
-          <span className="text-xs text-gray-400 dark:text-slate-500 ml-2">{description}</span>
+          <span className="text-sm font-mono text-gray-700">{label}</span>
+          <span className="text-xs text-gray-400 ml-2">{description}</span>
         </div>
-        <span className="text-sm font-mono text-gray-900 dark:text-slate-100 min-w-[60px] text-right">{value}</span>
+        <span className="text-sm font-mono text-gray-900 min-w-[60px] text-right">{value}</span>
       </div>
       <input
         type="range"
@@ -213,7 +213,7 @@ function SliderRow({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer
+        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer
           disabled:opacity-50 disabled:cursor-not-allowed
           [&::-webkit-slider-thumb]:appearance-none
           [&::-webkit-slider-thumb]:w-4
@@ -222,7 +222,7 @@ function SliderRow({
           [&::-webkit-slider-thumb]:rounded-full
           [&::-webkit-slider-thumb]:cursor-pointer"
       />
-      <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500">
+      <div className="flex justify-between text-xs text-gray-400">
         <span>{min}</span>
         <span>{max}</span>
       </div>

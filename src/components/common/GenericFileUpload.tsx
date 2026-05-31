@@ -161,7 +161,7 @@ export default function GenericFileUpload({
     ? 'border-red-500 bg-red-50'
     : isDragging
     ? 'border-blue-500 bg-blue-50'
-    : 'border-gray-300 dark:border-slate-600 hover:border-gray-400'
+    : 'border-gray-300 hover:border-gray-400'
 
   return (
     <div className="space-y-4">
@@ -207,7 +207,7 @@ export default function GenericFileUpload({
               isDragging ? 'text-blue-500' :
               dropFeedback === 'accepted' ? 'text-green-500' :
               dropFeedback === 'rejected' ? 'text-red-500' :
-              'text-gray-500 dark:text-slate-400'
+              'text-gray-500'
             }`}
             stroke="currentColor"
             fill="none"
@@ -223,7 +223,7 @@ export default function GenericFileUpload({
           </svg>
 
           {/* Main Text */}
-          <p className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+          <p className="text-lg font-semibold text-gray-900 mb-2">
             {isProcessing
               ? processingMessage
               : isDragging
@@ -233,13 +233,13 @@ export default function GenericFileUpload({
           </p>
 
           {/* Sub Text */}
-          <p className="text-sm text-gray-800 dark:text-slate-200">
+          <p className="text-sm text-gray-800">
             {fileTypeLabel}
             {fileTypeDescription && ` - ${fileTypeDescription}`}
             {multiple && ' (다중 선택 가능)'}
           </p>
           {maxFileSize && (
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               최대 {formatFileSize(maxFileSize)}
             </p>
           )}
@@ -260,14 +260,14 @@ export default function GenericFileUpload({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border border-gray-200 dark:border-slate-700 p-4"
+            className="border border-gray-200 p-4"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-slate-300">업로드 중...</span>
-              <span className="text-sm text-gray-600 dark:text-slate-300 tabular-nums">{Math.round(uploadProgress)}%</span>
+              <span className="text-sm text-gray-600">업로드 중...</span>
+              <span className="text-sm text-gray-600 tabular-nums">{Math.round(uploadProgress)}%</span>
             </div>
             <div
-              className="w-full h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
+              className="w-full h-2 bg-gray-100 rounded-full overflow-hidden"
               role="progressbar"
               aria-valuenow={Math.round(uploadProgress)}
               aria-valuemin={0}
@@ -288,14 +288,14 @@ export default function GenericFileUpload({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="border border-gray-200 dark:border-slate-700 p-6"
+          className="border border-gray-200 p-6"
         >
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="font-normal text-gray-900 dark:text-slate-100">
+              <p className="font-normal text-gray-900">
                 {selectedFiles.length}개 파일 선택됨
               </p>
-              <p className="text-sm text-gray-800 dark:text-slate-200 mt-1">
+              <p className="text-sm text-gray-800 mt-1">
                 총 용량: {formatFileSize(totalSize)}
               </p>
             </div>
@@ -303,24 +303,24 @@ export default function GenericFileUpload({
             <button
               onClick={handleClear}
               disabled={isDisabled}
-              className="text-gray-800 dark:text-slate-200 hover:text-red-600 text-sm transition-colors disabled:opacity-50"
+              className="text-gray-800 hover:text-red-600 text-sm transition-colors disabled:opacity-50"
             >
               초기화
             </button>
           </div>
 
           {/* File List */}
-          <div className="space-y-1 pt-4 border-t border-gray-200 dark:border-slate-700">
+          <div className="space-y-1 pt-4 border-t border-gray-200">
             {Array.from(selectedFiles)
               .slice(0, maxDisplayFiles)
               .map((file, i) => (
-                <p key={i} className="text-xs text-gray-800 dark:text-slate-200 font-mono">
+                <p key={i} className="text-xs text-gray-800 font-mono">
                   {file.name} ({formatFileSize(file.size)})
                 </p>
               ))}
 
             {selectedFiles.length > maxDisplayFiles && (
-              <p className="text-xs text-gray-800 dark:text-slate-200 italic">
+              <p className="text-xs text-gray-800 italic">
                 ...외 {selectedFiles.length - maxDisplayFiles}개 파일
               </p>
             )}

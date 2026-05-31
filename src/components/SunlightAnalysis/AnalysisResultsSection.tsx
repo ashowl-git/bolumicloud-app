@@ -50,8 +50,8 @@ export default function AnalysisResultsSection({
             stepMinutes={results.time_window.step_minutes}
           />
         ) : (
-          <div className="flex items-center gap-2 py-3 text-xs text-gray-500 dark:text-slate-400">
-            <Crosshair size={14} className="text-gray-300 dark:text-slate-600" />
+          <div className="flex items-center gap-2 py-3 text-xs text-gray-500">
+            <Crosshair size={14} className="text-gray-300" />
             결과 테이블에서 측정점을 선택하세요
           </div>
         )}

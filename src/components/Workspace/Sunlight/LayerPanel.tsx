@@ -28,7 +28,7 @@ export default function LayerPanel({
 
   if (layers.length === 0) {
     return (
-      <div className="text-xs text-gray-500 dark:text-slate-400 text-center py-3">
+      <div className="text-xs text-gray-500 text-center py-3">
         레이어 정보 없음
       </div>
     )
@@ -37,7 +37,7 @@ export default function LayerPanel({
   return (
     <div className="space-y-1">
       {/* Header with toggle all */}
-      <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-slate-400 px-1 mb-1">
+      <div className="flex items-center justify-between text-[10px] text-gray-500 px-1 mb-1">
         <span>
           {layers.length}개 레이어 (분석 대상: {targetCount})
           {onTogglePanelLayer && <> | 패널: {panelCount}</>}
@@ -57,7 +57,7 @@ export default function LayerPanel({
         <div
           key={layer.id}
           className={`flex items-center gap-1.5 px-1.5 py-1 rounded text-xs transition-colors ${
-            layer.visible ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800 opacity-60'
+            layer.visible ? 'bg-white' : 'bg-gray-50 opacity-60'
           }`}
         >
           {/* Color indicator */}
@@ -67,11 +67,11 @@ export default function LayerPanel({
           />
 
           {/* Name */}
-          <span className="flex-1 truncate text-gray-700 dark:text-slate-300">{layer.name}</span>
+          <span className="flex-1 truncate text-gray-700">{layer.name}</span>
 
           {/* Face count */}
           {layer.faceCount != null && (
-            <span className="text-[9px] text-gray-300 dark:text-slate-600 tabular-nums">{layer.faceCount.toLocaleString()}</span>
+            <span className="text-[9px] text-gray-300 tabular-nums">{layer.faceCount.toLocaleString()}</span>
           )}
 
           {/* Generate measurement points */}
@@ -86,7 +86,7 @@ export default function LayerPanel({
                 }
               }}
               disabled={generatingId === layer.id}
-              className="p-0.5 rounded transition-colors text-gray-300 dark:text-slate-600 hover:text-blue-500 disabled:opacity-50"
+              className="p-0.5 rounded transition-colors text-gray-300 hover:text-blue-500 disabled:opacity-50"
               title="측정점 자동 생성"
             >
               {generatingId === layer.id
@@ -103,7 +103,7 @@ export default function LayerPanel({
               className={`p-0.5 rounded transition-colors ${
                 layer.isPanelLayer
                   ? 'text-amber-500 hover:text-amber-600'
-                  : 'text-gray-300 dark:text-slate-600 hover:text-gray-400'
+                  : 'text-gray-300 hover:text-gray-400'
               }`}
               title={layer.isPanelLayer ? 'PV 패널 해제' : 'PV 패널 지정'}
             >
@@ -117,7 +117,7 @@ export default function LayerPanel({
             className={`p-0.5 rounded transition-colors ${
               layer.isAnalysisTarget
                 ? 'text-red-500 hover:text-red-600'
-                : 'text-gray-300 dark:text-slate-600 hover:text-gray-400'
+                : 'text-gray-300 hover:text-gray-400'
             }`}
             title={layer.isAnalysisTarget ? '그림자 영향 해제' : '그림자 영향 포함'}
           >
@@ -129,8 +129,8 @@ export default function LayerPanel({
             onClick={() => onToggleVisibility(layer.id)}
             className={`p-0.5 rounded transition-colors ${
               layer.visible
-                ? 'text-gray-500 dark:text-slate-400 hover:text-gray-700'
-                : 'text-gray-300 dark:text-slate-600 hover:text-gray-400'
+                ? 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-300 hover:text-gray-400'
             }`}
             title={layer.visible ? '숨기기' : '표시'}
           >

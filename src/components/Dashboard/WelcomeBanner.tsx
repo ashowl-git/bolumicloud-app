@@ -70,18 +70,18 @@ export default function WelcomeBanner() {
   if (!visible) return null
 
   return (
-    <div className="relative border border-gray-200 dark:border-slate-700 bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 mb-8 overflow-hidden">
+    <div className="relative border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 mb-8 overflow-hidden">
       {/* Dismiss */}
       <button
         onClick={dismiss}
-        className="absolute top-3 right-3 p-1 text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 transition-colors"
+        className="absolute top-3 right-3 p-1 text-gray-300 hover:text-gray-500 transition-colors"
         title="닫기"
       >
         <X size={16} />
       </button>
 
-      <h2 className="text-base font-medium text-gray-900 dark:text-slate-100 mb-1">{t(txt.greeting)}</h2>
-      <p className="text-sm text-gray-500 dark:text-slate-400 mb-5 max-w-lg">{t(txt.subtitle)}</p>
+      <h2 className="text-base font-medium text-gray-900 mb-1">{t(txt.greeting)}</h2>
+      <p className="text-sm text-gray-500 mb-5 max-w-lg">{t(txt.subtitle)}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {GUIDES.map((guide) => {
@@ -90,14 +90,14 @@ export default function WelcomeBanner() {
             <Link
               key={guide.href}
               href={guide.href}
-              className={`group border rounded-lg p-4 transition-all hover:shadow-sm hover:-translate-y-px ${guide.color} dark:bg-slate-800 dark:border-slate-700`}
+              className={`group border rounded-lg p-4 transition-all hover:shadow-sm hover:-translate-y-px ${guide.color}`}
             >
               <div className="flex items-center gap-2 mb-2">
                 <Icon size={16} className={guide.iconColor} />
-                <span className="text-sm font-medium text-gray-800 dark:text-slate-200">{t(guide.name)}</span>
+                <span className="text-sm font-medium text-gray-800">{t(guide.name)}</span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">{t(guide.desc)}</p>
-              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 dark:text-slate-500 group-hover:text-gray-600 dark:group-hover:text-slate-300 transition-colors">
+              <p className="text-xs text-gray-500 mb-3">{t(guide.desc)}</p>
+              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 group-hover:text-gray-600 transition-colors">
                 시작하기 <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
               </span>
             </Link>

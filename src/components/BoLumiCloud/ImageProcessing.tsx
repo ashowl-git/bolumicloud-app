@@ -93,14 +93,14 @@ export default function ImageProcessing() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-3xl font-light text-gray-900 dark:text-slate-100 mb-6">
+        <h2 className="text-3xl font-light text-gray-900 mb-6">
           이미지 처리
         </h2>
         <div className="w-24 h-px bg-gray-300 mb-6" />
 
         {/* 1. 파일 업로드 */}
-        <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
-          <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
+        <div className="border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-normal text-gray-900 mb-4">
             1. 파일 선택
           </h3>
 
@@ -110,9 +110,9 @@ export default function ImageProcessing() {
           />
 
           {uploadedFiles && uploadedFiles.length > 0 && (
-            <div className="mt-4 p-4 border border-gray-200 dark:border-slate-700 bg-amber-50/50">
+            <div className="mt-4 p-4 border border-gray-200 bg-amber-50/50">
               <div className="flex justify-between items-start mb-2">
-                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                <p className="text-sm font-medium text-gray-900">
                   {uploadedFiles.length}개 파일 선택됨
                 </p>
                 <button
@@ -132,7 +132,7 @@ export default function ImageProcessing() {
                     className={`w-full text-left px-3 py-2 text-sm border transition-all ${
                       selectedFile === file.name
                         ? 'border-red-600 bg-red-50'
-                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-400'
+                        : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
                     {file.name} ({(file.size / 1024).toFixed(1)} KB)
@@ -144,14 +144,14 @@ export default function ImageProcessing() {
         </div>
 
         {/* 2. 조정 옵션 */}
-        <div className="border border-gray-200 dark:border-slate-700 p-6 mb-6">
-          <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
+        <div className="border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-normal text-gray-900 mb-4">
             2. 조정 옵션
           </h3>
 
           {/* Exposure */}
           <div className="mb-6">
-            <label className="text-sm text-gray-700 dark:text-slate-300 mb-2 block">
+            <label className="text-sm text-gray-700 mb-2 block">
               노출 (Exposure) = {exposure.toFixed(2)}x
             </label>
             <input
@@ -163,7 +163,7 @@ export default function ImageProcessing() {
               onChange={(e) => setExposure(Number(e.target.value))}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-gray-800 dark:text-slate-200 mt-1">
+            <div className="flex justify-between text-xs text-gray-800 mt-1">
               <span>0.1x (어두움)</span>
               <span>1.0x (원본)</span>
               <span>10x (밝음)</span>
@@ -172,7 +172,7 @@ export default function ImageProcessing() {
 
           {/* 해상도 */}
           <div>
-            <label className="text-sm text-gray-700 dark:text-slate-300 mb-2 block">
+            <label className="text-sm text-gray-700 mb-2 block">
               해상도 조정 (선택사항)
             </label>
             <div className="flex gap-4">
@@ -182,10 +182,10 @@ export default function ImageProcessing() {
                   placeholder="Width (px)"
                   value={width || ''}
                   onChange={(e) => setWidth(Number(e.target.value))}
-                  className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm"
+                  className="w-full border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
-              <div className="flex items-center text-gray-700 dark:text-slate-300">
+              <div className="flex items-center text-gray-700">
                 ×
               </div>
               <div className="flex-1">
@@ -194,11 +194,11 @@ export default function ImageProcessing() {
                   placeholder="Height (px)"
                   value={height || ''}
                   onChange={(e) => setHeight(Number(e.target.value))}
-                  className="w-full border border-gray-200 dark:border-slate-700 px-3 py-2 text-sm"
+                  className="w-full border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-800 dark:text-slate-200 mt-2">
+            <p className="text-xs text-gray-800 mt-2">
               비워두면 원본 해상도 유지
             </p>
           </div>
@@ -209,8 +209,8 @@ export default function ImageProcessing() {
           <button
             onClick={handleProcess}
             disabled={!selectedFile || processing}
-            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-8 py-3 text-base
-              text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300
+            className="border border-gray-200 hover:border-red-600/30 px-8 py-3 text-base
+              text-gray-900 hover:text-red-600 transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {processing ? '처리 중...' :
@@ -221,16 +221,16 @@ export default function ImageProcessing() {
 
         {/* 4. Before/After 비교 */}
         {(originalUrl || previewUrl) && (
-          <div className="border border-gray-200 dark:border-slate-700 p-6">
-            <h3 className="text-lg font-normal text-gray-900 dark:text-slate-100 mb-4">
+          <div className="border border-gray-200 p-6">
+            <h3 className="text-lg font-normal text-gray-900 mb-4">
               Before / After
             </h3>
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Before */}
               <div>
-                <p className="text-sm text-gray-800 dark:text-slate-200 mb-3">Before (원본)</p>
-                <div className="border border-gray-200 dark:border-slate-700 bg-amber-50/50 relative min-h-[200px]">
+                <p className="text-sm text-gray-800 mb-3">Before (원본)</p>
+                <div className="border border-gray-200 bg-amber-50/50 relative min-h-[200px]">
                   {originalUrl && (
                     <Image
                       src={originalUrl}
@@ -245,11 +245,11 @@ export default function ImageProcessing() {
 
               {/* After */}
               <div>
-                <p className="text-sm text-gray-800 dark:text-slate-200 mb-3">
+                <p className="text-sm text-gray-800 mb-3">
                   After (노출 {exposure.toFixed(2)}x
                   {width > 0 && height > 0 && `, ${width}×${height}px`})
                 </p>
-                <div className="border border-gray-200 dark:border-slate-700 bg-amber-50/50 relative min-h-[200px]">
+                <div className="border border-gray-200 bg-amber-50/50 relative min-h-[200px]">
                   {previewUrl && (
                     <Image
                       src={previewUrl}
@@ -268,8 +268,8 @@ export default function ImageProcessing() {
               <div className="mt-6 text-center">
                 <button
                   onClick={handleDownload}
-                  className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-                    text-gray-900 dark:text-slate-100 hover:text-red-600 transition-all duration-300"
+                  className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+                    text-gray-900 hover:text-red-600 transition-all duration-300"
                 >
                   처리된 이미지 다운로드
                 </button>
@@ -279,19 +279,19 @@ export default function ImageProcessing() {
         )}
 
         {/* 설명 */}
-        <div className="mt-8 p-6 border border-gray-200 dark:border-slate-700">
-          <h4 className="font-medium text-gray-900 dark:text-slate-100 mb-3">기능 설명</h4>
+        <div className="mt-8 p-6 border border-gray-200">
+          <h4 className="font-medium text-gray-900 mb-3">기능 설명</h4>
 
-          <div className="space-y-3 text-sm text-gray-800 dark:text-slate-200">
+          <div className="space-y-3 text-sm text-gray-800">
             <p>
-              <span className="font-medium text-gray-900 dark:text-slate-100">노출 조정:</span> pfilt exposure 기능으로 이미지 밝기를 조정합니다.
+              <span className="font-medium text-gray-900">노출 조정:</span> pfilt exposure 기능으로 이미지 밝기를 조정합니다.
               0.1x (매우 어둡게) ~ 10x (매우 밝게)
             </p>
             <p>
-              <span className="font-medium text-gray-900 dark:text-slate-100">해상도 조정:</span> pfilt xres/yres 기능으로 이미지 크기를 변경합니다.
+              <span className="font-medium text-gray-900">해상도 조정:</span> pfilt xres/yres 기능으로 이미지 크기를 변경합니다.
               고품질 리샘플링 적용
             </p>
-            <p className="text-xs text-gray-800 dark:text-slate-200">
+            <p className="text-xs text-gray-800">
               pyradiance.pfilt 기반 전문가급 이미지 처리
             </p>
           </div>

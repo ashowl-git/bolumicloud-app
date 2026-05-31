@@ -35,7 +35,7 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border border-gray-200 dark:border-slate-700 p-6"
+      className="border border-gray-200 p-6"
       aria-live="polite"
     >
       {/* Stage Checklist */}
@@ -54,7 +54,7 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
                 ) : stage.status === 'error' ? (
                   <AlertCircle size={18} className="text-red-600" />
                 ) : (
-                  <Circle size={18} className="text-gray-300 dark:text-slate-600" />
+                  <Circle size={18} className="text-gray-300" />
                 )}
               </div>
 
@@ -62,15 +62,15 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${
-                    stage.status === 'completed' ? 'text-gray-700 dark:text-slate-300' :
+                    stage.status === 'completed' ? 'text-gray-700' :
                     stage.status === 'processing' ? 'text-blue-700 font-medium' :
                     stage.status === 'error' ? 'text-red-700' :
-                    'text-gray-400 dark:text-slate-500'
+                    'text-gray-400'
                   }`}>
                     {idx + 1}. {stageLabel}
                   </span>
                   {stage.duration_sec !== null && (
-                    <span className="text-xs text-gray-400 dark:text-slate-500">
+                    <span className="text-xs text-gray-400">
                       ({stage.duration_sec.toFixed(1)}s)
                     </span>
                   )}
@@ -81,7 +81,7 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
                   <div className="mt-1">
                     <div className="flex items-center gap-2">
                       <div
-                        className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
+                        className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
                         role="progressbar"
                         aria-valuenow={progress.stage_progress.completed}
                         aria-valuemin={0}
@@ -95,12 +95,12 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
                           }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-slate-400 tabular-nums">
+                      <span className="text-xs text-gray-500 tabular-nums">
                         {progress.stage_progress.completed}/{progress.stage_progress.total}
                       </span>
                     </div>
                     {progress.stage_progress.current_item && (
-                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5 truncate">
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">
                         {t(txt.current)} {progress.stage_progress.current_item}
                       </p>
                     )}
@@ -113,10 +113,10 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
       </div>
 
       {/* Overall Progress Bar */}
-      <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
+      <div className="border-t border-gray-100 pt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600 dark:text-slate-300">{t(txt.overall)}</span>
-          <span className="text-sm text-gray-600 dark:text-slate-300 tabular-nums">
+          <span className="text-sm text-gray-600">{t(txt.overall)}</span>
+          <span className="text-sm text-gray-600 tabular-nums">
             {progress.overall_progress}% ({formatDuration(progress.elapsed_sec)})
             {estimatedRemainingSec !== null && estimatedRemainingSec > 0 && (
               <> | 남은 시간 약 {formatEta(estimatedRemainingSec)}</>
@@ -127,7 +127,7 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
           </span>
         </div>
         <div
-          className="w-full h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden"
+          className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={progress.overall_progress}
           aria-valuemin={0}
@@ -147,8 +147,8 @@ export default function PipelineProgress({ progress }: PipelineProgressProps) {
           <button
             onClick={cancelPipeline}
             aria-label="분석 취소"
-            className="border border-gray-200 dark:border-slate-700 hover:border-red-600/30 px-6 py-3
-              text-sm text-gray-700 dark:text-slate-300 hover:text-red-600 transition-all duration-300"
+            className="border border-gray-200 hover:border-red-600/30 px-6 py-3
+              text-sm text-gray-700 hover:text-red-600 transition-all duration-300"
           >
             {t(txt.cancel)}
           </button>

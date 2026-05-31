@@ -10,7 +10,7 @@ interface SubTabsProps {
 
 export default function SubTabs({ tabs, active, onChange }: SubTabsProps) {
   return (
-    <div className="py-3 border-b border-gray-200 dark:border-slate-700">
+    <div className="py-3 border-b border-gray-200">
       <div className="flex gap-3 flex-wrap" role="tablist" aria-label="Sub tabs">
         {tabs.map((tab) => {
           const isActive = active === tab.id
@@ -28,8 +28,8 @@ export default function SubTabs({ tabs, active, onChange }: SubTabsProps) {
                 isActive
                   ? 'bg-red-50 border-red-600 text-red-600 font-medium'
                   : isComing
-                  ? 'border-gray-200 dark:border-slate-700 text-gray-400 dark:text-slate-500 opacity-40 cursor-not-allowed'
-                  : 'border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 hover:border-red-600/30 hover:text-gray-900'
+                  ? 'border-gray-200 text-gray-400 opacity-40 cursor-not-allowed'
+                  : 'border-gray-200 text-gray-800 hover:border-red-600/30 hover:text-gray-900'
               }`}
             >
               <span className="flex items-center gap-1.5">

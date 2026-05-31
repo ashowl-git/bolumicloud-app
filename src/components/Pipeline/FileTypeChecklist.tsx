@@ -46,9 +46,9 @@ function FileRow({ icon, ext, file, required, description }: FileRowProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           {icon}
-          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">.{ext}</span>
+          <span className="text-sm font-medium text-gray-700">.{ext}</span>
           {file && (
-            <span className="text-xs text-gray-400 dark:text-slate-500 truncate">
+            <span className="text-xs text-gray-400 truncate">
               {file.name} ({formatSize(file.size)})
             </span>
           )}
@@ -59,7 +59,7 @@ function FileRow({ icon, ext, file, required, description }: FileRowProps) {
             <span className="text-xs text-amber-400">선택</span>
           )}
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{description}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{description}</p>
       </div>
     </div>
   )
@@ -79,28 +79,28 @@ export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveV
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <FileText size={14} className="text-gray-500 dark:text-slate-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-slate-300">.vf</span>
+            <FileText size={14} className="text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">.vf</span>
             {vfFiles.length > 0 ? (
-              <span className="text-xs text-gray-400 dark:text-slate-500">{vfFiles.length}개 파일</span>
+              <span className="text-xs text-gray-400">{vfFiles.length}개 파일</span>
             ) : (
               <span className="text-xs text-red-400">필수 (1개 이상)</span>
             )}
           </div>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">카메라 위치와 방향 (복수 가능)</p>
+          <p className="text-xs text-gray-400 mt-0.5">카메라 위치와 방향 (복수 가능)</p>
 
           {/* VF file list */}
           {vfFiles.length > 0 && (
             <div className="mt-2 space-y-1">
               {vfFiles.map((f, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-xs">
-                  <span className="text-gray-600 dark:text-slate-300 font-mono">{f.name}</span>
-                  <span className="text-gray-400 dark:text-slate-500">({formatSize(f.size)})</span>
+                  <span className="text-gray-600 font-mono">{f.name}</span>
+                  <span className="text-gray-400">({formatSize(f.size)})</span>
                   {onRemoveVf && (
                     <button
                       type="button"
                       onClick={() => onRemoveVf(idx)}
-                      className="text-gray-400 dark:text-slate-500 hover:text-red-500 transition-colors duration-300"
+                      className="text-gray-400 hover:text-red-500 transition-colors duration-300"
                     >
                       <X size={12} />
                     </button>
@@ -113,14 +113,14 @@ export default function FileTypeChecklist({ vfFiles, objFile, mtlFile, onRemoveV
       </div>
 
       <FileRow
-        icon={<Box size={14} className="text-gray-500 dark:text-slate-400" />}
+        icon={<Box size={14} className="text-gray-500" />}
         ext="obj"
         file={objFile}
         required
         description="3D 건물 모델 (SketchUp 내보내기)"
       />
       <FileRow
-        icon={<Palette size={14} className="text-gray-500 dark:text-slate-400" />}
+        icon={<Palette size={14} className="text-gray-500" />}
         ext="mtl"
         file={mtlFile}
         required={false}

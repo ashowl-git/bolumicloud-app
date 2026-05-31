@@ -1,15 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useMemo } from 'react'
+import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { BoundingBox } from './types'
 import type { BuildingGroupInfo } from '@/lib/types/sunlight'
-import {
-  WIREFRAME_FACE_LIMIT,
-  WIREFRAME_MATERIAL,
-  GROUP_COLORS,
-  findGroupForMesh,
-} from './buildingMaterials'
+
+// EdgesGeometry 생성 임계값: 총 face 수가 이 값 초과 시 와이어프레임 비활성화
+const WIREFRAME_FACE_LIMIT = 50000
 
 // ─── 건물 재질 ─────────────────────────────
 
@@ -19,6 +17,18 @@ const BUILDING_MATERIAL = new THREE.MeshStandardMaterial({
   metalness: 0.1,
   side: THREE.DoubleSide,
 })
+
+const WIREFRAME_MATERIAL = new THREE.LineBasicMaterial({
+  color: '#9ca3af',
+  linewidth: 1,
+})
+
+// ─── 그룹별 색상 팔레트 ─────────────────────────
+
+const GROUP_COLORS = [
+  '#7CB9E8', '#B284BE', '#72BF6A', '#F0A868', '#E8747C',
+  '#6ECFCF', '#D4A76A', '#9B9B9B', '#A8D8B9', '#C4B5E0',
+]
 
 // ─── BuildingModel ─────────────────────────────
 
@@ -36,13 +46,16 @@ interface BuildingModelProps {
 
 export default function BuildingModel({
   scene,
+  bbox,
   showWireframe = true,
+  autoFitCamera = true,
   color,
   groups,
   selectedGroup,
   preserveOriginalMaterials = false,
 }: BuildingModelProps) {
   const groupRef = useRef<THREE.Group>(null)
+  const { camera } = useThree()
 
   const material = useMemo(() => {
     if (!color) return BUILDING_MATERIAL
@@ -54,8 +67,19 @@ export default function BuildingModel({
     })
   }, [color])
 
-  // 카메라 초기 배치는 ThreeViewer의 CameraController가 단독 소유한다.
-  // (이전: 이 컴포넌트와 ThreeViewer가 카메라를 동시 제어 → orbit pivot 불일치)
+  // 카메라 자동 맞춤
+  useEffect(() => {
+    if (!autoFitCamera || !bbox || !camera) return
+
+    const maxDim = Math.max(...bbox.size)
+    const dist = maxDim * 1.8
+
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.position.set(dist, dist * 0.7, dist)
+      camera.lookAt(0, bbox.size[1] * 0.3, 0)
+      camera.updateProjectionMatrix()
+    }
+  }, [bbox, camera, autoFitCamera])
 
   if (!scene) return null
 
@@ -72,6 +96,21 @@ export default function BuildingModel({
       />
     </group>
   )
+}
+
+// ─── 그룹명에서 메시가 속한 그룹을 찾는 헬퍼 ─────────
+
+function findGroupForMesh(mesh: THREE.Mesh, groupNames: string[]): string | null {
+  // 메시 자체 이름 또는 부모 이름으로 그룹 매칭
+  let current: THREE.Object3D | null = mesh
+  while (current) {
+    if (current.name) {
+      const matched = groupNames.find((g) => current!.name === g || current!.name.startsWith(g))
+      if (matched) return matched
+    }
+    current = current.parent
+  }
+  return null
 }
 
 // ─── 재질 적용 헬퍼 ─────────────────────────────

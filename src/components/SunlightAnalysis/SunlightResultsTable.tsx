@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { CheckCircle2, XCircle, ArrowUpDown, FileSearch, Download } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowUpDown, FileSearch } from 'lucide-react'
 import { useLocalizedText } from '@/hooks/useLocalizedText'
 import EmptyState from '@/components/common/EmptyState'
-import { exportRowsToCsv } from '@/lib/exportCsv'
 import type { PointSunlightResult, MeasurementPointGroup } from '@/lib/types/sunlight'
 import type { LocalizedText } from '@/lib/types/i18n'
 
@@ -168,30 +167,6 @@ export default function SunlightResultsTable({
 
   return (
     <div className="space-y-2">
-      {/* Export toolbar */}
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() =>
-            exportRowsToCsv('일조분석_측정점결과', sorted, [
-              { key: 'id', header: 'ID' },
-              { header: '그룹', value: (p) => pointGroupMap.get(p.id)?.groupName ?? '' },
-              { header: '행', value: (p) => pointGroupMap.get(p.id)?.row ?? '' },
-              { header: '열', value: (p) => pointGroupMap.get(p.id)?.column ?? '' },
-              { header: '총일조시간(h)', value: (p) => p.total_hours.toFixed(3) },
-              { header: '연속일조시간(h)', value: (p) => p.continuous_hours.toFixed(3) },
-              { header: '만족여부', value: (p) => (p.compliant ? 'O' : 'X') },
-            ])
-          }
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs
-            text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700
-            hover:border-red-600/30 hover:text-red-600 transition-colors"
-        >
-          <Download size={13} aria-hidden="true" />
-          CSV 내보내기
-        </button>
-      </div>
-
       {/* Group tabs */}
       {hasGroups && (
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
@@ -200,7 +175,7 @@ export default function SunlightResultsTable({
             className={`px-2.5 py-1 text-[11px] rounded-full whitespace-nowrap transition-all ${
               activeGroupTab === null
                 ? 'bg-red-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             전체
@@ -215,7 +190,7 @@ export default function SunlightResultsTable({
                 className={`px-2.5 py-1 text-[11px] rounded-full whitespace-nowrap transition-all ${
                   activeGroupTab === name
                     ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {name}
@@ -230,7 +205,7 @@ export default function SunlightResultsTable({
 
       {/* Filter buttons */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(txt.title)}</h3>
+        <h3 className="text-sm font-medium text-gray-900">{t(txt.title)}</h3>
         <div className="flex gap-1">
           {(['all', 'compliant', 'non-compliant'] as const).map((f) => (
             <button
@@ -239,12 +214,12 @@ export default function SunlightResultsTable({
               className={`px-2 py-0.5 text-[11px] border transition-all duration-300 ${
                 filter === f
                   ? 'border-red-600 text-red-600 bg-red-50'
-                  : 'border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-gray-400'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-400'
               }`}
             >
               {f === 'all' ? '전체' : f === 'compliant' ? '적합' : '부적합'}
               {f !== 'all' && (
-                <span className="ml-1 text-gray-500 dark:text-slate-400">
+                <span className="ml-1 text-gray-500">
                   ({f === 'compliant'
                     ? groupFiltered.filter((p) => p.compliant).length
                     : groupFiltered.filter((p) => !p.compliant).length})
@@ -256,26 +231,26 @@ export default function SunlightResultsTable({
       </div>
 
       {/* Table */}
-      <div className="border border-gray-200 dark:border-slate-700 overflow-x-auto">
+      <div className="border border-gray-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+            <tr className="bg-gray-50 border-b border-gray-200">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   scope="col"
                   onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500
                     cursor-pointer hover:text-gray-700 select-none whitespace-nowrap"
                 >
                   <div className="flex items-center gap-1">
                     {t(col.label)}
-                    <ArrowUpDown size={10} className="text-gray-400 dark:text-slate-500" />
+                    <ArrowUpDown size={10} className="text-gray-400" />
                   </div>
                 </th>
               ))}
               {hasSunlightBar && (
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                   {t(txt.sunlightBar)}
                 </th>
               )}
@@ -288,31 +263,31 @@ export default function SunlightResultsTable({
                 <tr
                   key={point.id}
                   onClick={() => onPointSelect?.(point.id)}
-                  className={`border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                     selectedPointId === point.id
                       ? 'bg-red-50 ring-1 ring-inset ring-red-200'
                       : !point.compliant ? 'bg-red-50/50' : ''
                   }`}
                 >
-                  <td className="px-3 py-2 text-gray-500 dark:text-slate-400 font-mono text-xs">{point.id}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-slate-300 text-xs">{point.name}</td>
+                  <td className="px-3 py-2 text-gray-500 font-mono text-xs">{point.id}</td>
+                  <td className="px-3 py-2 text-gray-700 text-xs">{point.name}</td>
                   {hasRowCol && (
                     <>
-                      <td className="px-3 py-2 text-gray-500 dark:text-slate-400 text-xs tabular-nums text-center">
+                      <td className="px-3 py-2 text-gray-500 text-xs tabular-nums text-center">
                         {info?.row ?? '-'}
                       </td>
-                      <td className="px-3 py-2 text-gray-500 dark:text-slate-400 text-xs tabular-nums text-center">
+                      <td className="px-3 py-2 text-gray-500 text-xs tabular-nums text-center">
                         {info?.column ?? '-'}
                       </td>
                     </>
                   )}
                   <td className="px-3 py-2 tabular-nums text-xs">
-                    <span className={point.total_hours >= 4 ? 'text-green-600' : 'text-gray-700 dark:text-slate-300'}>
+                    <span className={point.total_hours >= 4 ? 'text-green-600' : 'text-gray-700'}>
                       {point.total_hours.toFixed(1)}
                     </span>
                   </td>
                   <td className="px-3 py-2 tabular-nums text-xs">
-                    <span className={point.continuous_hours >= 2 ? 'text-green-600' : 'text-gray-700 dark:text-slate-300'}>
+                    <span className={point.continuous_hours >= 2 ? 'text-green-600' : 'text-gray-700'}>
                       {point.continuous_hours.toFixed(1)}
                     </span>
                   </td>
@@ -344,13 +319,13 @@ export default function SunlightResultsTable({
       {sorted.length > visibleCount && (
         <button
           onClick={() => setVisibleCount((c) => c + 100)}
-          className="w-full py-1.5 text-xs text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700
+          className="w-full py-1.5 text-xs text-gray-500 border border-gray-200
             hover:border-red-600/30 hover:text-red-600 transition-colors"
         >
           더 보기 ({Math.min(visibleCount, sorted.length)}/{sorted.length})
         </button>
       )}
-      <p className="text-xs text-gray-500 dark:text-slate-400">
+      <p className="text-xs text-gray-500">
         {Math.min(visibleCount, sorted.length)}개 측정점 표시 (전체 {points.length}개)
       </p>
     </div>

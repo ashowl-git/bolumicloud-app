@@ -37,7 +37,7 @@ export default function GroundAnalysisSection({
 
         {/* Grid interval */}
         <div>
-          <label className="text-[10px] font-medium text-gray-500 dark:text-slate-400 block mb-1.5">
+          <label className="text-[10px] font-medium text-gray-500 block mb-1.5">
             격자 간격 (m)
           </label>
           <div className="flex items-center gap-2">
@@ -59,11 +59,11 @@ export default function GroundAnalysisSection({
               value={gridInterval}
               onChange={(e) => onGridIntervalChange?.(Number(e.target.value))}
               disabled={disabled}
-              className="w-16 border border-gray-200 dark:border-slate-700 px-1.5 py-1 text-xs tabular-nums
+              className="w-16 border border-gray-200 px-1.5 py-1 text-xs tabular-nums
                 text-center focus:outline-none focus:border-red-600/30 disabled:opacity-50"
             />
           </div>
-          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">
+          <p className="text-[10px] text-gray-400 mt-1">
             간격이 작을수록 정밀하지만 분석 시간이 증가합니다
           </p>
         </div>
@@ -72,8 +72,8 @@ export default function GroundAnalysisSection({
         <button
           onClick={onStartGroundAnalysis}
           disabled={disabled || isGroundAnalysisRunning || !results}
-          className="w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-700
-            hover:border-red-600/30 py-2 text-xs text-gray-900 dark:text-slate-100 hover:text-red-600
+          className="w-full flex items-center justify-center gap-2 border border-gray-200
+            hover:border-red-600/30 py-2 text-xs text-gray-900 hover:text-red-600
             transition-all disabled:opacity-40 disabled:cursor-not-allowed
             disabled:hover:border-gray-200 disabled:hover:text-gray-900"
         >
@@ -81,7 +81,7 @@ export default function GroundAnalysisSection({
           {isGroundAnalysisRunning ? '지반 분석 중...' : '지반일조 분석'}
         </button>
         {!results && (
-          <p className="text-[10px] text-gray-400 dark:text-slate-500 text-center">
+          <p className="text-[10px] text-gray-400 text-center">
             일조 분석 완료 후 사용 가능
           </p>
         )}
