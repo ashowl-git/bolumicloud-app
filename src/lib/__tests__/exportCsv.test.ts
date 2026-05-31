@@ -43,4 +43,28 @@ describe('toCsv', () => {
   it('빈 행 → 헤더만', () => {
     expect(toCsv([], [{ key: 'x', header: 'X' }])).toBe('X')
   })
+
+  it('수식 인젝션 방지: = + @ 로 시작하는 셀은 작은따옴표로 텍스트화', () => {
+    const rows = [
+      { g: '=HYPERLINK("http://evil","x")' },
+      { g: '+1+2' },
+      { g: '@SUM(A1)' },
+    ]
+    const csv = toCsv(rows, [{ key: 'g', header: '그룹' }])
+    const lines = csv.split('\r\n')
+    // 따옴표 이스케이프 포함( =HYPERLINK 는 " 가 있어 RFC 4180 인용 ) — 셀이 ' 로 시작
+    expect(lines[1].startsWith("\"'=HYPERLINK") || lines[1].startsWith("'=HYPERLINK")).toBe(true)
+    expect(lines[2]).toBe("'+1+2")
+    expect(lines[3]).toBe("'@SUM(A1)")
+  })
+
+  it('정상 음수·숫자는 수식으로 오인하지 않는다', () => {
+    const rows = [{ a: -5, b: 3.5, c: '+12.0' }]
+    const csv = toCsv(rows, [
+      { key: 'a', header: 'a' },
+      { key: 'b', header: 'b' },
+      { key: 'c', header: 'c' },
+    ])
+    expect(csv).toBe('a,b,c\r\n-5,3.5,+12.0')
+  })
 })
