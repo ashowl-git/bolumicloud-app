@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useApiClient, buildUserMessage } from '@/lib/api'
+import { gzipFile } from '@/lib/gzip'
 import { useApi } from '@/contexts/ApiContext'
 import { useAnalysisPipeline } from '@/hooks/useAnalysisPipeline'
 import type {
@@ -131,12 +132,15 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
     setUploadProgress(0)
 
     const ext = objFile.name.split('.').pop()?.toLowerCase()
+    // 대용량 전송 단축: sn5f/obj 는 gzip 압축해 보낸다(백엔드가 매직바이트로 투명 해제).
+    // 17.6MB sn5f → ~1.6MB 로 줄어 Cloudflare 100초 타임아웃(524)을 피한다.
+    const compressed = (ext === 'sn5f' || ext === 'obj') ? await gzipFile(objFile) : objFile
 
     try {
       // ── SN5F: POST /import/sn5f ──
       if (ext === 'sn5f') {
         const formData = new FormData()
-        formData.append('file', objFile)
+        formData.append('file', compressed)
 
         const data = await api.postFormData('/import/sn5f', formData, {
           onProgress: setUploadProgress,
@@ -209,7 +213,7 @@ export function useSunlightPipeline({ apiUrl: _apiUrl }: UseSunlightPipelineOpti
       // ── OBJ: POST /import/obj ──
       if (ext === 'obj') {
         const formData = new FormData()
-        formData.append('file', objFile)
+        formData.append('file', compressed)
         if (mtlFile) {
           formData.append('mtl_file', mtlFile)
         }
