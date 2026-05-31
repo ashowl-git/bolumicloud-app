@@ -31,7 +31,8 @@ export default function CameraPresetBar({
   const { t } = useLocalizedText()
 
   return (
-    <div className="absolute top-3 left-3 flex gap-0.5
+    // top-20: 좌상단 측정점 툴바(top-4)와 겹쳐 클릭 불가하던 문제 해소(main 96ec763 반영).
+    <div className="absolute top-20 left-3 flex gap-0.5
       bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-lg px-1.5 py-1 z-20">
       {CAMERA_PRESETS.map((preset) => {
         const Icon = PRESET_ICONS[preset.id]
