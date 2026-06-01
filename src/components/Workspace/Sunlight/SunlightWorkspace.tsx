@@ -511,7 +511,10 @@ export default function SunlightWorkspace() {
           config={config}
           onConfigChange={handleConfigChange}
           disabled={isRunning}
-          points={placement.points}
+          // 뷰포트·분석과 동일한 통합 집합(displayPoints=placement+임포트그룹, 184).
+          // placement 만 넘기면 sn5f 임포트 후 placement 가 비어 온보딩 hasPoints·그룹 badge·
+          // 선택 측정점 디테일·3D 일조도표 compute 가 임포트 점을 못 찾아 오작동한다.
+          points={displayPoints}
           selectedPointId={placement.selectedPointId}
           onPointSelect={placement.selectPoint}
           groups={pointGroups.groups}
