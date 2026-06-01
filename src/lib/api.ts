@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback, useMemo } from 'react'
 import { useApi } from '@/contexts/ApiContext'
 import { logger } from '@/lib/logger'
 
@@ -101,10 +102,11 @@ async function wrapRequest<T>(
 export function useApiClient() {
   const { apiUrl } = useApi()
 
-  const get = (path: string) =>
-    wrapRequest(`GET ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.json())
+  const get = useCallback((path: string) =>
+    wrapRequest(`GET ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.json()),
+  [apiUrl])
 
-  const post = (path: string, body?: unknown) =>
+  const post = useCallback((path: string, body?: unknown) =>
     wrapRequest(
       `POST ${path}`,
       () => fetch(`${apiUrl}${path}`, {
@@ -113,9 +115,10 @@ export function useApiClient() {
         ...(body !== undefined && { body: JSON.stringify(body) }),
       }),
       (r) => r.json(),
-    )
+    ),
+  [apiUrl])
 
-  const postFormData = async (
+  const postFormData = useCallback(async (
     path: string,
     formData: FormData,
     options?: { onProgress?: (percent: number) => void },
@@ -156,16 +159,17 @@ export function useApiClient() {
       () => fetch(`${apiUrl}${path}`, { method: 'POST', body: formData }),
       (r) => r.json(),
     )
-  }
+  }, [apiUrl])
 
-  const del = (path: string) =>
+  const del = useCallback((path: string) =>
     wrapRequest(
       `DELETE ${path}`,
       () => fetch(`${apiUrl}${path}`, { method: 'DELETE' }),
       (r) => r.json(),
-    )
+    ),
+  [apiUrl])
 
-  const downloadBlob = async (path: string, filename: string, method: 'GET' | 'POST' = 'GET') => {
+  const downloadBlob = useCallback(async (path: string, filename: string, method: 'GET' | 'POST' = 'GET') => {
     const blob = await wrapRequest(
       `Download ${path}`,
       () => fetch(`${apiUrl}${path}`, { method }),
@@ -179,12 +183,13 @@ export function useApiClient() {
     a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
-  }
+  }, [apiUrl])
 
-  const getBlob = (path: string): Promise<Blob> =>
-    wrapRequest(`GET Blob ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.blob())
+  const getBlob = useCallback((path: string): Promise<Blob> =>
+    wrapRequest(`GET Blob ${path}`, () => fetch(`${apiUrl}${path}`), (r) => r.blob()),
+  [apiUrl])
 
-  const postBlob = (path: string, body?: unknown): Promise<Blob> =>
+  const postBlob = useCallback((path: string, body?: unknown): Promise<Blob> =>
     wrapRequest(
       `POST Blob ${path}`,
       () => fetch(`${apiUrl}${path}`, {
@@ -193,7 +198,11 @@ export function useApiClient() {
         ...(body !== undefined && { body: JSON.stringify(body) }),
       }),
       (r) => r.blob(),
-    )
+    ),
+  [apiUrl])
 
-  return { get, post, postFormData, del, downloadBlob, getBlob, postBlob }
+  return useMemo(
+    () => ({ get, post, postFormData, del, downloadBlob, getBlob, postBlob }),
+    [get, post, postFormData, del, downloadBlob, getBlob, postBlob],
+  )
 }

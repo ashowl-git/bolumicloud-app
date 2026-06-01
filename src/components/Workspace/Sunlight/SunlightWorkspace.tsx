@@ -136,6 +136,18 @@ export default function SunlightWorkspace() {
         })),
       }))
       pointGroups.importGroups(groupsData)
+
+      // 분석 전 뷰포트 표시용으로 placement에도 추가
+      // (좌표는 백엔드 Z-up 원시값, addPointDirect가 backendToThree 적용)
+      for (const g of importData.measurementGroups) {
+        for (const p of g.points) {
+          placement.addPointDirect({
+            id: p.id,
+            name: p.name,
+            position: { x: p.x, y: p.y, z: p.z },
+          })
+        }
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importData])

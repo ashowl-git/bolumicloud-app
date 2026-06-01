@@ -147,6 +147,15 @@ export default function WorkspaceUploadOverlay({
 
         {/* ── Upload Card ── */}
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="3D 모델 파일 업로드"
+          onKeyDown={(e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              if (!isUploading) inputRef.current?.click()
+            }
+          }}
           onClick={() => !isUploading && inputRef.current?.click()}
           className={`bg-white/95 rounded-xl border-2 border-dashed p-10 text-center
             transition-all duration-300 shadow-2xl ${
@@ -209,12 +218,14 @@ export default function WorkspaceUploadOverlay({
                 MTL 파일이 있으면 OBJ와 함께 선택하세요 (드래그 또는 Ctrl/Cmd+클릭)
               </p>
               {/* Errors */}
-              {sizeError && (
-                <p className="text-xs text-red-500 font-medium">{sizeError}</p>
-              )}
-              {formatError && (
-                <p className="text-xs text-red-500 font-medium">{formatError}</p>
-              )}
+              <div role="alert" aria-live="assertive">
+                {sizeError && (
+                  <p className="text-xs text-red-500 font-medium">{sizeError}</p>
+                )}
+                {formatError && (
+                  <p className="text-xs text-red-500 font-medium">{formatError}</p>
+                )}
+              </div>
             </div>
           )}
         </div>

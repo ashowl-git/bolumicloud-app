@@ -219,16 +219,22 @@ export function useAnalysisPipeline<
             setPhase('error')
           }
           setEstimatedRemainingSec(null)
+          // 재분석 ETA 가 첫 실행 기준으로 오계산되지 않도록 시작 시각 리셋
+          startTimeRef.current = null
           clearPersistedSession(sessionKey)
         } else if (data.status === 'error') {
           stopPolling()
           setError(data.error || '분석 오류 발생')
           setPhase('error')
+          // 재분석 ETA 가 첫 실행 기준으로 오계산되지 않도록 시작 시각 리셋
+          startTimeRef.current = null
           clearPersistedSession(sessionKey)
         } else if (data.status === 'cancelled') {
           stopPolling()
           setIsCancelled(true)
           setPhase('idle')
+          // 재분석 ETA 가 첫 실행 기준으로 오계산되지 않도록 시작 시각 리셋
+          startTimeRef.current = null
           clearPersistedSession(sessionKey)
         }
       } catch (e) {

@@ -166,6 +166,7 @@ export function usePrivacyPipeline(_apiUrl: string): UsePrivacyPipelineReturn {
       await api.post(`/privacy/run?session_id=${base.sessionId}`, payload)
 
       base.setPhase('polling')
+      base.saveSession(base.sessionId, 'polling')
       base.startPolling(base.sessionId)
     } catch (e) {
       base.setError(e instanceof Error ? e.message : '실행 오류')

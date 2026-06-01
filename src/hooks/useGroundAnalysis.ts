@@ -31,6 +31,8 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
   const [showGroundHeatmap, setShowGroundHeatmap] = useState(false)
   const [isGroundAnalyzing, setIsGroundAnalyzing] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // 스테일 응답 가드: 재실행 시 토큰 증가, 캡처 토큰과 다르면 결과 폐기
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -40,6 +42,7 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
 
   const runGroundAnalysis = useCallback(async () => {
     if (!sessionId) return
+    const reqId = ++requestIdRef.current
     setIsGroundAnalyzing(true)
     setShowGroundHeatmap(true)
     try {
@@ -54,6 +57,8 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
         day: config.date.day,
         resolution: 'preview',
       })
+      // 응답 도착 사이 재실행되었으면 폐기
+      if (reqId !== requestIdRef.current) return
       const groundId = data.ground_id
 
       if (pollRef.current) clearInterval(pollRef.current)
@@ -65,31 +70,38 @@ export function useGroundAnalysis({ sessionId, gridInterval, config }: UseGround
           if (pollCount > MAX_POLLS) {
             clearInterval(pollRef.current!)
             pollRef.current = null
-            setIsGroundAnalyzing(false)
+            if (reqId === requestIdRef.current) setIsGroundAnalyzing(false)
             return
           }
           const status = await api.get(`/sunlight/ground/${groundId}/status`)
+          // 폴링 도중 재실행되었으면 이 루프 종료 (새 실행이 상태 소유)
+          if (reqId !== requestIdRef.current) {
+            clearInterval(pollRef.current!)
+            pollRef.current = null
+            return
+          }
           if (status.status === 'completed') {
             clearInterval(pollRef.current!)
             pollRef.current = null
             const result = await api.get(`/sunlight/ground/${groundId}/result`)
-            setGroundResult(result)
             const isoData = await api.get(`/sunlight/ground/${groundId}/isochrones`)
+            if (reqId !== requestIdRef.current) return
+            setGroundResult(result)
             setGroundIsochrones(isoData.isochrones || [])
             setIsGroundAnalyzing(false)
           } else if (status.status === 'error') {
             clearInterval(pollRef.current!)
             pollRef.current = null
-            setIsGroundAnalyzing(false)
+            if (reqId === requestIdRef.current) setIsGroundAnalyzing(false)
           }
         } catch {
           clearInterval(pollRef.current!)
           pollRef.current = null
-          setIsGroundAnalyzing(false)
+          if (reqId === requestIdRef.current) setIsGroundAnalyzing(false)
         }
       }, 2000)
     } catch {
-      setIsGroundAnalyzing(false)
+      if (reqId === requestIdRef.current) setIsGroundAnalyzing(false)
     }
   }, [api, sessionId, config, gridInterval])
 

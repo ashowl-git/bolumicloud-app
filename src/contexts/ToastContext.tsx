@@ -82,20 +82,28 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const showApiError = useCallback((error: ApiError) => {
-    showToast({
-      type: 'error',
-      message: error.userMessage,
-      ...(error.recoveryHint && {
+    // 401/403 만 실제 복구 동작(재로그인 위해 reload)을 가진다.
+    // 그 외(413/429/5xx)는 클릭해도 할 일이 없으므로 action 버튼을 만들지 않고
+    // recoveryHint 는 안내 메시지 텍스트로만 합쳐서 표시한다. (죽은 버튼 제거)
+    const isAuthError = error.status === 401 || error.status === 403
+    if (isAuthError && error.recoveryHint) {
+      showToast({
+        type: 'error',
+        message: error.userMessage,
         action: {
           label: error.recoveryHint,
           onClick: () => {
-            if (error.status === 401 || error.status === 403) {
-              window.location.reload()
-            }
+            window.location.reload()
           },
         },
-      }),
-    })
+      })
+      return
+    }
+
+    const message = error.recoveryHint
+      ? `${error.userMessage} ${error.recoveryHint}`
+      : error.userMessage
+    showToast({ type: 'error', message })
   }, [showToast])
 
   const value = useMemo(() => ({ toasts, showToast, showApiError, dismissToast }), [toasts, showToast, showApiError, dismissToast])

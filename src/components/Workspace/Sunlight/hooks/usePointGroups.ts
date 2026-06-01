@@ -161,17 +161,20 @@ export function usePointGroups(): UsePointGroupsReturn {
   const removeGroup = useCallback((groupId: string) => {
     setGroups((prev) => {
       const filtered = prev.filter((g) => g.id !== groupId)
+      let next: MeasurementPointGroup[]
       if (filtered.length === 0) {
         const id = `g${++groupIdCounterRef.current}`
-        return [{ id, name: DEFAULT_GROUP_NAME, points: [], sorted: false, reverseColumns: false }]
+        next = [{ id, name: DEFAULT_GROUP_NAME, points: [], sorted: false, reverseColumns: false }]
+      } else {
+        next = filtered
       }
-      return filtered
+      // 활성 ID도 같은 흐름에서 파생 (삭제 대상이면 남는 첫 그룹으로)
+      setActiveGroupId((prevActive) =>
+        prevActive === groupId ? (next[0]?.id ?? null) : prevActive
+      )
+      return next
     })
-    setActiveGroupId((prev) => {
-      if (prev === groupId) return groups[0]?.id ?? null
-      return prev
-    })
-  }, [groups])
+  }, [])
 
   const renameGroup = useCallback((groupId: string, name: string) => {
     setGroups((prev) =>
