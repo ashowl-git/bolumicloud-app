@@ -14,6 +14,8 @@ import { useGroundAnalysis } from '@/hooks/useGroundAnalysis'
 import { useSolarChart3D } from '@/hooks/useSolarChart3D'
 import type { SunlightConfig, SunlightConfigState, LayerConfig } from '@/lib/types/sunlight'
 import type { ModelConfig, CameraPresetId } from '@/components/shared/3d/types'
+import type { BaseAnalysisPoint } from '@/components/shared/3d/interaction/types'
+import { backendToThree } from '@/components/shared/3d/interaction/types'
 import { DEFAULT_SUNLIGHT_CONFIG } from '@/lib/defaults/sunlight'
 import { useSunDirection, useSunriseSunset } from '@/hooks/useSunDirection'
 import { useToast } from '@/contexts/ToastContext'
@@ -92,6 +94,24 @@ export default function SunlightWorkspace() {
   // Point groups
   const pointGroups = usePointGroups()
 
+  // 뷰포트에 표시할 측정점 = 수동 배치(placement, 실시간) + 임포트/생성 그룹(pointGroups).
+  // sn5f 임포트 점은 placement 에 넣지 않으므로(syncPointsToGroup 충돌 방지) 여기서
+  // pointGroups 로부터 직접 렌더용으로 변환한다. placement 에 이미 있는 id 는 제외해 중복 방지.
+  const displayPoints = useMemo<BaseAnalysisPoint[]>(() => {
+    const placementIds = new Set(placement.points.map((p) => p.id))
+    const groupMarkers: BaseAnalysisPoint[] = pointGroups.allMeasurementPoints
+      .filter((p) => !placementIds.has(p.id))
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        position: { x: p.x, y: p.y, z: p.z },
+        threePosition: backendToThree(p.x, p.y, p.z),
+        surfaceType: 'wall' as const,
+        normal: { dx: 0, dy: 0, dz: 1 },
+      }))
+    return [...placement.points, ...groupMarkers]
+  }, [placement.points, pointGroups.allMeasurementPoints])
+
   // SN5F 임포트 데이터 자동 적용
   useEffect(() => {
     if (!importData) return
@@ -136,18 +156,10 @@ export default function SunlightWorkspace() {
         })),
       }))
       pointGroups.importGroups(groupsData)
-
-      // 분석 전 뷰포트 표시용으로 placement에도 추가
-      // (좌표는 백엔드 Z-up 원시값, addPointDirect가 backendToThree 적용)
-      for (const g of importData.measurementGroups) {
-        for (const p of g.points) {
-          placement.addPointDirect({
-            id: p.id,
-            name: p.name,
-            position: { x: p.x, y: p.y, z: p.z },
-          })
-        }
-      }
+      // 측정점은 pointGroups 가 단일 진실원이다. placement 에는 넣지 않는다 —
+      // syncPointsToGroup([placement.points]) 효과가 활성 그룹(임포트 직후=첫 그룹)을
+      // placement 로 '교체'하므로, 다중 그룹 임포트를 placement 에 밀어넣으면 그룹 점이
+      // 덮어써져 사라진다(184→151 회귀의 원인). 뷰포트는 pointGroups(displayPoints)에서 렌더한다.
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importData])
@@ -257,21 +269,15 @@ export default function SunlightWorkspace() {
       // 이전 활성 그룹 복원 (sync가 새 그룹을 덮어쓰지 않도록)
       if (prevActiveGroup) pointGroups.setActiveGroup(prevActiveGroup)
 
-      // 3D 표시용으로 placement에도 추가
-      for (const p of data.points) {
-        placement.addPointDirect({
-          id: p.id,
-          name: p.name,
-          position: { x: p.x, y: p.y, z: p.z },
-        })
-      }
+      // placement 에는 넣지 않는다(syncPointsToGroup 이 활성 그룹을 덮어쓰는 충돌 방지).
+      // 생성된 점은 pointGroups 의 해당 레이어 그룹에 들어가고 뷰포트가 거기서 렌더한다.
 
       return data.count
     } catch (err) {
       console.error('측정점 생성 오류:', err)
       return 0
     }
-  }, [modelMeta, apiUrl, pointGroups, placement])
+  }, [modelMeta, apiUrl, pointGroups])
 
   // 숨겨진 그룹 세트 (3D 가시성 + 분석 제외)
   const hiddenGroups = useMemo(() => {
@@ -468,7 +474,7 @@ export default function SunlightWorkspace() {
               placement.setMode(m)
               if (m !== 'place_area') areaPlacement.resetArea()
             }}
-            pointCount={placement.points.length}
+            pointCount={displayPoints.length}
             onClearAll={() => {
               placement.clearPoints()
               areaPlacement.resetArea()
@@ -603,7 +609,7 @@ export default function SunlightWorkspace() {
           placementMode={placement.mode}
           hoverHit={placement.hoverHit}
           selectedPointId={placement.selectedPointId}
-          points={placement.points}
+          points={displayPoints}
           onSurfaceHover={placement.setHoverHit}
           onSurfaceClick={placement.handleSurfaceClick}
           onPointClick={placement.handlePointClick}

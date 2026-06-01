@@ -20,6 +20,7 @@ interface UsePointPlacementReturn {
   setMode: (mode: InteractionMode) => void
   addPointFromHit: (hit: SurfaceHit) => void
   addPointDirect: (input: DirectPointInput) => void
+  addPointsDirect: (inputs: DirectPointInput[]) => void
   removePoint: (id: string) => void
   selectPoint: (id: string | null) => void
   clearPoints: () => void
@@ -97,6 +98,34 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
     }
   }, [maxPoints, points, undoHistory])
 
+  // 여러 점을 한 번에 추가한다. addPointDirect 를 루프로 호출하면 매 호출이 클로저의
+  // stale `points`(= 호출 시점의 undoHistory.current)를 읽어 마지막 1개만 남는다.
+  // sn5f 임포트(측정점 184개)·레이어 자동생성처럼 다건 추가는 반드시 이 배치를 쓴다.
+  const addPointsDirect = useCallback((inputs: DirectPointInput[]) => {
+    if (inputs.length === 0) return
+
+    let nextNum = nextIdRef.current
+    const newPoints: BaseAnalysisPoint[] = inputs.map((input) => {
+      const match = input.id.match(/\d+/)
+      if (match) {
+        const num = parseInt(match[0])
+        if (num >= nextNum) nextNum = num + 1
+      }
+      return {
+        id: input.id,
+        name: input.name,
+        position: input.position,
+        threePosition: backendToThree(input.position.x, input.position.y, input.position.z),
+        surfaceType: 'wall' as const,
+        normal: { dx: 0, dy: 0, dz: 1 },
+      }
+    })
+    nextIdRef.current = nextNum
+
+    const combined = [...points, ...newPoints]
+    undoHistory.push(maxPoints ? combined.slice(0, maxPoints) : combined)
+  }, [maxPoints, points, undoHistory])
+
   const removePoint = useCallback((id: string) => {
     undoHistory.push(points.filter((p) => p.id !== id))
     setSelectedPointId((prev) => (prev === id ? null : prev))
@@ -148,6 +177,7 @@ export function usePointPlacement(options: UsePointPlacementOptions = {}): UsePo
     setMode,
     addPointFromHit,
     addPointDirect,
+    addPointsDirect,
     removePoint,
     selectPoint,
     clearPoints,
